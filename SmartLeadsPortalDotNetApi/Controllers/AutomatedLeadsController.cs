@@ -18,7 +18,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             _httpClient = httpClient;
         }
 
-        [HttpPost("updateReviewStatus")]
+        [HttpPost("[action]")]
         public async Task<IActionResult> UpdateReviewStatus([FromBody] SmartLeadRequestUpdateModel request)
         {
             if (request.Id == 0)
@@ -30,7 +30,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(new { message = "Review status updated successfully." });
         }
 
-        [HttpPost("revertReviewStatus")]
+        [HttpPost("[action]")]
         public async Task<IActionResult> RevertReviewStatus([FromBody] SmartLeadRequestUpdateModel request)
         {
             if (request.Id == 0)
@@ -42,77 +42,77 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(new { message = "Review status reverted successfully." });
         }
 
-        [HttpPost("getAllRaw")]
+        [HttpPost("[action]")]
         public async Task<IActionResult> GetAllRaw([FromBody] SmartLeadRequest request)
         {
             SmartLeadsResponseModel<SmartLeadsExportedContact> list = await _automatedLeadsRepository.GetAllRaw(request);
             return Ok(list);
         }
 
-        [HttpPost("getAllDataExport")]
+        [HttpPost("[action]")]
         public async Task<IActionResult> GetAllDataExport([FromBody] SmartLeadRequest request)
         {
             var result = await _automatedLeadsRepository.GetAllDataExport(request);
             return Ok(result);
         }
 
-        [HttpGet("gethasreplycount")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetHasReplyCount()
         {
             var result = await _automatedLeadsRepository.GetHasReplyCount();
             return Ok(result);
         }
 
-        [HttpGet("gettotalresponsetoday")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetNumberOfResponseToday()
         {
             var result = await _automatedLeadsRepository.GetNumberOfResponseToday();
             return Ok(result);
         }
 
-        [HttpGet("getnumberofvalidresponse")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetNumberOfValidResponse()
         {
             var result = await _automatedLeadsRepository.GetNumberOfValidResponse();
             return Ok(result);
         }
 
-        [HttpGet("getnumberofinvalidresponse")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetNumberOfInvalidResponse()
         {
             var result = await _automatedLeadsRepository.GetNumberOfInvalidResponse();
             return Ok(result);
         }
 
-        [HttpGet("getnumberofleadsent")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetNumberOfLeadsSent()
         {
             var result = await _automatedLeadsRepository.GetNumberOfLeadsSent();
             return Ok(result);
         }
 
-        [HttpGet("getemailerrorresponse")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetEmailErrorResponse()
         {
             var result = await _automatedLeadsRepository.GetEmailErrorResponse();
             return Ok(result);
         }
 
-        [HttpGet("getoutofofficeresponse")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetOutOfOfficeResponse()
         {
             var result = await _automatedLeadsRepository.GetOutOfOfficeResponse();
             return Ok(result);
         }
 
-        [HttpGet("getincorrectcontactresponse")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetIncorrectContactsResponse()
         {
             var result = await _automatedLeadsRepository.GetIncorrectContactsResponse();
             return Ok(result);
         }
 
-        [HttpGet("get-exported-date-summary")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetExportedDateSummary()
         {
             try
@@ -126,7 +126,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             }
         }
 
-        [HttpGet("get-replied-date-summary")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetByRepliedDate()
         {
             try
@@ -141,7 +141,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         //Test only for mysql connection
-        [HttpGet("gettestusersmysql")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetTestSelectAllUser()
         {
             var result = await _automatedLeadsRepository.TestSelectAllUser();
