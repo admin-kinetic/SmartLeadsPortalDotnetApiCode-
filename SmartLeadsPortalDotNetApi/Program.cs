@@ -39,15 +39,15 @@ builder.Services.Configure<FormOptions>(o =>
 
 
 // Add services to the container.
-builder.Services.AddControllers(options =>
-    {
-        options.Conventions.Add(new KebabCaseControllerModelConvention());
-        options.Conventions.Add(new KebabCaseActionModelConvention());
-    })
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-    }); ;
+// builder.Services.AddControllers(options =>
+//     {
+//         options.Conventions.Add(new KebabCaseControllerModelConvention());
+//         options.Conventions.Add(new KebabCaseActionModelConvention());
+//     })
+//     .AddJsonOptions(options =>
+//     {
+//         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+//     }); ;
 
 builder.Services.AddCors(options =>
 {

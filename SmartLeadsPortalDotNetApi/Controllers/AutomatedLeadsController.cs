@@ -42,7 +42,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(new { message = "Review status reverted successfully." });
         }
 
-        [HttpPost("[action]")]
+        [HttpPost("get-all-raw")]
         public async Task<IActionResult> GetAllRaw([FromBody] SmartLeadRequest request)
         {
             SmartLeadsResponseModel<SmartLeadsExportedContact> list = await _automatedLeadsRepository.GetAllRaw(request);
