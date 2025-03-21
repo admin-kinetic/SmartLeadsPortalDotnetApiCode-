@@ -56,4 +56,39 @@ namespace SmartLeadsPortalDotNetApi.Model
     {
         public int Id { get; set; }
     }
+
+    public class HasReplyCountModel
+    {
+        public int HasReplyCount { get; set; }
+    }
+
+    public class TotalResponseTodayModel
+    {
+        public int TotalResponseToday { get; set; }
+    }
+    public class TotalValidResponseModel
+    {
+        public int TotalValidResponse { get; set; }
+    }
+    public class TotalInvalidResponseModel
+    {
+        public int TotalInvalidResponse { get; set; }
+    }
+
+    public class TotalLeadsSentModel
+    {
+        public int TotalLeadsSent { get; set; }
+    }
+    public class TotalEmailErrorResponseModel
+    {
+        public int TotalEmailErrorResponse { get; set; }
+    }
+    public class TotalOutOfOfficeResponseModel
+    {
+        public int TotalOutOfOfficeResponse { get; set; }
+    }
+    public class TotalIncorrectContactResponseModel
+    {
+        public int TotalIncorrectContactResponse { get; set; }
+    }
 }

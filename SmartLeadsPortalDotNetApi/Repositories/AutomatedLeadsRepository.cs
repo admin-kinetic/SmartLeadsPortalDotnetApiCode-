@@ -13,14 +13,14 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         Task<IEnumerable<ExportedDateResult>> GetByExportedDate();
         Task<IEnumerable<ExportedDateResult>> GetByRepliedDate();
         Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllDataExport(SmartLeadRequest request);
-        Task<int> GetHasReplyCount();
-        Task<int> GetNumberOfResponseToday();
-        Task<int> GetNumberOfValidResponse();
-        Task<int> GetNumberOfInvalidResponse();
-        Task<int> GetNumberOfLeadsSent();
-        Task<int> GetEmailErrorResponse();
-        Task<int> GetOutOfOfficeResponse();
-        Task<int> GetIncorrectContactsResponse();
+        Task<HasReplyCountModel> GetHasReplyCount();
+        Task<TotalResponseTodayModel> GetNumberOfResponseToday();
+        Task<TotalValidResponseModel> GetNumberOfValidResponse();
+        Task<TotalInvalidResponseModel> GetNumberOfInvalidResponse();
+        Task<TotalLeadsSentModel> GetNumberOfLeadsSent();
+        Task<TotalEmailErrorResponseModel> GetEmailErrorResponse();
+        Task<TotalOutOfOfficeResponseModel> GetOutOfOfficeResponse();
+        Task<TotalIncorrectContactResponseModel> GetIncorrectContactsResponse();
         Task<Users?> TestSelectAllUser();
     }
     public class AutomatedLeadsRepository : SQLDBService, IAutomatedLeadsRepository
@@ -295,7 +295,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetHasReplyCount()
+        public async Task<HasReplyCountModel?> GetHasReplyCount()
         {
             try
             {
@@ -303,8 +303,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS HasReplyCount FROM SmartLeadsExportedContacts WHERE HasReply = 1";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query);
-                    return result;
+                    var result = await connection.QueryFirstOrDefaultAsync<HasReplyCountModel>(query);
+                    return result ?? new HasReplyCountModel { HasReplyCount = 0 };
                 }
             }
             catch (Exception ex)
@@ -312,7 +312,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetNumberOfResponseToday()
+        public async Task<TotalResponseTodayModel> GetNumberOfResponseToday()
         {
             try
             {
@@ -328,13 +328,13 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     var startUtc = TimeZoneInfo.ConvertTimeToUtc(todayStartLocal, singaporeTimeZone);
                     var endUtc = TimeZoneInfo.ConvertTimeToUtc(todayEndLocal, singaporeTimeZone);
                     var query = "SELECT Count(Id) AS TotalResponseToday FROM SmartLeadsExportedContacts WHERE RepliedAt BETWEEN @StartUtc AND @EndUtc";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query, new
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalResponseTodayModel>(query, new
                                     {
                                         StartUtc = startUtc.ToString("yyyy-MM-dd HH:mm:ss"),
                                         EndUtc = endUtc.ToString("yyyy-MM-dd HH:mm:ss")
                                     }
                                 );
-                    return result;
+                    return result ?? new TotalResponseTodayModel { TotalResponseToday  = 0};
                 }
             }
             catch (Exception ex)
@@ -342,7 +342,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetNumberOfValidResponse()
+        public async Task<TotalValidResponseModel> GetNumberOfValidResponse()
         {
             try
             {
@@ -350,8 +350,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalValidResponse FROM SmartLeadsExportedContacts WHERE HasReviewed = 1";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query);
-                    return result;
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalValidResponseModel>(query);
+                    return result ?? new TotalValidResponseModel { TotalValidResponse = 0};
                 }
             }
             catch (Exception ex)
@@ -359,7 +359,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetNumberOfInvalidResponse()
+        public async Task<TotalInvalidResponseModel> GetNumberOfInvalidResponse()
         {
             try
             {
@@ -367,8 +367,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalInvalidResponse FROM SmartLeadsExportedContacts WHERE HasReviewed = 0";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query);
-                    return result;
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalInvalidResponseModel>(query);
+                    return result ?? new TotalInvalidResponseModel { TotalInvalidResponse  = 0};
                 }
             }
             catch (Exception ex)
@@ -376,7 +376,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetNumberOfLeadsSent()
+        public async Task<TotalLeadsSentModel> GetNumberOfLeadsSent()
         {
             try
             {
@@ -384,8 +384,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalLeadsSent FROM SmartLeadsExportedContacts WHERE ExportedDate >= '2025-01-01'";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query);
-                    return result;
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalLeadsSentModel>(query);
+                    return result ?? new TotalLeadsSentModel { TotalLeadsSent  = 0};
                 }
             }
             catch (Exception ex)
@@ -393,7 +393,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetEmailErrorResponse()
+        public async Task<TotalEmailErrorResponseModel> GetEmailErrorResponse()
         {
             try
             {
@@ -407,8 +407,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         AND ExportedDate >= '2025-01-01'
                         AND HasReply = 1
                         AND MessageHistory REGEXP 'error|not found|problem deliver|be delivered|blocked|unable to recieve|unable to deliver'";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query);
-                    return result;
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalEmailErrorResponseModel>(query);
+                    return result ?? new TotalEmailErrorResponseModel { TotalEmailErrorResponse  = 0};
                 }
             }
             catch (Exception ex)
@@ -416,7 +416,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetOutOfOfficeResponse()
+        public async Task<TotalOutOfOfficeResponseModel> GetOutOfOfficeResponse()
         {
             try
             {
@@ -430,8 +430,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         AND ExportedDate >= '2025-01-01'
                         AND HasReply = 1
                         AND MessageHistory REGEXP 'out of office|on leave|maternity leave|leave'";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query);
-                    return result;
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalOutOfOfficeResponseModel>(query);
+                    return result ?? new TotalOutOfOfficeResponseModel { TotalOutOfOfficeResponse  = 0};
                 }
             }
             catch (Exception ex)
@@ -439,7 +439,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<int> GetIncorrectContactsResponse()
+        public async Task<TotalIncorrectContactResponseModel> GetIncorrectContactsResponse()
         {
             try 
             {
@@ -453,8 +453,9 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         AND ExportedDate >= '2025-01-01'
                         AND HasReply = 1
                         AND MessageHistory REGEXP 'not the right person|no longer working with|no longer work for|not interested|in charge|onshore|remove me|unsubscribe'";
-                    var result = await connection.QueryFirstOrDefaultAsync<int>(query);
-                    return result;
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalIncorrectContactResponseModel>(query);
+                    return result ?? new TotalIncorrectContactResponseModel { TotalIncorrectContactResponse = 0 };
+                    ;
                 }
             }
             catch(Exception ex)
