@@ -17,6 +17,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IAutomatedLeadsRepository, AutomatedLeadsRepository>();
+builder.Services.AddScoped<IExcludedKeywordsRepository, ExcludedKeywordsRepository>();
 builder.Services.AddScoped<RestClient>(provider =>
 {
     var options = new RestClientOptions
