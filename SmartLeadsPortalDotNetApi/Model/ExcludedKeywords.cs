@@ -6,6 +6,12 @@
         public string? ExludedKeywords { get; set; }
         public bool? IsActive { get; set; }
     }
+
+    public class ExcludedKeywordsInsert
+    {
+        public string? ExludedKeywords { get; set; }
+        public bool? IsActive { get; set; }
+    }
     public class ExcludedKeywordsListRequest
     {
         public int Page { get; set; }

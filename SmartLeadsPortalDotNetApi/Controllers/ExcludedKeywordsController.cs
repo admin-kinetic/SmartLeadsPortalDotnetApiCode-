@@ -62,11 +62,11 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("insertKeywords")]
-        public async Task<IActionResult> InsertKeyword([FromBody] ExcludedKeywords request)
+        public async Task<IActionResult> InsertKeyword([FromBody] ExcludedKeywordsInsert request)
         {
-            if (request.Id == 0)
+            if (string.IsNullOrEmpty(request.ExludedKeywords))
             {
-                return BadRequest(new { error = "ID is required to create keyword." });
+                return BadRequest(new { error = "Keyword text is required." });
             }
 
             await _excludedKeywordsRepository.InsertKeyword(request);

@@ -7,7 +7,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public interface IExcludedKeywordsRepository
     {
-        Task<bool> InsertKeyword(ExcludedKeywords keyword);
+        Task<bool> InsertKeyword(ExcludedKeywordsInsert keyword);
         Task<ExcludedKeywordsResponseModel<ExcludedKeywords>> GetAllKeywords(ExcludedKeywordsListRequest request);
         Task<IEnumerable<ExcludedKeywords>> GetAllKeywordsMap();
         Task<bool> UpdateKeyword(ExcludedKeywords keyword);
@@ -23,7 +23,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         }
 
         // Insert Keyword
-        public async Task<bool> InsertKeyword(ExcludedKeywords keyword)
+        public async Task<bool> InsertKeyword(ExcludedKeywordsInsert keyword)
         {
             try
             {
@@ -33,8 +33,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var query = @"INSERT INTO ExcludeKeywords (ExludedKeywords, IsActive) 
-                                  VALUES (@ExcludedKeywords, @IsActive)";
+                    var query = @"INSERT INTO ExcludeKeywords (ExludedKeywords, IsActive)VALUES (@ExludedKeywords, @IsActive)";
 
                     var result = await connection.ExecuteAsync(query, new
                     {
@@ -102,9 +101,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var query = @"UPDATE ExcludeKeywords 
-                                  SET ExludedKeywords = @ExcludedKeywords, IsActive = @IsActive 
-                                  WHERE Id = @Id";
+                    var query = @"UPDATE ExcludeKeywords SET ExludedKeywords = @ExludedKeywords, IsActive = @IsActive WHERE Id = @Id";
 
                     var result = await connection.ExecuteAsync(query, new
                     {
