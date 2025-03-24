@@ -5,36 +5,20 @@ using SmartLeadsPortalDotNetApi.Services;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
-    public interface IAutomatedLeadsRepository
+    public class AutomatedLeadsRepository : SQLDBService
     {
-        Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllRaw(SmartLeadRequest request);
-        Task UpdateReviewStatus(SmartLeadRequestUpdateModel request);
-        Task RevertReviewStatus(SmartLeadRequestUpdateModel request);
-        Task<IEnumerable<ExportedDateResult>> GetByExportedDate();
-        Task<IEnumerable<ExportedDateResult>> GetByRepliedDate();
-        Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllDataExport(SmartLeadRequest request);
-        Task<HasReplyCountModel> GetHasReplyCount();
-        Task<TotalResponseTodayModel> GetNumberOfResponseToday();
-        Task<TotalValidResponseModel> GetNumberOfValidResponse();
-        Task<TotalInvalidResponseModel> GetNumberOfInvalidResponse();
-        Task<TotalLeadsSentModel> GetNumberOfLeadsSent();
-        Task<TotalEmailErrorResponseModel> GetEmailErrorResponse();
-        Task<TotalOutOfOfficeResponseModel> GetOutOfOfficeResponse();
-        Task<TotalIncorrectContactResponseModel> GetIncorrectContactsResponse();
-        Task<Users?> TestSelectAllUser();
-    }
-    public class AutomatedLeadsRepository : SQLDBService, IAutomatedLeadsRepository
-    {
+        private readonly string _mysqlconnectionString;
         private readonly string _connectionString;
         public AutomatedLeadsRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("MySQLDBConnectionString");
+            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
+            _mysqlconnectionString = configuration.GetConnectionString("MySQLDBConnectionString");
         }
         public async Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllRaw(SmartLeadRequest request)
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "SELECT * FROM SmartLeadsExportedContacts";
@@ -140,7 +124,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "SELECT * FROM SmartLeadsExportedContacts";
@@ -223,7 +207,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "UPDATE SmartLeadsExportedContacts SET HasReviewed = 1 WHERE Id = @Id";
@@ -239,7 +223,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "UPDATE SmartLeadsExportedContacts SET HasReviewed = 0 WHERE Id = @Id";
@@ -255,7 +239,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = @"
@@ -277,7 +261,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = @"
@@ -295,11 +279,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<HasReplyCountModel?> GetHasReplyCount()
+        public async Task<HasReplyCountModel> GetHasReplyCount()
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS HasReplyCount FROM SmartLeadsExportedContacts WHERE HasReply = 1";
@@ -316,7 +300,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var singaporeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
@@ -346,7 +330,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalValidResponse FROM SmartLeadsExportedContacts WHERE HasReviewed = 1";
@@ -363,7 +347,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalInvalidResponse FROM SmartLeadsExportedContacts WHERE HasReviewed = 0";
@@ -380,7 +364,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalLeadsSent FROM SmartLeadsExportedContacts WHERE ExportedDate >= '2025-01-01'";
@@ -397,7 +381,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = @"
@@ -420,7 +404,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = @"
@@ -443,7 +427,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try 
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = @"
@@ -467,7 +451,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_connectionString))
+                using (var connection = new MySqlConnection(_mysqlconnectionString))
                 {
                     await connection.OpenAsync();
                     var query = @"

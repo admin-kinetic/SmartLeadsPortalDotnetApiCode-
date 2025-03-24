@@ -7,6 +7,14 @@
         public bool? IsActive { get; set; }
     }
 
+    public class ExcludedKeywordsModel
+    {
+        public int Id { get; set; }
+        public Guid Guid { get; set; }
+        public string? ExcludedKeyword { get; set; }
+        public bool? IsActive { get; set; }
+    }
+
     public class ExcludedKeywordsInsert
     {
         public string? ExludedKeywords { get; set; }
@@ -16,6 +24,7 @@
     {
         public int Page { get; set; }
         public int PageSize { get; set; }
+        public string? Search { get; set; }
     }
     public class ExcludedKeywordsRequest
     {
