@@ -16,8 +16,8 @@ builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
-builder.Services.AddScoped<IAutomatedLeadsRepository, AutomatedLeadsRepository>();
-builder.Services.AddScoped<IExcludedKeywordsRepository, ExcludedKeywordsRepository>();
+builder.Services.AddScoped<AutomatedLeadsRepository>();
+builder.Services.AddScoped<ExcludedKeywordsRepository>();
 builder.Services.AddScoped<RestClient>(provider =>
 {
     var options = new RestClientOptions
@@ -33,7 +33,7 @@ builder.Services.AddHttpClient();
 builder.Services.Configure<FormOptions>(o =>
 {
     o.ValueLengthLimit = int.MaxValue;
-    o.MultipartBodyLengthLimit = int.MaxValue;
+    o.MultipartBodyLengthLimit = long.MaxValue;
     o.MemoryBufferThreshold = int.MaxValue;
 });
 
@@ -56,6 +56,7 @@ builder.Services.AddCors(options =>
             "https://smartleads-export.kis-systems.com")
         .AllowAnyHeader()
         .AllowAnyMethod()
+        .AllowCredentials()
         .WithExposedHeaders("Content-Disposition"));
 });
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Repositories;
@@ -9,17 +11,79 @@ namespace SmartLeadsPortalDotNetApi.Controllers
     [ApiController]
     public class ExcludedKeywordsController : ControllerBase
     {
-        private readonly IExcludedKeywordsRepository _excludedKeywordsRepository;
+        private readonly ExcludedKeywordsRepository _excludedKeywordsRepository;
         private readonly HttpClient _httpClient;
 
-        public ExcludedKeywordsController(IExcludedKeywordsRepository excludedKeywordsRepository, HttpClient httpClient)
+        public ExcludedKeywordsController(ExcludedKeywordsRepository excludedKeywordsRepository, HttpClient httpClient)
         {
             _excludedKeywordsRepository = excludedKeywordsRepository;
             _httpClient = httpClient;
         }
 
+        //MSSQL API
+        [HttpPost("insertExcludedKeywords")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> InsertExcludedKeyword([FromBody] ExcludedKeywordsInsert request)
+        {
+            if (string.IsNullOrEmpty(request.ExludedKeywords))
+            {
+                return BadRequest(new { error = "Keyword text is required." });
+            }
+
+            await _excludedKeywordsRepository.InsertExcludedKeyword(request);
+            return Ok(new { message = "keywords created successfully." });
+        }
+
+        [HttpPost("updateExcludedKeywords")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpdateExcludedKeyword([FromBody] ExcludedKeywordsModel request)
+        {
+            if (string.IsNullOrEmpty(request.ExcludedKeyword))
+            {
+                return BadRequest(new { error = "Keyword text is required." });
+            }
+
+            await _excludedKeywordsRepository.UpdateExcludedKeyword(request);
+            return Ok(new { message = "keywords created successfully." });
+        }
+
+        [HttpPost("getAllKeywordsList")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetAllExcludeKeywordsList(ExcludedKeywordsListRequest param)
+        {
+            ExcludedKeywordsResponseModel<ExcludedKeywordsModel> list = await _excludedKeywordsRepository.GetAllExcludeKeywordsList(param);
+            return Ok(list);
+        }
+
+        [HttpGet("getexcludedkeywordsbyid/{guid}")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetExcludeKeywordsById(Guid guid)
+        {
+            ExcludedKeywordsModel? list = await _excludedKeywordsRepository.GetExcludeKeywordsById(guid);
+            return Ok(list);
+        }
+
+        [HttpGet("getallexcludedkeywordsmap")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetAllExcludeKeywordsMap()
+        {
+            IEnumerable<ExcludedKeywordsModel> list = await _excludedKeywordsRepository.GetAllExcludeKeywordsMap();
+            return Ok(list);
+        }
+
+        [HttpGet("deleteexcludedkeywrods/{guid}")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> DeleteExcludedKeyword(Guid guid)
+        {
+            await _excludedKeywordsRepository.DeleteExcludedKeyword(guid);
+            return Ok(new { message = "keywords deleted successfully." });
+        }
+
+        //MYSQL API
+
         // GET: api/ExcludedKeywords
         [HttpPost("getAllKeywords")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetAllKeywords([FromBody] ExcludedKeywordsListRequest request)
         {
             try
@@ -34,6 +98,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getAllKeywordsMap")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetAllKeywordsMap()
         {
             try
@@ -48,6 +113,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getKeywordById/{id}")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetKeywordById(int id)
         {
             try
@@ -62,6 +128,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("insertKeywords")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> InsertKeyword([FromBody] ExcludedKeywordsInsert request)
         {
             if (string.IsNullOrEmpty(request.ExludedKeywords))
@@ -74,6 +141,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("updateKeyword")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> UpdateKeyword([FromBody] ExcludedKeywords request)
         {
             if (request.Id == 0)
@@ -86,6 +154,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("deleteKeyword")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> DeleteKeyword([FromBody] ExcludedKeywordsUpdateRequest request)
         {
             if (request.Id == 0)

@@ -1,16 +1,23 @@
-﻿using System.Data;
-using System.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
+using MySqlConnector;
+using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Services
 {
     public class SQLDBService : IDisposable
     {
         protected IDbConnection con;
+        protected IDbConnection mysqlcon;
         private static IConfiguration configuration;
 
         public IDbConnection getConnection()
         {
             return con;
+        }
+
+        public IDbConnection getMysqlConnection()
+        {
+            return mysqlcon;
         }
         public SQLDBService()
         {
@@ -20,7 +27,8 @@ namespace SmartLeadsPortalDotNetApi.Services
                 .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
-            con = new SqlConnection(configuration.GetConnectionString("AzureSQLDBConnectionString"));
+            con = new SqlConnection(configuration.GetConnectionString("SQLServerDBConnectionString"));
+            mysqlcon = new MySqlConnection(configuration.GetConnectionString("MySQLDBConnectionString"));
         }
         public void CheckIfOpen()
         {
@@ -29,6 +37,11 @@ namespace SmartLeadsPortalDotNetApi.Services
                 if (con.State == ConnectionState.Closed)
                 {
                     con.Open();
+                }
+
+                if (mysqlcon.State == ConnectionState.Closed)
+                {
+                    mysqlcon.Open();
                 }
 
             }
@@ -41,6 +54,11 @@ namespace SmartLeadsPortalDotNetApi.Services
                 if (con == null)
                 {
                     con.Open();
+                }
+
+                if (mysqlcon == null)
+                {
+                    mysqlcon.Open();
                 }
             }
 
@@ -58,6 +76,11 @@ namespace SmartLeadsPortalDotNetApi.Services
                     con.Close();
                 }
 
+                if (mysqlcon.State == ConnectionState.Open)
+                {
+                    mysqlcon.Close();
+                }
+
             }
             catch (Exception ex)
             {
@@ -68,6 +91,11 @@ namespace SmartLeadsPortalDotNetApi.Services
                 if (con != null)
                 {
                     con.Dispose();
+                }
+
+                if (mysqlcon != null)
+                {
+                    mysqlcon.Dispose();
                 }
             }
 
