@@ -1,8 +1,10 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.35821.62
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLeadsPortalDotNetApi", "SmartLeadsPortalDotNetApi\SmartLeadsPortalDotNetApi.csproj", "{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLeadsDataTransfer", "SmartLeadsDataTransfer\SmartLeadsDataTransfer.csproj", "{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
