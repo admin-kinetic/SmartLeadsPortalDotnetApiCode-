@@ -25,7 +25,114 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             _configuration = configuration;
         }
 
+        //MSSQL API
+        [HttpGet("getsmartleadsexporteddatesummary")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsByExportedDateSummary()
+        {
+            try
+            {
+                var result = await _automatedLeadsRepository.GetSmartLeadsByExportedDate();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while fetching data.", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("getsmartleadsreplieddatesummary")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsByRepliedDateSummary()
+        {
+            try
+            {
+                var result = await _automatedLeadsRepository.GetSmartLeadsByRepliedDate();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while fetching data.", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("getsmartleadshasreplycount")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsHasReplyCount()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsHasReplyCount();
+            return Ok(result);
+        }
+
+        [HttpGet("getsmartleadstotalsent")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsTotalLeadsSent()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsTotalLeadsSent();
+            return Ok(result);
+        }
+
+        [HttpGet("getsmartleadsemailerror")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsEmailErrorResponse()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsEmailErrorResponse();
+            return Ok(result);
+        }
+
+        [HttpGet("getsmartleadsoutofoffice")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsOutOfOfficeResponse()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsOutOfOfficeResponse();
+            return Ok(result);
+        }
+
+        [HttpGet("getsmartleadsresponsetoday")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsResponseToday()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsResponseToday();
+            return Ok(result);
+        }
+
+        [HttpGet("getsmartleadsvalidresponse")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsValidResponse()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsValidResponse();
+            return Ok(result);
+        }
+
+        [HttpGet("getsmartleadsincorrectcontactresponse")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsIncorrectContactsResponse()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsIncorrectContactsResponse();
+            return Ok(result);
+        }
+
+        [HttpGet("getsmartleadsinvalidresponse")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetSmartLeadsInvalidResponse()
+        {
+            var result = await _automatedLeadsRepository.GetSmartLeadsInvalidResponse();
+            return Ok(result);
+        }
+
+        [HttpPost("getallrawSmartleads")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetAllRawPaginated([FromBody] SmartLeadRequest request)
+        {
+            SmartLeadsResponseModel<SmartLeadsExportedContact> list = await _automatedLeadsRepository.GetAllRawPaginated(request);
+            return Ok(list);
+        }
+
+
+
+        //MYSQL API
         [HttpPost("updateReviewStatus")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> UpdateReviewStatus([FromBody] SmartLeadRequestUpdateModel request)
         {
             if (request.Id == 0)
@@ -38,6 +145,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("revertReviewStatus")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> RevertReviewStatus([FromBody] SmartLeadRequestUpdateModel request)
         {
             if (request.Id == 0)
@@ -50,6 +158,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("getAllRaw")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetAllRaw([FromBody] SmartLeadRequest request)
         {
             SmartLeadsResponseModel<SmartLeadsExportedContact> list = await _automatedLeadsRepository.GetAllRaw(request);
@@ -57,6 +166,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("getAllDataExport")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetAllDataExport([FromBody] SmartLeadRequest request)
         {
             var result = await _automatedLeadsRepository.GetAllDataExport(request);
@@ -64,6 +174,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("gethasreplycount")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetHasReplyCount()
         {
             var result = await _automatedLeadsRepository.GetHasReplyCount();
@@ -71,6 +182,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("gettotalresponsetoday")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetNumberOfResponseToday()
         {
             var result = await _automatedLeadsRepository.GetNumberOfResponseToday();
@@ -78,6 +190,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getnumberofvalidresponse")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetNumberOfValidResponse()
         {
             var result = await _automatedLeadsRepository.GetNumberOfValidResponse();
@@ -85,6 +198,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getnumberofinvalidresponse")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetNumberOfInvalidResponse()
         {
             var result = await _automatedLeadsRepository.GetNumberOfInvalidResponse();
@@ -92,6 +206,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getnumberofleadsent")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetNumberOfLeadsSent()
         {
             var result = await _automatedLeadsRepository.GetNumberOfLeadsSent();
@@ -99,6 +214,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getemailerrorresponse")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetEmailErrorResponse()
         {
             var result = await _automatedLeadsRepository.GetEmailErrorResponse();
@@ -106,6 +222,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getoutofofficeresponse")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetOutOfOfficeResponse()
         {
             var result = await _automatedLeadsRepository.GetOutOfOfficeResponse();
@@ -113,6 +230,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("getincorrectcontactresponse")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetIncorrectContactsResponse()
         {
             var result = await _automatedLeadsRepository.GetIncorrectContactsResponse();
@@ -120,6 +238,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("get-exported-date-summary")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetExportedDateSummary()
         {
             try
@@ -134,6 +253,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("get-replied-date-summary")]
+        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetByRepliedDate()
         {
             try
@@ -199,6 +319,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                     {
                         DataRow row = dt.NewRow();
 
+                        // Validate and parse data
                         row["ExportedDate"] = DateTime.TryParse(worksheet.Cells[rowNum, 1].Text, out var ed) ? ed : (object)DBNull.Value;
                         row["Email"] = worksheet.Cells[rowNum, 2].Text;
                         row["ContactSource"] = worksheet.Cells[rowNum, 3].Text;
@@ -225,33 +346,46 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                     using (SqlConnection conn = new SqlConnection(connectionString))
                     {
                         await conn.OpenAsync();
-                        using (SqlBulkCopy bulkCopy = new SqlBulkCopy(conn))
+                        using (SqlTransaction transaction = conn.BeginTransaction())
                         {
-                            bulkCopy.DestinationTableName = "SmartLeadsExportedContacts";
-                            bulkCopy.BulkCopyTimeout = 300; // 5 minutes timeout
-                            bulkCopy.BatchSize = 1000;
-                            bulkCopy.EnableStreaming = true;
+                            try
+                            {
+                                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(conn, SqlBulkCopyOptions.Default, transaction))
+                                {
+                                    bulkCopy.DestinationTableName = "SmartLeadsExportedContacts";
+                                    bulkCopy.BulkCopyTimeout = 300; // 5 minutes timeout
+                                    bulkCopy.BatchSize = 1000;
+                                    bulkCopy.EnableStreaming = true;
 
-                            // Map columns
-                            bulkCopy.ColumnMappings.Add("ExportedDate", "ExportedDate");
-                            bulkCopy.ColumnMappings.Add("Email", "Email");
-                            bulkCopy.ColumnMappings.Add("ContactSource", "ContactSource");
-                            bulkCopy.ColumnMappings.Add("Rate", "Rate");
-                            bulkCopy.ColumnMappings.Add("HasReply", "HasReply");
-                            bulkCopy.ColumnMappings.Add("ModifiedAt", "ModifiedAt");
-                            bulkCopy.ColumnMappings.Add("Category", "Category");
-                            bulkCopy.ColumnMappings.Add("MessageHistory", "MessageHistory");
-                            bulkCopy.ColumnMappings.Add("LatestReplyPlainText", "LatestReplyPlainText");
-                            bulkCopy.ColumnMappings.Add("HasReviewed", "HasReviewed");
-                            bulkCopy.ColumnMappings.Add("SmartleadId", "SmartleadId");
-                            bulkCopy.ColumnMappings.Add("ReplyDate", "ReplyDate");
-                            bulkCopy.ColumnMappings.Add("RepliedAt", "RepliedAt");
-                            bulkCopy.ColumnMappings.Add("FailedDelivery", "FailedDelivery");
-                            bulkCopy.ColumnMappings.Add("RemovedFromSmartleads", "RemovedFromSmartleads");
-                            bulkCopy.ColumnMappings.Add("SmartLeadsStatus", "SmartLeadsStatus");
-                            bulkCopy.ColumnMappings.Add("SmartLeadsCategory", "SmartLeadsCategory");
+                                    // Map columns
+                                    bulkCopy.ColumnMappings.Add("ExportedDate", "ExportedDate");
+                                    bulkCopy.ColumnMappings.Add("Email", "Email");
+                                    bulkCopy.ColumnMappings.Add("ContactSource", "ContactSource");
+                                    bulkCopy.ColumnMappings.Add("Rate", "Rate");
+                                    bulkCopy.ColumnMappings.Add("HasReply", "HasReply");
+                                    bulkCopy.ColumnMappings.Add("ModifiedAt", "ModifiedAt");
+                                    bulkCopy.ColumnMappings.Add("Category", "Category");
+                                    bulkCopy.ColumnMappings.Add("MessageHistory", "MessageHistory");
+                                    bulkCopy.ColumnMappings.Add("LatestReplyPlainText", "LatestReplyPlainText");
+                                    bulkCopy.ColumnMappings.Add("HasReviewed", "HasReviewed");
+                                    bulkCopy.ColumnMappings.Add("SmartleadId", "SmartleadId");
+                                    bulkCopy.ColumnMappings.Add("ReplyDate", "ReplyDate");
+                                    bulkCopy.ColumnMappings.Add("RepliedAt", "RepliedAt");
+                                    bulkCopy.ColumnMappings.Add("FailedDelivery", "FailedDelivery");
+                                    bulkCopy.ColumnMappings.Add("RemovedFromSmartleads", "RemovedFromSmartleads");
+                                    bulkCopy.ColumnMappings.Add("SmartLeadsStatus", "SmartLeadsStatus");
+                                    bulkCopy.ColumnMappings.Add("SmartLeadsCategory", "SmartLeadsCategory");
 
-                            await bulkCopy.WriteToServerAsync(dt);
+                                    await bulkCopy.WriteToServerAsync(dt);
+                                }
+
+                                transaction.Commit();
+                            }
+                            catch (Exception ex)
+                            {
+                                transaction.Rollback();
+                                return StatusCode(500, $"An error occurred: {ex.Message}");
+                            }
                         }
                     }
                 }
