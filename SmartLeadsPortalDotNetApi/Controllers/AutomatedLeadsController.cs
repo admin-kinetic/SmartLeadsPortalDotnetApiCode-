@@ -9,10 +9,10 @@ namespace SmartLeadsPortalDotNetApi.Controllers
     [ApiController]
     public class AutomatedLeadsController : ControllerBase
     {
-        IAutomatedLeadsRepository _automatedLeadsRepository;
+        AutomatedLeadsRepository _automatedLeadsRepository;
         private readonly HttpClient _httpClient;
 
-        public AutomatedLeadsController(IAutomatedLeadsRepository automatedLeadsRepository, HttpClient httpClient)
+        public AutomatedLeadsController(AutomatedLeadsRepository automatedLeadsRepository, HttpClient httpClient)
         {
             _automatedLeadsRepository = automatedLeadsRepository;
             _httpClient = httpClient;

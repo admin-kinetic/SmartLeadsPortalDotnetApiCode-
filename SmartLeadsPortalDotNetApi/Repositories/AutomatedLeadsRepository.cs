@@ -4,26 +4,8 @@ using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Services;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
-{
-    public interface IAutomatedLeadsRepository
-    {
-        Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllRaw(SmartLeadRequest request);
-        Task UpdateReviewStatus(SmartLeadRequestUpdateModel request);
-        Task RevertReviewStatus(SmartLeadRequestUpdateModel request);
-        Task<IEnumerable<ExportedDateResult>> GetByExportedDate();
-        Task<IEnumerable<ExportedDateResult>> GetByRepliedDate();
-        Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllDataExport(SmartLeadRequest request);
-        Task<int> GetHasReplyCount();
-        Task<int> GetNumberOfResponseToday();
-        Task<int> GetNumberOfValidResponse();
-        Task<int> GetNumberOfInvalidResponse();
-        Task<int> GetNumberOfLeadsSent();
-        Task<int> GetEmailErrorResponse();
-        Task<int> GetOutOfOfficeResponse();
-        Task<int> GetIncorrectContactsResponse();
-        Task<Users?> TestSelectAllUser();
-    }
-    public class AutomatedLeadsRepository : SQLDBService, IAutomatedLeadsRepository
+{  
+    public class AutomatedLeadsRepository : SQLDBService
     {
         private readonly string _connectionString;
         public AutomatedLeadsRepository(IConfiguration configuration)

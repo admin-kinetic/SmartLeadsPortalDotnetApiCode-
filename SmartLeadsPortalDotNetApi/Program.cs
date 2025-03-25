@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RestSharp;
+using Serilog;
 using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Helper;
@@ -11,13 +12,22 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Create the logger
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/smartleadsportal.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+builder.Host.UseSerilog();
+
 // Add services to the container.
+builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
-builder.Services.AddScoped<IAutomatedLeadsRepository, AutomatedLeadsRepository>();
+builder.Services.AddScoped<AutomatedLeadsRepository>();
+builder.Services.AddScoped<WebhookRepository>();
 builder.Services.AddScoped<RestClient>(provider =>
 {
     var options = new RestClientOptions
@@ -29,6 +39,7 @@ builder.Services.AddScoped<RestClient>(provider =>
 
     return new RestClient(options);
 });
+
 builder.Services.AddHttpClient();
 builder.Services.Configure<FormOptions>(o =>
 {
