@@ -120,6 +120,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(result);
         }
 
+        [HttpPost("getallrawSmartleads")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetAllRawPaginated([FromBody] SmartLeadRequest request)
+        {
+            SmartLeadsResponseModel<SmartLeadsExportedContact> list = await _automatedLeadsRepository.GetAllRawPaginated(request);
+            return Ok(list);
+        }
+
 
 
         //MYSQL API
