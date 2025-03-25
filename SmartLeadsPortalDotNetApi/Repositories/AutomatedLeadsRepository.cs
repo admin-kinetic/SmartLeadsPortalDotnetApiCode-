@@ -2,6 +2,7 @@
 using MySqlConnector;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Services;
+using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
@@ -14,6 +15,187 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
             _mysqlconnectionString = configuration.GetConnectionString("MySQLDBConnectionString");
         }
+
+        //MSSQL
+        public async Task<IEnumerable<ExportedDateResult>> GetSmartLeadsByExportedDate()
+        {
+            try
+            {
+                string _proc = "sm_spGetSmartLeadsByExportedDate";
+                IEnumerable<ExportedDateResult> list = await SqlMapper.QueryAsync<ExportedDateResult>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+                return list;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<IEnumerable<ExportedDateResult>> GetSmartLeadsByRepliedDate()
+        {
+            try
+            {
+                string _proc = "sm_spGetSmartLeadsByRepliedDate";
+                IEnumerable<ExportedDateResult> list = await SqlMapper.QueryAsync<ExportedDateResult>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+                return list;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<HasReplyCountModel?> GetSmartLeadsHasReplyCount()
+        {
+            try
+            {
+                string _proc = "sm_spGetHasReplyCount";
+                HasReplyCountModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<HasReplyCountModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+
+                return ret;
+            }
+            catch(Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<TotalLeadsSentModel?> GetSmartLeadsTotalLeadsSent()
+        {
+            try
+            {
+                string _proc = "sm_spSmartLeadsTotalSent";
+                TotalLeadsSentModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<TotalLeadsSentModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+
+                return ret;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<TotalEmailErrorResponseModel?> GetSmartLeadsEmailErrorResponse()
+        {
+            try
+            {
+                string _proc = "sm_spSmartLeadsEmailErrorResponse";
+                TotalEmailErrorResponseModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<TotalEmailErrorResponseModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+
+                return ret;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+
+        public async Task<TotalOutOfOfficeResponseModel?> GetSmartLeadsOutOfOfficeResponse()
+        {
+            try
+            {
+                string _proc = "sm_spSmartLeadsOutOfOfficeResponse";
+                TotalOutOfOfficeResponseModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<TotalOutOfOfficeResponseModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+                return ret;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<TotalResponseTodayModel?> GetSmartLeadsResponseToday()
+        {
+            try
+            {
+                string _proc = "sm_spSmartLeadsResponseToday";
+                TotalResponseTodayModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<TotalResponseTodayModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+                return ret;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<TotalValidResponseModel?> GetSmartLeadsValidResponse()
+        {
+            try
+            {
+                string _proc = "sm_spSmartLeadsValidResponse";
+                TotalValidResponseModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<TotalValidResponseModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+                return ret;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<TotalIncorrectContactResponseModel?> GetSmartLeadsIncorrectContactsResponse()
+        {
+            try
+            {
+                string _proc = "sm_spSmartLeadsIncorrectContactResponse";
+                TotalIncorrectContactResponseModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<TotalIncorrectContactResponseModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+                return ret;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+        public async Task<TotalInvalidResponseModel?> GetSmartLeadsInvalidResponse()
+        {
+            try
+            {
+                string _proc = "sm_spSmartLeadsInvalidResponse";
+                TotalInvalidResponseModel? ret = await SqlMapper.QuerySingleOrDefaultAsync<TotalInvalidResponseModel>(con, _proc, commandType: CommandType.StoredProcedure, commandTimeout: 6000);
+                return ret;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+
+
+
+
+        //MYSQL DATA
         public async Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllRaw(SmartLeadRequest request)
         {
             try
