@@ -8,6 +8,7 @@ using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Helper;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +28,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<AutomatedLeadsRepository>();
-builder.Services.AddScoped<WebhookRepository>();
+builder.Services.AddScoped<WebhooksRepository>();
 builder.Services.AddScoped<ExcludedKeywordsRepository>();
 builder.Services.AddScoped<RestClient>(provider =>
 {
@@ -48,6 +49,9 @@ builder.Services.Configure<FormOptions>(o =>
     o.MultipartBodyLengthLimit = long.MaxValue;
     o.MemoryBufferThreshold = int.MaxValue;
 });
+
+builder.Services.AddScoped<WebhookService>();
+builder.Services.AddScoped<LeadClicksRepository>();
 
 
 // Add services to the container.
@@ -92,6 +96,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Trigger database connection validation on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbConnectionFactory = scope.ServiceProvider.GetRequiredService<DbConnectionFactory>();
+    dbConnectionFactory.ValidateConnections();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
