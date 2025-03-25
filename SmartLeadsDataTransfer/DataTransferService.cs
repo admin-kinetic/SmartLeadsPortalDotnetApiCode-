@@ -26,20 +26,17 @@ public class DataTransferService
         {
             mySqlConnection.Open();
             sqlServerConnection.Open();
-
-            // Start a transaction in SQL Server for efficient bulk inserts
-            using (var transaction = sqlServerConnection.BeginTransaction())
+            while (true)
             {
-                try
+                // Start a transaction in SQL Server for efficient bulk inserts
+                using (var transaction = sqlServerConnection.BeginTransaction())
                 {
-                    // Enable IDENTITY_INSERT
-                    await sqlServerConnection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts ON;", transaction: transaction);
-
-                    while (true)
+                    try
                     {
+                        // Enable IDENTITY_INSERT
+                        await sqlServerConnection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts ON;", transaction: transaction);
+
                         Console.WriteLine($"Fetching records from offset: {offset}");
-
-
 
                         // Fetch data in batches from MySQL
                         var query = $"SELECT * FROM SmartLeadsExportedContacts LIMIT {batchSize} OFFSET {offset}";
@@ -48,16 +45,17 @@ public class DataTransferService
                         if (records == null || records.Count == 0)
                             break;
 
+                        Console.WriteLine($"Insert to new database");
                         // Insert the fetched data into SQL Server in a single transaction
-                        // var insertQuery = @"
-                        //     INSERT INTO SmartLeadsExportedContacts (Id, ExportedDate, Email, ContactSource, Rate, HasReply, ModifiedAt,
-                        //         Category, MessageHistory, LatestReplyPlainText, HasReviewed, SmartleadId, ReplyDate, RepliedAt,
-                        //         FailedDelivery, RemovedFromSmartleads, SmartLeadsStatus, SmartLeadsCategory)
-                        //     VALUES (@Id, @ExportedDate, @Email, @ContactSource, @Rate, @HasReply, @ModifiedAt,
-                        //         @Category, @MessageHistory, @LatestReplyPlainText, @HasReviewed, @SmartleadId, @ReplyDate, @RepliedAt,
-                        //         @FailedDelivery, @RemovedFromSmartleads, @SmartLeadsStatus, @SmartLeadsCategory);";
+                        var insertQuery = @"
+                            INSERT INTO SmartLeadsExportedContacts (Id, ExportedDate, Email, ContactSource, Rate, HasReply, ModifiedAt,
+                                Category, MessageHistory, LatestReplyPlainText, HasReviewed, SmartleadId, ReplyDate, RepliedAt,
+                                FailedDelivery, RemovedFromSmartleads, SmartLeadsStatus, SmartLeadsCategory)
+                            VALUES (@Id, @ExportedDate, @Email, @ContactSource, @Rate, @HasReply, @ModifiedAt,
+                                @Category, @MessageHistory, @LatestReplyPlainText, @HasReviewed, @SmartleadId, @ReplyDate, @RepliedAt,
+                                @FailedDelivery, @RemovedFromSmartleads, @SmartLeadsStatus, @SmartLeadsCategory);";
 
-                        // await sqlServerConnection.ExecuteAsync(insertQuery, records, transaction);
+                        await sqlServerConnection.ExecuteAsync(insertQuery, records, transaction);
 
                         // foreach (var record in records)
                         // {
@@ -71,41 +69,43 @@ public class DataTransferService
                         //     }
                         // }
 
-                        if (offset >= limit)
-                            break;
 
-                        offset += batchSize;
+
+                        // var query = $"SELECT * FROM SmartLeadsExportedContacts LIMIT {batchSize} OFFSET {offset}";
+                        // var records = (await mySqlConnection.QueryAsync<SmartLeadsExportedContact>(query)).ToList();
+
+                        // if (records == null || records.Count == 0)
+                        //     return;
+
+                        // // Insert the fetched data into SQL Server in a single transaction
+                        // var insertQuery = @"
+                        //         INSERT INTO SmartLeadsExportedContacts (Id, ExportedDate, Email, ContactSource, Rate, HasReply, ModifiedAt,
+                        //             Category, MessageHistory, LatestReplyPlainText, HasReviewed, SmartleadId, ReplyDate, RepliedAt,
+                        //             FailedDelivery, RemovedFromSmartleads, SmartLeadsStatus, SmartLeadsCategory)
+                        //         VALUES (@Id, @ExportedDate, @Email, @ContactSource, @Rate, @HasReply, @ModifiedAt,
+                        //             @Category, @MessageHistory, @LatestReplyPlainText, @HasReviewed, @SmartleadId, @ReplyDate, @RepliedAt,
+                        //             @FailedDelivery, @RemovedFromSmartleads, @SmartLeadsStatus, @SmartLeadsCategory);";
+
+                        // await sqlServerConnection.ExecuteAsync(insertQuery, records, transaction);
+
+                        // Enable IDENTITY_INSERT
+                        await sqlServerConnection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts OFF;", transaction: transaction);
+                        Console.WriteLine($"Commit batch to new database");
+                        // Commit the transaction after all data has been inserted
+                        transaction.Commit();
                     }
-
-                    // var query = $"SELECT * FROM SmartLeadsExportedContacts LIMIT {batchSize} OFFSET {offset}";
-                    // var records = (await mySqlConnection.QueryAsync<SmartLeadsExportedContact>(query)).ToList();
-
-                    // if (records == null || records.Count == 0)
-                    //     return;
-
-                    // // Insert the fetched data into SQL Server in a single transaction
-                    // var insertQuery = @"
-                    //         INSERT INTO SmartLeadsExportedContacts (Id, ExportedDate, Email, ContactSource, Rate, HasReply, ModifiedAt,
-                    //             Category, MessageHistory, LatestReplyPlainText, HasReviewed, SmartleadId, ReplyDate, RepliedAt,
-                    //             FailedDelivery, RemovedFromSmartleads, SmartLeadsStatus, SmartLeadsCategory)
-                    //         VALUES (@Id, @ExportedDate, @Email, @ContactSource, @Rate, @HasReply, @ModifiedAt,
-                    //             @Category, @MessageHistory, @LatestReplyPlainText, @HasReviewed, @SmartleadId, @ReplyDate, @RepliedAt,
-                    //             @FailedDelivery, @RemovedFromSmartleads, @SmartLeadsStatus, @SmartLeadsCategory);";
-
-                    // await sqlServerConnection.ExecuteAsync(insertQuery, records, transaction);
-
-                    // Enable IDENTITY_INSERT
-                    await sqlServerConnection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts OFF;", transaction: transaction);
-
-                    // Commit the transaction after all data has been inserted
-                    transaction.Commit();
+                    catch (Exception ex)
+                    {
+                        // Rollback in case of failure
+                        transaction.Rollback();
+                        throw new ApplicationException("Error during data transfer.", ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    // Rollback in case of failure
-                    transaction.Rollback();
-                    throw new ApplicationException("Error during data transfer.", ex);
-                }
+
+                if (offset >= limit)
+                    break;
+
+                offset += batchSize;
             }
         }
     }
