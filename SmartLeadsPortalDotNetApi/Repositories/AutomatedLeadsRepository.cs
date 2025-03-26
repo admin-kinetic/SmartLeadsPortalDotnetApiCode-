@@ -198,6 +198,64 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
         }
 
+        public async Task<SmartLeadsResponseModel<SmartLeadsExportedContact>> GetAllRawPaginated(SmartLeadRequest request)
+        {
+            try
+            {
+                string _proc = "";
+                var count = 0;
+                var param = new DynamicParameters();
+                var param2 = new DynamicParameters();
+                IEnumerable<SmartLeadsExportedContact> list = new List<SmartLeadsExportedContact>();
+
+                if (request.EmailAddress == null || request.EmailAddress == "" || request.EmailAddress == "null")
+                {
+                    request.EmailAddress = "";
+                }
+
+                if (request.History == null || request.History == "" || request.History == "null")
+                {
+                    request.History = "";
+                }
+
+                _proc = "sm_spGetAllRawSmartLeads";
+                param.Add("@Page", request.Page);
+                param.Add("@PageSize", request.PageSize);
+                param.Add("@email", request.EmailAddress);
+                param.Add("@messagehistory", request.History);
+                param.Add("@hasReply", request.HasReply);
+                param.Add("@isValid", request.HasReview);
+                param.Add("@ExportedDateFrom", request.ExportedDateFrom);
+                param.Add("@ExportedDateTo", request.ExportedDateTo);
+
+                list = await SqlMapper.QueryAsync<SmartLeadsExportedContact>(con, _proc, param, commandType: CommandType.StoredProcedure);
+
+                param2.Add("@email", request.EmailAddress);
+                param2.Add("@messagehistory", request.History);
+                param2.Add("@hasReply", request.HasReply);
+                param2.Add("@isValid", request.HasReview);
+                param2.Add("@ExportedDateFrom", request.ExportedDateFrom);
+                param2.Add("@ExportedDateTo", request.ExportedDateTo);
+
+                var countProcedure = "sm_spGetAllRawSmartLeadsCount";
+                count = await con.QueryFirstOrDefaultAsync<int>(countProcedure, param2, commandType: CommandType.StoredProcedure);
+
+                return new SmartLeadsResponseModel<SmartLeadsExportedContact>
+                {
+                    Items = list.ToList(),
+                    Total = count
+                };
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+
 
 
 
