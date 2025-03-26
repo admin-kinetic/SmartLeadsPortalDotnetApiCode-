@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using RestSharp;
+using SmartLeadsPortalDotNetApi.Configs;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Helper;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,10 +17,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<AutomatedLeadsRepository>();
 builder.Services.AddScoped<ExcludedKeywordsRepository>();
+builder.Services.AddScoped<VoipHttpService>();
 builder.Services.AddScoped<RestClient>(provider =>
 {
     var options = new RestClientOptions
@@ -29,7 +34,11 @@ builder.Services.AddScoped<RestClient>(provider =>
 
     return new RestClient(options);
 });
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("VoipClient", client =>
+{
+    client.BaseAddress = new Uri("https://au.voipcloud.online/api/integration/v2");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 builder.Services.Configure<FormOptions>(o =>
 {
     o.ValueLengthLimit = int.MaxValue;
