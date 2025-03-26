@@ -23,19 +23,21 @@ namespace SmartLeadsPortalDotNetApi.Services
 
         public async Task<VoipResponse?> GetVoipData()
         {
-            var client = httpClientFactory.CreateClient("VoipClient");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", voIpConfig.ApiKey);
+            var client = httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("token", voIpConfig.ApiKey);
+
             var response = await client.GetAsync($"{voIpConfig.BaseUrl}/get-user-calls?sort_by=newest_first");
+
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Failed to fetch VoIP data. Status Code: {StatusCode}, Message: {Response}",
-                    response.StatusCode, await response.Content.ReadAsStringAsync());
-                return null;
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Error fetching data: {response.StatusCode} - {errorMessage}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<VoipResponse>(content);
+            return JsonConvert.DeserializeObject<VoipResponse?>(content);
         }
+
 
     }
 }
