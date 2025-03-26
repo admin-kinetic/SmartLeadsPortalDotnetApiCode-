@@ -15,6 +15,37 @@ public class LeadClicksRepository
         this.logger = logger;
     }
 
+    public async Task<List<dynamic>> GetLeadClicks()
+    {
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var select = "SELECT * FROM LeadClicks WHERE LeadId = @leadId;";
+            var result = await connection.QueryAsync<dynamic>(select);
+            return result.ToList();
+        }
+        catch(Exception ex)
+        {
+            this.logger.LogError(ex, "Error getting click count.");
+            throw;
+        }
+    }
+
+    public async Task<int> GetClickCountById(int leadId)
+    {
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var select = "SELECT ClickCount FROM LeadClicks WHERE LeadId = @leadId;";
+            return await connection.QueryFirstOrDefaultAsync<int>(select, new { leadId });
+        }
+        catch(Exception ex)
+        {
+            this.logger.LogError(ex, "Error getting click count.");
+            throw;
+        }
+    }
+
     public async Task UpsertById(int leadId)
     {
         try
