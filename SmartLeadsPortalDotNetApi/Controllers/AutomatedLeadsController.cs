@@ -268,7 +268,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         //Test only for mysql connection
-        [HttpGet("gettestusersmysql")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetTestSelectAllUser()
         {
             var result = await _automatedLeadsRepository.TestSelectAllUser();

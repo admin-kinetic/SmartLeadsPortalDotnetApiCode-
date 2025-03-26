@@ -1,51 +1,103 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.VisualBasic;
 using MySqlConnector;
 using System.Data;
 
-namespace SmartLeadsPortalDotNetApi.Database
+namespace SmartLeadsPortalDotNetApi.Database;
+public class DbConnectionFactory : IDisposable
 {
-    public class DbConnectionFactory: IDisposable
+    private readonly string _sqlConnectionString;
+    private readonly string _mysqlConnectionString;
+    private readonly ILogger<DbConnectionFactory> logger;
+    private IDbConnection? _sqlConnection;
+    private IDbConnection? _mySqlConnection;
+
+    public DbConnectionFactory(IConfiguration configuration, ILogger<DbConnectionFactory> logger)
     {
-        private readonly string _connectionString;
-        private readonly string _mysqlconnectionString;
-        private IDbConnection _connection;
+        _sqlConnectionString = configuration.GetConnectionString("SQLServerDBConnectionString")
+            ?? throw new ArgumentNullException(nameof(configuration), "SQL Server connection string is missing.");
 
-        public DbConnectionFactory(IConfiguration configuration)
+        _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
+            ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
+        this.logger = logger;
+    }
+
+    public IDbConnection GetSqlConnection()
+    {
+        if (_sqlConnection == null || _sqlConnection.State == ConnectionState.Closed)
         {
-
-            _mysqlconnectionString = configuration.GetConnectionString("MySQLDBConnectionString");
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
+            _sqlConnection = CreateConnection(_sqlConnectionString, () => new SqlConnection(_sqlConnectionString));
         }
 
-        public IDbConnection GetConnection()
-        {
-            if (_connection == null || _connection.State == ConnectionState.Closed)
-            {
-                _connection = new SqlConnection(_connectionString);
-                _connection.Open();
-            }
+        return _sqlConnection;
+    }
 
-            return _connection;
+    public IDbConnection GetMySqlConnection()
+    {
+        if (_mySqlConnection == null || _mySqlConnection.State == ConnectionState.Closed)
+        {
+            _mySqlConnection = CreateConnection(_mysqlConnectionString, () => new MySqlConnection(_mysqlConnectionString));
         }
 
-        public IDbConnection GetConnectionMySQL()
-        {
-            if (_connection == null || _connection.State == ConnectionState.Closed)
-            {
-                _connection = new MySqlConnection(_mysqlconnectionString);
-                _connection.Open();
-            }
+        return _mySqlConnection;
+    }
 
-            return _connection;
+    private IDbConnection CreateConnection(string connectionString, Func<IDbConnection> connectionFactory)
+    {
+        var connection = connectionFactory();
+        try
+        {
+            connection.Open();
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
         }
 
-        public void Dispose()
+        return connection;
+    }
+
+    public void ValidateConnections()
+    {
+        try
         {
-            if (_connection != null && _connection.State != ConnectionState.Closed)
+            using (var sqlConnection = GetSqlConnection())
             {
-                _connection.Close();
-                _connection.Dispose();
+                this.logger.LogInformation("Successfully connected to SQL Server database.");
             }
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError($"Failed to connect to SQL Server database: {ex.Message}");
+        }
+
+        try
+        {
+            using (var mySqlConnection = GetMySqlConnection())
+            {
+                this.logger.LogInformation("Successfully connected to MySQL database.");
+            }
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError($"Failed to connect to MySQL database: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _sqlConnection?.Dispose();
+            _mySqlConnection?.Dispose();
         }
     }
 }
+
