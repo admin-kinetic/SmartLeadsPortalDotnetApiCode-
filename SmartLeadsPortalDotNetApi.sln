@@ -1,10 +1,17 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.35821.62
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLeadsPortalDotNetApi", "SmartLeadsPortalDotNetApi\SmartLeadsPortalDotNetApi.csproj", "{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLeadsDataTransfer", "SmartLeadsDataTransfer\SmartLeadsDataTransfer.csproj", "{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebJobs", "WebJobs", "{66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportExportedLeadsFromLeadsPortal", "WebJobs\ImportExportedLeadsFromLeadsPortal\ImportExportedLeadsFromLeadsPortal.csproj", "{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportSmartLeadAllLeads", "WebJobs\ImportSmartLeadAllLeads\ImportSmartLeadAllLeads.csproj", "{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLeadMySQLDataTransfer", "WebJobs\SmartLeadMySQLDataTransfer\SmartLeadMySQLDataTransfer.csproj", "{79A74B73-96E3-4337-ADB3-57507FACC781}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,13 +23,26 @@ Global
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47CB2E07-F4A0-4F62-B7C2-6DEBD884D57C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{79A74B73-96E3-4337-ADB3-57507FACC781} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EF9ABDCB-4807-4550-85D8-F879B2DDCBCB}

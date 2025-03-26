@@ -100,20 +100,21 @@ var app = builder.Build();
 // Trigger database connection validation on startup
 using (var scope = app.Services.CreateScope())
 {
-    var dbConnectionFactory = scope.ServiceProvider.GetRequiredService<DbConnectionFactory>();
-    dbConnectionFactory.ValidateConnections();
+   var dbConnectionFactory = scope.ServiceProvider.GetRequiredService<DbConnectionFactory>();
+   dbConnectionFactory.ValidateConnections();
 }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartLeadsPortal API V1");
-    });
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartLeadsPortal API V1");
+});
 
 if (app.Environment.IsProduction())
 {
