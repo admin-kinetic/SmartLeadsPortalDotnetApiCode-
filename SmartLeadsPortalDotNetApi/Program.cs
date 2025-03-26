@@ -59,6 +59,7 @@ builder.Services.Configure<FormOptions>(o =>
 
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<LeadClicksRepository>();
+builder.Services.AddScoped<VoiplineWebhookRepository>();
 
 
 // Add services to the container.
