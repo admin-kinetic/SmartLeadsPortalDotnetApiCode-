@@ -17,8 +17,15 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [HttpGet("GetUserCalls")]
         public async Task<IActionResult> GetVoipData()
         {
-            var voipData = await _voipHttpService.GetVoipData();
-            return Ok(voipData);
+            try
+            {
+                var voipData = await _voipHttpService.GetVoipData();
+                return Ok(voipData);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 }
