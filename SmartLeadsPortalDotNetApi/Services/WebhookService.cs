@@ -26,6 +26,9 @@ public class WebhookService
     public async Task HandleClick(Dictionary<string, object> payload)
     {
         this.logger.LogInformation("Handling click webhook");
+        var serializedPayload = JsonSerializer.Serialize(payload);
+        await this.webhooksRepository.InsertWebhook(serializedPayload);
+
         var email = payload["to_email"];
         if(email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
@@ -40,8 +43,7 @@ public class WebhookService
 
         await this.leadClicksRepository.UpsertById(lead.Id);
 
-        var serializedPayload = JsonSerializer.Serialize(payload);
-        await this.webhooksRepository.InsertWebhook(serializedPayload);
+       
         this.logger.LogInformation("Completed handling click webhook");
     }
 }

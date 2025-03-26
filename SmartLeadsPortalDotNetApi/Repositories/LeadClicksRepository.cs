@@ -20,7 +20,7 @@ public class LeadClicksRepository
         try
         {
             using var connection = dbConnectionFactory.GetSqlConnection();
-            var select = "SELECT * FROM LeadClicks WHERE LeadId = @leadId;";
+            var select = "SELECT * FROM LeadClicks";
             var result = await connection.QueryAsync<dynamic>(select);
             return result.ToList();
         }
