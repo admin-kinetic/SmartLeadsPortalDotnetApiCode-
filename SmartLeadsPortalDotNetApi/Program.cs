@@ -24,12 +24,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
+builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<AutomatedLeadsRepository>();
 builder.Services.AddScoped<WebhooksRepository>();
 builder.Services.AddScoped<ExcludedKeywordsRepository>();
 builder.Services.AddScoped<VoipHttpService>();
+builder.Services.AddScoped<SmartLeadsApiService>();
 builder.Services.AddScoped<RestClient>(provider =>
 {
     var options = new RestClientOptions
