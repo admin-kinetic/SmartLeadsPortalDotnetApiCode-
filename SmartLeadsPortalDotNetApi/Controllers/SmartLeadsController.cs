@@ -43,11 +43,11 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("get-leads-by-campaignid/{id}")]
-        public async Task<IActionResult> GetLeadsByCampaignId(int id)
+        public async Task<IActionResult> GetLeadsByCampaignId(int id, [FromQuery] int offset, int limit)
         {
             try
             {
-                var leads = await _smartLeadsApiService.GetLeadsByCampaignId(id);
+                var leads = await _smartLeadsApiService.GetLeadsByCampaignId(id, offset, limit);
                 return Ok(leads ?? new SmartLeadsResponse());
             }
             catch (Exception ex)
@@ -57,12 +57,40 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("get-leads-all-account")]
-        public async Task<IActionResult> GetAllLeadsAllAccount([FromQuery] string? createdDate = null, string? email = null, int offset = 0, int limit = 10)
+        public async Task<IActionResult> GetAllLeadsAllAccount([FromQuery] string? createdDate = null, string? email = null, int offset = 0, int limit = 0)
         {
             try
             {
                 var leads = await _smartLeadsApiService.GetAllLeadsAllAccount(createdDate, email, offset, limit);
                 return Ok(leads ?? new SmartLeadsAllLeadsResponse());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("get-statistics-campaign")]
+        public async Task<IActionResult> GetStatisticsByCampaign([FromQuery] int id, int offset = 0, int limit = 10)
+        {
+            try
+            {
+                var leads = await _smartLeadsApiService.GetStatisticsByCampaign(id, offset, limit);
+                return Ok(leads ?? new CampaignStatisticsResponse());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("get-analytics-campaign")]
+        public async Task<IActionResult> GetAnalyticsByCampaign([FromQuery] int id)
+        {
+            try
+            {
+                var leads = await _smartLeadsApiService.GetAnalyticsByCampaign(id);
+                return Ok(leads ?? new CampaignAnalytics());
             }
             catch (Exception ex)
             {

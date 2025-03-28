@@ -68,11 +68,14 @@ public class SmartLeadsApiService
     }
 
     //Get All Leads by Campaign
-    public async Task<SmartLeadsResponse?> GetLeadsByCampaignId(int id)
+    public async Task<SmartLeadsResponse?> GetLeadsByCampaignId(int id, int offset, int limit)
     {
+        offset = (offset - 1) * limit;
         var client = httpClientFactory.CreateClient();
         var queryString = HttpUtility.ParseQueryString(string.Empty);
         queryString["api_key"] = smartLeadConfig.ApiKey;
+        queryString["offset"] = offset.ToString();
+        queryString["limit"] = limit.ToString();
 
         var response = await client.GetAsync($"{smartLeadConfig.BaseUrl}/campaigns/{id}/leads?{queryString}");
 
@@ -88,8 +91,9 @@ public class SmartLeadsApiService
     }
 
     //Get All Leads in entire Account
-    public async Task<SmartLeadsAllLeadsResponse?> GetAllLeadsAllAccount(string? createdDate = null, string? email = null, int offset = 0, int limit = 10)
+    public async Task<SmartLeadsAllLeadsResponse?> GetAllLeadsAllAccount(string? createdDate = null, string? email = null, int offset = 0, int limit = 0)
     {
+        offset = (offset - 1) * limit;
         var client = httpClientFactory.CreateClient();
         var queryString = HttpUtility.ParseQueryString(string.Empty);
         queryString["api_key"] = smartLeadConfig.ApiKey;
@@ -112,6 +116,49 @@ public class SmartLeadsApiService
 
         var content = await response.Content.ReadAsStringAsync();
         var campaigns = JsonConvert.DeserializeObject<SmartLeadsAllLeadsResponse>(content);
+        return campaigns;
+    }
+
+    //Get Statistics by Campaign
+    public async Task<CampaignStatisticsResponse?> GetStatisticsByCampaign(int id, int offset = 0, int limit = 0)
+    {
+        offset = (offset - 1) * limit;
+        var client = httpClientFactory.CreateClient();
+        var queryString = HttpUtility.ParseQueryString(string.Empty);
+        queryString["api_key"] = smartLeadConfig.ApiKey;
+        queryString["offset"] = offset.ToString();
+        queryString["limit"] = limit.ToString();
+
+        var response = await client.GetAsync($"{smartLeadConfig.BaseUrl}/campaigns/{id}/statistics?{queryString}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error fetching data: {response.StatusCode} - {errorMessage}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        var campaigns = JsonConvert.DeserializeObject<CampaignStatisticsResponse>(content);
+        return campaigns;
+    }
+
+    //Get Analytics by Campaign
+    public async Task<CampaignAnalytics?> GetAnalyticsByCampaign(int id)
+    {
+        var client = httpClientFactory.CreateClient();
+        var queryString = HttpUtility.ParseQueryString(string.Empty);
+        queryString["api_key"] = smartLeadConfig.ApiKey;
+
+        var response = await client.GetAsync($"{smartLeadConfig.BaseUrl}/campaigns/{id}/analytics?{queryString}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error fetching data: {response.StatusCode} - {errorMessage}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        var campaigns = JsonConvert.DeserializeObject<CampaignAnalytics>(content);
         return campaigns;
     }
 
@@ -162,3 +209,4 @@ public class SmartLeadsApiService
         return campaigns;
     }
 }
+
