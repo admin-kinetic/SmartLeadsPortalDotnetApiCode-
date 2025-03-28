@@ -177,4 +177,75 @@
         public string? unsubscribed_count { get; set; }
     }
 
+    public class CampaignStatisticsResponse
+    {
+        public string? total_stats { get; set; }
+        public List<CampaignStatisticsData>? data { get; set; }
+        public int? offset { get; set; }
+        public int? limit { get; set; }
+    }
+
+    public class CampaignStatisticsData
+    {
+        public string? lead_name { get; set; }
+        public string? lead_email { get; set; }
+        public int? lead_category { get; set; }
+        public int? sequence_number { get; set; }
+        public int? email_campaign_seq_id { get; set; }
+        public int? seq_variant_id { get; set; }
+        public string? email_subject { get; set; }
+        public string? email_message { get; set; }
+        public string? sent_time { get; set; }
+        public string? open_time { get; set; }
+        public string? click_time { get; set; }
+        public string? reply_time { get; set; }
+        public int? open_count { get; set; }
+        public int? click_count { get; set; }
+        public bool? is_unsubscribed { get; set; }
+        public bool? is_bounced { get; set; }
+    }
+
+    public class CampaignAnalytics
+    {
+        public int? id { get; set; }
+        public int? user_id { get; set; }
+        public string? created_at { get; set; }
+        public string? status { get; set; }
+        public string? name { get; set; }
+        public string? sent_count { get; set; }
+        public string? open_count { get; set; }
+        public string? click_count { get; set; }
+        public string? reply_count { get; set; }
+        public string? block_count { get; set; }
+        public string? total_count { get; set; }
+        public string? sequence_count { get; set; }
+        public string? drafted_count { get; set; }
+        public string? tags { get; set; }
+        public string? unique_sent_count { get; set; }
+        public string? unique_open_count { get; set; }
+        public string? unique_click_count { get; set; }
+        public string? client_id { get; set; }
+        public string? bounce_count { get; set; }
+        public string? parent_campaign_id { get; set; }
+        public string? unsubscribed_count { get; set; }
+        public CampaignLeadStatsData? campaign_lead_stats { get; set; }
+        public string? team_member_id { get; set; }
+        public bool? send_as_plain_text { get; set; }
+        public string? client_name { get; set; }
+        public string? client_email { get; set; }
+        public string? client_company_name { get; set; }
+    }
+    
+    public class CampaignLeadStatsData
+    {
+        public int? total { get; set; }
+        public int? paused { get; set; }
+        public int? blocked { get; set; }
+        public int? revenue { get; set; }
+        public int? stopped { get; set; }
+        public int? completed { get; set; }
+        public int? inprogress { get; set; }
+        public int? interested { get; set; }
+        public int? notStarted { get; set; }
+    }
 }
