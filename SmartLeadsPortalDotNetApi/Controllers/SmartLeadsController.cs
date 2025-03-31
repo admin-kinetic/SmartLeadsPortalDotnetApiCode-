@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
+using SmartLeadsPortalDotNetApi.Model;
+using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services;
 using SmartLeadsPortalDotNetApi.Services.Model;
 
@@ -9,9 +12,11 @@ namespace SmartLeadsPortalDotNetApi.Controllers
     public class SmartLeadsController : ControllerBase
     {
         private readonly SmartLeadsApiService _smartLeadsApiService;
-        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService)
+        private readonly SmartLeadsRepository _smartLeadsRepository;
+        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
+            _smartLeadsRepository = smartLeadsRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -124,6 +129,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
+        }
+
+        [HttpPost("get-all-smartleads-calltasks")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetAllSmartLeadsCallTaskList(SmartLeadsCallTasksRequest param)
+        {
+            SmartLeadsCallTasksResponseModel<SmartLeadsCallTasks> list = await _smartLeadsRepository.GetAllSmartLeadsCallTaskList(param);
+            return Ok(list);
         }
     }
 }
