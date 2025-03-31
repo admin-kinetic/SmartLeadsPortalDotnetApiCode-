@@ -27,6 +27,7 @@ builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpCon
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<SmartLeadsRepository>();
 builder.Services.AddScoped<AutomatedLeadsRepository>();
 builder.Services.AddScoped<WebhooksRepository>();
 builder.Services.AddScoped<ExcludedKeywordsRepository>();
