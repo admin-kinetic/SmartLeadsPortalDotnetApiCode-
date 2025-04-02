@@ -13,10 +13,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
     {
         private readonly SmartLeadsApiService _smartLeadsApiService;
         private readonly SmartLeadsRepository _smartLeadsRepository;
-        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository)
+        private readonly CallTasksTableRepository callTasksTableRepository;
+
+        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
             _smartLeadsRepository = smartLeadsRepository;
+            this.callTasksTableRepository = callTasksTableRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -137,6 +140,12 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             SmartLeadsCallTasksResponseModel<SmartLeadsCallTasks> list = await _smartLeadsRepository.GetAllSmartLeadsCallTaskList(param);
             return Ok(list);
+        }
+
+        [HttpPost("call-tasks/find")]
+        public async Task<IActionResult> CallTasksFind(TableRequest request){
+            var result = await this.callTasksTableRepository.Find(request);
+            return Ok(result);
         }
     }
 }

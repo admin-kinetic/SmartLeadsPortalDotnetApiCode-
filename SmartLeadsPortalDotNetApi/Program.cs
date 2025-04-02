@@ -63,6 +63,7 @@ builder.Services.Configure<FormOptions>(o =>
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<LeadClicksRepository>();
 builder.Services.AddScoped<VoiplineWebhookRepository>();
+builder.Services.AddScoped<CallTasksTableRepository>();
 
 
 // Add services to the container.
