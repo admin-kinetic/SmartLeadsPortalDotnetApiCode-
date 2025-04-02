@@ -147,5 +147,12 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var result = await this.callTasksTableRepository.Find(request);
             return Ok(result);
         }
+
+        [HttpGet("call-tasks/columns/all")]
+        public IActionResult CallTasksColumnsAll(){
+            var result = this.callTasksTableRepository.AllColumns();
+            result.Sort();
+            return Ok(new { data = result });
+        }
     }
 }

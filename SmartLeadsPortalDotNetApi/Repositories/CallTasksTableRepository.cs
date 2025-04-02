@@ -121,4 +121,21 @@ public class CallTasksTableRepository
             return response;
         }
     }
+
+    public List<string> AllColumns()
+    {
+        return new List<string>{
+            "Id",
+            "GuId",
+            "LeadId",
+            "Email",
+            "FullName",
+            "SequenceNumber",
+            "CampaignName",
+            "SubjectName",
+            "OpenCount",
+            "ClickCount",
+            "CallState"
+        };
+    }
 }

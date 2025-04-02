@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using RestSharp;
 using Serilog;
 using SmartLeadsPortalDotNetApi.Configs;
+using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Helper;
 using SmartLeadsPortalDotNetApi.Repositories;
@@ -71,15 +72,15 @@ builder.Services.AddScoped<CallTasksTableRepository>();
 
 
 // Add services to the container.
-// builder.Services.AddControllers(options =>
-//     {
-//         options.Conventions.Add(new KebabCaseControllerModelConvention());
-//         options.Conventions.Add(new KebabCaseActionModelConvention());
-//     })
-//     .AddJsonOptions(options =>
-//     {
-//         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-//     }); ;
+builder.Services.AddControllers(options =>
+    {
+        options.Conventions.Add(new LowerCaseControllerModelConvention());
+        options.Conventions.Add(new LowerCaseActionModelConvention());
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    }); ;
 
 builder.Services.AddCors(options =>
 {
