@@ -31,6 +31,10 @@ builder.Services.AddScoped<SmartLeadsRepository>();
 builder.Services.AddScoped<AutomatedLeadsRepository>();
 builder.Services.AddScoped<WebhooksRepository>();
 builder.Services.AddScoped<ExcludedKeywordsRepository>();
+builder.Services.AddScoped<CallDispositionRepository>();
+builder.Services.AddScoped<CallStateRepository>();
+builder.Services.AddScoped<CallPurposeRepository>();
+builder.Services.AddScoped<CallTagRepository>();
 builder.Services.AddScoped<VoipHttpService>();
 builder.Services.AddScoped<SmartLeadsApiService>();
 builder.Services.AddScoped<RestClient>(provider =>

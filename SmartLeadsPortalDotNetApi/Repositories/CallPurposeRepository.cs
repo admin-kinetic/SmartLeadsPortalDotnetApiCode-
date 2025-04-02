@@ -5,21 +5,20 @@ using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
-    public class CallDispositionRepository :  SQLDBService
+    public class CallPurposeRepository : SQLDBService
     {
         private readonly string _connectionString;
-        public CallDispositionRepository(IConfiguration configuration)
+        public CallPurposeRepository(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
         }
-
-        public async Task<int> InsertCallDisposition(CallDispositionInsert keyword)
+        public async Task<int> InsertCallPurpose(CallPurposeInsert keyword)
         {
             try
             {
-                string _proc = "sm_spCallDisposition";
+                string _proc = "sm_spInsertCallPurpose";
                 var param = new DynamicParameters();
-                param.Add("@calldisposition", keyword.CallDispositionName);
+                param.Add("@callpurpose", keyword.CallPurposeName);
                 param.Add("@isactive", keyword.IsActive);
 
                 int ret = await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure);
@@ -31,14 +30,14 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
-        public async Task<int> UpdateCallDisposition(CallDisposition keyword)
+        public async Task<int> UpdateCallPurpose(CallPurpose keyword)
         {
             try
             {
-                string _proc = "sm_spUpdateCallDisposition";
+                string _proc = "sm_spUpdateCallPurpose";
                 var param = new DynamicParameters();
-                param.Add("@guid", keyword.Guid);
-                param.Add("@calldisposition", keyword.CallDispositionName);
+                param.Add("@guid", keyword.GuId);
+                param.Add("@callpurpose", keyword.CallPurposeName);
                 param.Add("@isactive", keyword.IsActive);
 
                 int ret = await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure);
@@ -51,7 +50,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
         }
 
-        public async Task<CallDispositionResponseModel<CallDisposition>> GetAllCallDispositionList(ExcludedKeywordsListRequest model)
+        public async Task<CallPurposeResponseModel<CallPurpose>> GetAllCallPurposeList(ExcludedKeywordsListRequest model)
         {
             try
             {
@@ -59,20 +58,20 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 var count = 0;
                 var param = new DynamicParameters();
                 var param2 = new DynamicParameters();
-                IEnumerable<CallDisposition> list = new List<CallDisposition>();
+                IEnumerable<CallPurpose> list = new List<CallPurpose>();
 
-                _proc = "sm_spGetAllCallDispositionList";
+                _proc = "sm_spGetAllCallPurposeList";
                 param.Add("@PageNumber", model.Page);
                 param.Add("@PageSize", model.PageSize);
                 param.Add("@Search", model.Search);
 
-                list = await SqlMapper.QueryAsync<CallDisposition>(con, _proc, param, commandType: CommandType.StoredProcedure);
+                list = await SqlMapper.QueryAsync<CallPurpose>(con, _proc, param, commandType: CommandType.StoredProcedure);
 
-                var countProcedure = "sm_spGetAllCallDispositionListCount";
+                var countProcedure = "sm_spGetAllCallPurposeListCount";
                 param2.Add("@Search", model.Search);
                 count = await con.QueryFirstOrDefaultAsync<int>(countProcedure, param2, commandType: CommandType.StoredProcedure);
 
-                return new CallDispositionResponseModel<CallDisposition>
+                return new CallPurposeResponseModel<CallPurpose>
                 {
                     Items = list.ToList(),
                     Total = count
@@ -88,14 +87,14 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
         }
 
-        public async Task<CallDisposition?> GetCallDispositionById(Guid guid)
+        public async Task<CallPurpose?> GetCallPurposeById(Guid guid)
         {
             try
             {
-                string _proc = "sm_spGetCallDispositionById";
+                string _proc = "sm_spGetCallPurposeById";
                 var param = new DynamicParameters();
                 param.Add("@guid", guid);
-                CallDisposition? list = await SqlMapper.QuerySingleOrDefaultAsync<CallDisposition>(con, _proc, param, commandType: CommandType.StoredProcedure);
+                CallPurpose? list = await SqlMapper.QuerySingleOrDefaultAsync<CallPurpose>(con, _proc, param, commandType: CommandType.StoredProcedure);
 
                 return list;
             }
@@ -108,11 +107,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 con.Dispose();
             }
         }
-        public async Task<int> DeleteCallDisposition(Guid guid)
+        public async Task<int> DeleteCallPurpose(Guid guid)
         {
             try
             {
-                string _proc = "sm_spDeleteCallDisposition";
+                string _proc = "sm_spDeleteCallPurpose";
                 var param = new DynamicParameters();
                 param.Add("@guid", guid);
 
