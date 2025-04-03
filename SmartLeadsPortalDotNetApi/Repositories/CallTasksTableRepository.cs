@@ -10,7 +10,7 @@ public class CallTasksTableRepository
     {
         this.dbConnectionFactory = dbConnectionFactory;
     }
-    public async Task<TableResponse<dynamic>> Find(TableRequest request)
+    public async Task<TableResponse<SmartLeadsCallTasks>> Find(TableRequest request)
     {
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
@@ -110,10 +110,10 @@ public class CallTasksTableRepository
             """;
 
 
-            var items = await connection.QueryAsync<dynamic>(baseQuery, parameters);
+            var items = await connection.QueryAsync<SmartLeadsCallTasks>(baseQuery, parameters);
             var count = await connection.QueryFirstAsync<int>(countQuery, parameters);
 
-            var response = new TableResponse<dynamic>
+            var response = new TableResponse<SmartLeadsCallTasks>
             {
                 Items = items.ToList(),
                 Total = count
