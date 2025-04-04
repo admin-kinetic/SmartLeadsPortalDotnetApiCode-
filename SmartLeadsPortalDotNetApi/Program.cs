@@ -1,9 +1,14 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RestSharp;
 using Serilog;
 using SmartLeadsPortalDotNetApi.Configs;
+using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Helper;
 using SmartLeadsPortalDotNetApi.Repositories;
@@ -67,18 +72,20 @@ builder.Services.Configure<FormOptions>(o =>
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<LeadClicksRepository>();
 builder.Services.AddScoped<VoiplineWebhookRepository>();
+builder.Services.AddScoped<CallTasksTableRepository>();
+builder.Services.AddScoped<SavedTableViewsRepository>();
 
 
 // Add services to the container.
-// builder.Services.AddControllers(options =>
-//     {
-//         options.Conventions.Add(new KebabCaseControllerModelConvention());
-//         options.Conventions.Add(new KebabCaseActionModelConvention());
-//     })
-//     .AddJsonOptions(options =>
-//     {
-//         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-//     }); ;
+builder.Services.AddControllers(options =>
+    {
+        options.Conventions.Add(new LowerCaseControllerModelConvention());
+        options.Conventions.Add(new LowerCaseActionModelConvention());
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    }); ;
 
 builder.Services.AddCors(options =>
 {
@@ -110,13 +117,32 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "SmartLeadsPortal", Version = "v1" });
 });
 
+var jwtSecret = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Configuration["Jwt:Secret"].ToString());
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var hmac = new HMACSHA256(jwtSecret);
+        var securityKey = new SymmetricSecurityKey(hmac.Key);
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = securityKey,
+            ClockSkew = TimeSpan.FromMinutes(5)
+        };
+    });
+
+
 var app = builder.Build();
 
 // Trigger database connection validation on startup
 using (var scope = app.Services.CreateScope())
 {
-   var dbConnectionFactory = scope.ServiceProvider.GetRequiredService<DbConnectionFactory>();
-   dbConnectionFactory.ValidateConnections();
+    var dbConnectionFactory = scope.ServiceProvider.GetRequiredService<DbConnectionFactory>();
+    dbConnectionFactory.ValidateConnections();
 }
 
 // Configure the HTTP request pipeline.

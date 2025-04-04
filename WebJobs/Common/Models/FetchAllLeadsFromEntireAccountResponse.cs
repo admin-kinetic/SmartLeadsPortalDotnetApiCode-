@@ -1,10 +1,10 @@
 using System;
 
-namespace SmartLeadsAllLeadsToPortal.Models;
+namespace Common.Models;
 
 public class FetchAllLeadsFromEntireAccountResponse
 {
-    public List<Datum> data { get; set; }
+    public List<AllLeadsFromEntireAccountDatum> data { get; set; }
     public int skip { get; set; }
     public int limit { get; set; }
     public bool hasMore { get; set; }
@@ -52,7 +52,7 @@ public class CustomFields
     public string Candidate_3_Qualification_5 { get; set; }
 }
 
-public class Datum
+public class AllLeadsFromEntireAccountDatum
 {
     public string id { get; set; }
     public string email { get; set; }
@@ -72,7 +72,7 @@ public class Datum
 
 public class Root
 {
-    public List<Datum> data { get; set; }
+    public List<AllLeadsFromEntireAccountDatum> data { get; set; }
     public int skip { get; set; }
     public int limit { get; set; }
     public bool hasMore { get; set; }
