@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Model;
+using SmartLeadsPortalDotNetApi.Repositories;
 
-namespace SmartLeadsPortalDotNetApi.Repositories
+namespace SmartLeadsPortalDotNetApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
