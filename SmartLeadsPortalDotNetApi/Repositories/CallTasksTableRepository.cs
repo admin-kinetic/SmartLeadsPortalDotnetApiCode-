@@ -5,6 +5,16 @@ using SmartLeadsPortalDotNetApi.Model;
 public class CallTasksTableRepository
 {
     private readonly DbConnectionFactory dbConnectionFactory;
+    private readonly Dictionary<string, string> operatorsMap = new Dictionary<string, string>
+    {
+        { "is", "=" },
+        { "is not", "!=" },
+        { "less than", "<" },
+        { "less than equal", "<=" },
+        { "greater than", ">" },
+        { "greater than equal", ">=" },
+        { "contains", "LIKE" }
+    };
 
     public CallTasksTableRepository(DbConnectionFactory dbConnectionFactory)
     {
@@ -80,9 +90,17 @@ public class CallTasksTableRepository
                             whereClause.Add("sle.EmailSubject LIKE @SubjectName");
                             parameters.Add("SubjectName", $"%{filter.Value}%");
                             break;
-                        case "callstate":
-                            whereClause.Add("cs.StateName LIKE @CallState");
-                            parameters.Add("CallState", $"%{filter.Value}%");
+                        // case "callstate":
+                        //     whereClause.Add("cs.StateName LIKE @CallState");
+                        //     parameters.Add("CallState", $"%{filter.Value}%");
+                        //     break;
+                        case "opencount":
+                            whereClause.Add($"sle.OpenCount {this.operatorsMap[filter.Operator]} @OpenCount");
+                            parameters.Add("OpenCount", filter.Value);
+                            break;
+                        case "clickcount":
+                            whereClause.Add($"sle.ClickCount {this.operatorsMap[filter.Operator]} @ClickCount");
+                            parameters.Add("ClickCount", filter.Value);
                             break;
                         // Add more cases for other filterable columns
                         default:
@@ -125,17 +143,17 @@ public class CallTasksTableRepository
     public List<string> AllColumns()
     {
         return new List<string>{
-            "Id",
-            "GuId",
-            "LeadId",
+            // "Id",
+            // "GuId",
+            // "LeadId",
             "Email",
             "FullName",
             "SequenceNumber",
             "CampaignName",
-            "SubjectName",
+            // "SubjectName",
             "OpenCount",
             "ClickCount",
-            "CallState"
+            // "CallState"
         };
     }
 }
