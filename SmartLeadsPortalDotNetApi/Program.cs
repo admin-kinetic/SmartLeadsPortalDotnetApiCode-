@@ -40,6 +40,7 @@ builder.Services.AddScoped<CallDispositionRepository>();
 builder.Services.AddScoped<CallStateRepository>();
 builder.Services.AddScoped<CallPurposeRepository>();
 builder.Services.AddScoped<CallTagRepository>();
+builder.Services.AddScoped<CallLogsRepository>();
 builder.Services.AddScoped<VoipHttpService>();
 builder.Services.AddScoped<SmartLeadsApiService>();
 builder.Services.AddScoped<RestClient>(provider =>

@@ -7,15 +7,20 @@ namespace SmartLeadsPortalDotNetApi.Database;
 public class DbConnectionFactory : IDisposable
 {
     private readonly string _sqlConnectionString;
+    private readonly string _leadsqlConnectionString;
     private readonly string _mysqlConnectionString;
     private readonly ILogger<DbConnectionFactory> logger;
     private IDbConnection? _sqlConnection;
+    private IDbConnection? _leadsqlConnection;
     private IDbConnection? _mySqlConnection;
 
     public DbConnectionFactory(IConfiguration configuration, ILogger<DbConnectionFactory> logger)
     {
-        _sqlConnectionString = configuration.GetConnectionString("SQLServerDBConnectionString")
-            ?? throw new ArgumentNullException(nameof(configuration), "SQL Server connection string is missing.");
+        _sqlConnectionString = configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
+            ?? throw new ArgumentNullException(nameof(configuration), "Smart Leads SQL Server connection string is missing.");
+
+        _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
+            ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
 
         _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
             ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
@@ -30,6 +35,15 @@ public class DbConnectionFactory : IDisposable
         }
 
         return _sqlConnection;
+    }
+
+    public IDbConnection GetLeadSqlConnection()
+    {
+        if (_leadsqlConnection == null || _leadsqlConnection.State == ConnectionState.Closed)
+        {
+            _leadsqlConnection = CreateConnection(_leadsqlConnectionString, () => new SqlConnection(_leadsqlConnectionString));
+        }
+        return _leadsqlConnection;
     }
 
     public IDbConnection GetMySqlConnection()
@@ -74,6 +88,18 @@ public class DbConnectionFactory : IDisposable
 
         try
         {
+            using (var leadSqlConnection = GetLeadSqlConnection())
+            {
+                this.logger.LogInformation("Successfully connected to Leads SQL Server database.");
+            }
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError($"Failed to connect to Leads SQL Server database: {ex.Message}");
+        }
+
+        try
+        {
             using (var mySqlConnection = GetMySqlConnection())
             {
                 this.logger.LogInformation("Successfully connected to MySQL database.");
@@ -96,6 +122,7 @@ public class DbConnectionFactory : IDisposable
         if (disposing)
         {
             _sqlConnection?.Dispose();
+            _leadsqlConnection?.Dispose();
             _mySqlConnection?.Dispose();
         }
     }

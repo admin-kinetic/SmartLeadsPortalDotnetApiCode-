@@ -7,12 +7,6 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public class CallDispositionRepository :  SQLDBService
     {
-        private readonly string _connectionString;
-        public CallDispositionRepository(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
-        }
-
         public async Task<int> InsertCallDisposition(CallDispositionInsert keyword)
         {
             try
@@ -87,7 +81,28 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 con.Dispose();
             }
         }
+        public async Task<IEnumerable<CallDisposition>> GetCallDispositionRetrievedAll()
+        {
+            try
+            {
+                string _proc = "";
+                var param = new DynamicParameters();
+                IEnumerable<CallDisposition> list = new List<CallDisposition>();
 
+                _proc = "sm_spGetCallDispositionRetrieveAll";
+
+                list = await SqlMapper.QueryAsync<CallDisposition>(con, _proc, commandType: CommandType.StoredProcedure);
+                return list;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
         public async Task<CallDisposition?> GetCallDispositionById(Guid guid)
         {
             try

@@ -7,11 +7,6 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public class CallPurposeRepository : SQLDBService
     {
-        private readonly string _connectionString;
-        public CallPurposeRepository(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
-        }
         public async Task<int> InsertCallPurpose(CallPurposeInsert keyword)
         {
             try
@@ -86,7 +81,28 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 con.Dispose();
             }
         }
+        public async Task<IEnumerable<CallPurpose>> GetCallPurposeRetrievedAll()
+        {
+            try
+            {
+                string _proc = "";
+                var param = new DynamicParameters();
+                IEnumerable<CallPurpose> list = new List<CallPurpose>();
 
+                _proc = "sm_spGetCallPurposeRetrieveAll";
+
+                list = await SqlMapper.QueryAsync<CallPurpose>(con, _proc, commandType: CommandType.StoredProcedure);
+                return list;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
         public async Task<CallPurpose?> GetCallPurposeById(Guid guid)
         {
             try
