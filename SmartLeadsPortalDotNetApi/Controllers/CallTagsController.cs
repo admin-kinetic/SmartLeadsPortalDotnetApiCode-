@@ -58,6 +58,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(list);
         }
 
+        [HttpGet("get-calltags-retrieveall")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetCallTagsRetrieveAll()
+        {
+            IEnumerable<CallTags>? list = await _callTagRepository.GetCallTagsRetrievedAll();
+            return Ok(list);
+        }
+
         [HttpGet("delete-calltag/{guid}")]
         [EnableCors("CorsApi")]
         public async Task<IActionResult> DeleteCallTags(Guid guid)

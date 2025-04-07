@@ -59,6 +59,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(list);
         }
 
+        [HttpGet("get-calldisposition-retrieveall")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetCallDispositionRetrieveAll()
+        {
+            IEnumerable<CallDisposition>? list = await _callDispositionRepository.GetCallDispositionRetrievedAll();
+            return Ok(list);
+        }
+
         [HttpGet("delete-calldisposition/{guid}")]
         [EnableCors("CorsApi")]
         public async Task<IActionResult> DeleteCallDisposition(Guid guid)

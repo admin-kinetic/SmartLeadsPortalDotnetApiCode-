@@ -58,6 +58,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(list);
         }
 
+        [HttpGet("get-callstate-retrieveall")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetCallStateRetrieveAll()
+        {
+            IEnumerable<CallState>? list = await _callStateRepository.GetCallStateRetrievedAll();
+            return Ok(list);
+        }
+
         [HttpGet("delete-callstate/{guid}")]
         [EnableCors("CorsApi")]
         public async Task<IActionResult> DeleteCallState(Guid guid)

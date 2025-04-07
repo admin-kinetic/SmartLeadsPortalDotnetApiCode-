@@ -10,13 +10,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
     public class AutomatedLeadsRepository : SQLDBService
     {
         private readonly string _mysqlconnectionString;
-        private readonly string _connectionString;
         private readonly DbConnectionFactory dbConnectionFactory;
         private readonly ILogger<AutomatedLeadsRepository> logger;
 
         public AutomatedLeadsRepository(IConfiguration configuration, DbConnectionFactory dbConnectionFactory, ILogger<AutomatedLeadsRepository> logger)
         {
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
             _mysqlconnectionString = configuration.GetConnectionString("MySQLDBConnectionString");
             this.dbConnectionFactory = dbConnectionFactory;
             this.logger = logger;

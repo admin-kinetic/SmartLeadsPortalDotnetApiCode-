@@ -7,11 +7,6 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public class SmartLeadsRepository: SQLDBService
     {
-        private readonly string _connectionString;
-        public SmartLeadsRepository(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
-        }
         public async Task<SmartLeadsCallTasksResponseModel<SmartLeadsCallTasks>> GetAllSmartLeadsCallTaskList(SmartLeadsCallTasksRequest model)
         {
             try

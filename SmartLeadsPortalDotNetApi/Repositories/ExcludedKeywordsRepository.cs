@@ -12,7 +12,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         private readonly string _connectionString;
         public ExcludedKeywordsRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
+            _connectionString = configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString");
             _mysqlconnectionString = configuration.GetConnectionString("MySQLDBConnectionString");
         }
 

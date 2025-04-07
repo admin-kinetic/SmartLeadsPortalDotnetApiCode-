@@ -7,11 +7,6 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public class CallStateRepository : SQLDBService
     {
-        private readonly string _connectionString;
-        public CallStateRepository(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
-        }
         public async Task<int> InsertCallState(CallStateInsert keyword)
         {
             try
@@ -76,6 +71,29 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     Items = list.ToList(),
                     Total = count
                 };
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+
+        public async Task<IEnumerable<CallState>> GetCallStateRetrievedAll()
+        {
+            try
+            {
+                string _proc = "";
+                var param = new DynamicParameters();
+                IEnumerable<CallState> list = new List<CallState>();
+
+                _proc = "sm_spGetCallStateRetrieveAll";
+
+                list = await SqlMapper.QueryAsync<CallState>(con, _proc, commandType: CommandType.StoredProcedure);
+                return list;
             }
             catch (Exception e)
             {

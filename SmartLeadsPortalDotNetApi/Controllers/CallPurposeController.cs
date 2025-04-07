@@ -58,6 +58,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(list);
         }
 
+        [HttpGet("get-callpurpose-retrieveall")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetCallPurposeRetrieveAll()
+        {
+            IEnumerable<CallPurpose>? list = await _callPurposeRepository.GetCallPurposeRetrievedAll();
+            return Ok(list);
+        }
+
         [HttpGet("delete-callpurpose/{guid}")]
         [EnableCors("CorsApi")]
         public async Task<IActionResult> DeleteCallPurpose(Guid guid)

@@ -7,11 +7,6 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public class CallTagRepository : SQLDBService
     {
-        private readonly string _connectionString;
-        public CallTagRepository(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("SQLServerDBConnectionString");
-        }
         public async Task<int> InsertCallTags(CallTagsInsert keyword)
         {
             try
@@ -76,6 +71,29 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     Items = list.ToList(),
                     Total = count
                 };
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            finally
+            {
+                con.Dispose();
+            }
+        }
+
+        public async Task<IEnumerable<CallTags>> GetCallTagsRetrievedAll()
+        {
+            try
+            {
+                string _proc = "";
+                var param = new DynamicParameters();
+                IEnumerable<CallTags> list = new List<CallTags>();
+
+                _proc = "sm_spGetCallTagsRetrieveAll";
+
+                list = await SqlMapper.QueryAsync<CallTags>(con, _proc, commandType: CommandType.StoredProcedure);
+                return list;
             }
             catch (Exception e)
             {
