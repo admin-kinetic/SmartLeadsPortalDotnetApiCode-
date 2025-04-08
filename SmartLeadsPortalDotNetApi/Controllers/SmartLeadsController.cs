@@ -15,12 +15,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly SmartLeadsApiService _smartLeadsApiService;
         private readonly SmartLeadsRepository _smartLeadsRepository;
         private readonly CallTasksTableRepository callTasksTableRepository;
+        private readonly CallsTableRepository callsTableRepository;
 
-        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository)
+        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository, CallsTableRepository callsTableRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
             _smartLeadsRepository = smartLeadsRepository;
             this.callTasksTableRepository = callTasksTableRepository;
+            this.callsTableRepository = callsTableRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -157,46 +159,48 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("calls/find")]
-        public IActionResult CallsFind(TableRequest request){
-            // var result = await this.callTasksTableRepository.Find(request);
-            var result = new TableResponse<SmartleadsCalls>
-            {
-                Items = new List<SmartleadsCalls>{
-                    new SmartleadsCalls{
-                        Id = 1,
-                        User = "Ralph Malaga",
-                        ProspectName = "Jane Smith",
-                        ProspectPhoneNumber = "123-456-7890",
-                        DateTime = "2023-10-01T12:00:00Z",
-                        State = "Completed",
-                        Duration = "00:30:00",
-                        Purpose = "Follow-up",
-                        Disposition = "Interested",
-                        Notes = "Discussed product features and pricing."
-                    }
-                },
-                Total = 1
+        public async Task<IActionResult> CallsFind(TableRequest request)
+        {
+            var result = await this.callsTableRepository.Find(request);
+            //var result = new TableResponse<SmartleadsCalls>
+            //{
+            //    Items = new List<SmartleadsCalls>{
+            //        new SmartleadsCalls{
+            //            Id = 1,
+            //            User = "Ralph Malaga",
+            //            ProspectName = "Jane Smith",
+            //            ProspectPhoneNumber = "123-456-7890",
+            //            DateTime = "2023-10-01T12:00:00Z",
+            //            State = "Completed",
+            //            Duration = "00:30:00",
+            //            Purpose = "Follow-up",
+            //            Disposition = "Interested",
+            //            Notes = "Discussed product features and pricing."
+            //        }
+            //    },
+            //    Total = 1
 
-            };
+            //};
             return Ok(result);
         }
 
         [HttpGet("calls/columns/all")]
-        public IActionResult CallsColumnsAll(){
-            // var result = this.callTasksTableRepository.AllColumns();
-            // result.Sort();
-            var result = new List<string>{
-                "Id",
-                "User",
-                "ProspectName",
-                "ProspectPhoneNumber",
-                "DateTime",
-                "State",
-                "Duration",
-                "Purpose",
-                "Disposition",
-                "Notes"
-            };
+        public IActionResult CallsColumnsAll()
+        {
+            var result = this.callsTableRepository.AllColumns();
+            result.Sort();
+            //var result = new List<string>{
+            //    "Id",
+            //    "User",
+            //    "ProspectName",
+            //    "ProspectPhoneNumber",
+            //    "DateTime",
+            //    "State",
+            //    "Duration",
+            //    "Purpose",
+            //    "Disposition",
+            //    "Notes"
+            //};
             return Ok(new { data = result });
         }
     }

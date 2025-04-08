@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Repositories;
 
@@ -23,5 +24,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             CallLogLeadNo? list = await _callLogsRepository.GetleadContactNoByEmail(email);
             return Ok(list);
         }
+
+        [HttpPost("insert-call-logs")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> InsertCallTags([FromBody] CallsInsert request)
+        {
+            await _callLogsRepository.InsertCallLogs(request);
+            return Ok(new { message = "call logs created successfully." });
+        }
+
     }
 }

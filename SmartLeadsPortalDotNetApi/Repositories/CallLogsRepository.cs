@@ -10,11 +10,25 @@ namespace SmartLeadsPortalDotNetApi.Repositories
     {
         public async Task<int> InsertCallLogs(CallsInsert keyword)
         {
+            //Add VOIP service API to get duration, call datetime
+
             try
             {
-                string _proc = "";
+                string _proc = "sm_spInsertCallLogs";
                 var param = new DynamicParameters();
-                param.Add("@", keyword.ProspectName);
+                param.Add("@usercaller", keyword.UserCaller);
+                param.Add("@userphonenumber", keyword.UserPhoneNumber);
+                param.Add("@leademail", keyword.LeadEmail);
+                param.Add("@prospectname", keyword.ProspectName);
+                param.Add("@prospectnumber", keyword.ProspectNumber);
+                param.Add("@callpurposeid", keyword.CallPurposeId);
+                param.Add("@calldispositionid", keyword.CallDispositionId);
+                param.Add("@calldirectionid", keyword.CallDirectionId);
+                param.Add("@notes", keyword.Notes);
+                param.Add("@calltagsid", keyword.CallTagsId);
+                param.Add("@callstateid", keyword.CallStateId);
+                param.Add("@addedby", keyword.AddedBy);
+                param.Add("@statisticid", keyword.StatisticId);
 
                 int ret = await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure);
 
@@ -23,6 +37,10 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             catch (Exception ex)
             {
                 throw new Exception("Database error: " + ex.Message);
+            }
+            finally
+            {
+                con.Dispose();
             }
         }
         public async Task<CallLogLeadNo?> GetleadContactNoByEmail(string email)

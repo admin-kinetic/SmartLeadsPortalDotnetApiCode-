@@ -79,6 +79,7 @@ builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<LeadClicksRepository>();
 builder.Services.AddScoped<VoiplineWebhookRepository>();
 builder.Services.AddScoped<CallTasksTableRepository>();
+builder.Services.AddScoped<CallsTableRepository>();
 builder.Services.AddScoped<SavedTableViewsRepository>();
 builder.Services.AddScoped<VoipPhoneNumberRepository>();
 
