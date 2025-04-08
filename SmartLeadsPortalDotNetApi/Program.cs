@@ -30,6 +30,8 @@ builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
+builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
+
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<SmartLeadsRepository>();
@@ -43,6 +45,9 @@ builder.Services.AddScoped<CallTagRepository>();
 builder.Services.AddScoped<CallLogsRepository>();
 builder.Services.AddScoped<VoipHttpService>();
 builder.Services.AddScoped<SmartLeadsApiService>();
+builder.Services.AddScoped<LeadsPortalHttpService>();
+builder.Services.AddScoped<UserRepository>();
+
 builder.Services.AddScoped<RestClient>(provider =>
 {
     var options = new RestClientOptions
@@ -75,6 +80,7 @@ builder.Services.AddScoped<LeadClicksRepository>();
 builder.Services.AddScoped<VoiplineWebhookRepository>();
 builder.Services.AddScoped<CallTasksTableRepository>();
 builder.Services.AddScoped<SavedTableViewsRepository>();
+builder.Services.AddScoped<VoipPhoneNumberRepository>();
 
 
 // Add services to the container.
