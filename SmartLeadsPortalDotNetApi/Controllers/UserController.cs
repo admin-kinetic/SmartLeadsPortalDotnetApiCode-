@@ -26,7 +26,20 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var detail = await this.userRepository.GetAll();
             return this.Ok(detail);
         }
-        
+
+        [HttpGet("with-assigned-phone-numbers")]
+        public async Task<IActionResult> GetAllWithAssignedPhoneNumbers(){
+            var contextUser = this.HttpContext.User;
+            var detail = await this.userRepository.GetAllWithAssignedPhoneNumbers();
+            return this.Ok(detail);
+        }
+
+        [HttpGet("with-unassigned-phone-numbers")]
+        public async Task<IActionResult> GetAllWithUnassignedPhoneNumbers(){
+            var contextUser = this.HttpContext.User;
+            var detail = await this.userRepository.GetAllWithUnassignedPhoneNumbers();
+            return this.Ok(detail);
+        }
 
         [HttpGet("current-user")]
         public async Task<IActionResult> GetCurrentUser(){

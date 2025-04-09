@@ -47,12 +47,38 @@ public class UserRepository
         }
     }
 
-    internal async Task<List<SmartleadsPortalUser>> GetAll()
+    public async Task<List<SmartleadsPortalUser>> GetAll()
     {
         using (var connection = this.connectionFactory.GetSqlConnection())
         {
             var query = """
                 SELECT * FROM Users
+            """;
+
+            var result = await connection.QueryAsync<SmartleadsPortalUser>(query);
+            return result.ToList();
+        }
+    }
+
+    public async Task<List<SmartleadsPortalUser>> GetAllWithUnassignedPhoneNumbers()
+    {
+        using (var connection = this.connectionFactory.GetSqlConnection())
+        {
+            var query = """
+                SELECT * FROM Users Where PhoneNumber IS NULL OR  PhoneNumber = '' 
+            """;
+
+            var result = await connection.QueryAsync<SmartleadsPortalUser>(query);
+            return result.ToList();
+        }
+    }
+
+    public async Task<List<SmartleadsPortalUser>> GetAllWithAssignedPhoneNumbers()
+    {
+        using (var connection = this.connectionFactory.GetSqlConnection())
+        {
+            var query = """
+                SELECT * FROM Users Where PhoneNumber IS NOT NULL OR PhoneNumber <> '' 
             """;
 
             var result = await connection.QueryAsync<SmartleadsPortalUser>(query);
