@@ -82,6 +82,16 @@ public class VoipPhoneNumberRepository
                 id
             };
             await connection.ExecuteAsync(update, updateParam);
+
+            if (request.EmployeeId != null)
+            {
+                var updateEmployee = """
+                    UPDATE Users 
+                        SET PhoneNumber = @phoneNumber 
+                    WHERE EmployeeId = @employeeId;
+                """;
+                await connection.ExecuteAsync(updateEmployee, request);
+            }
         }
     }
 }
