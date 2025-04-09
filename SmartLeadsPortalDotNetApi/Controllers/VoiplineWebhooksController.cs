@@ -16,10 +16,31 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             this.voiplineWebhookRepository = voiplineWebhookRepository;
         }
 
-        [HttpPost("outbound-call")]
+        [HttpPost("user-outbound-call")]
         public async Task<IActionResult> OutboundCall([FromBody] Dictionary<string, object> payload)
         {
-            await this.voiplineWebhookRepository.InsertWebhook(JsonSerializer.Serialize(payload));
+            await this.voiplineWebhookRepository.InsertWebhook("UserOutboundCall", JsonSerializer.Serialize(payload));
+            return Ok();
+        }
+
+        [HttpPost("user-outbound-call-answered")]
+        public async Task<IActionResult> OutboundCallAnswered([FromBody] Dictionary<string, object> payload)
+        {
+            await this.voiplineWebhookRepository.InsertWebhook("UserOutboundCallAnswered", JsonSerializer.Serialize(payload));
+            return Ok();
+        }
+
+        [HttpPost("user-outbound-call-completion")]
+        public async Task<IActionResult> OutboundCallCompletion([FromBody] Dictionary<string, object> payload)
+        {
+            await this.voiplineWebhookRepository.InsertWebhook("UserOutboundCallCompletion", JsonSerializer.Serialize(payload));
+            return Ok();
+        }
+
+        [HttpPost("outbound-call-recording")]
+        public async Task<IActionResult> OutboundCallRecording([FromBody] Dictionary<string, object> payload)
+        {
+            await this.voiplineWebhookRepository.InsertWebhook("OutboundCall", JsonSerializer.Serialize(payload));
             return Ok();
         }
     }
