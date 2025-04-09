@@ -25,6 +25,7 @@
         public Guid Guid { get; set; }
         public string? UserCaller { get; set; }
         public string? UserPhoneNumber { get; set; }
+        public string? LeadEmail { get; set; }
         public string? ProspectName { get; set; }
         public string? ProspectNumber { get; set; }
         public DateTime? CalledDate { get; set; }

@@ -12,7 +12,11 @@
         public string? SubjectName { get; set; }
         public int? OpenCount { get; set; }
         public int? ClickCount { get; set; }
+        public int? CallStateId { get; set; }
         public string? CallState { get; set; }
+        public int? EmployeeId { get; set; }
+        public string? AssignedTo { get; set; }
+        public string? Notes { get; set; }
     }
 
     public class SmartLeadsEmailStatistics
