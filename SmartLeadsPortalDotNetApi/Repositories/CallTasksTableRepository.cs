@@ -42,7 +42,8 @@ public class CallTasksTableRepository
                     cs.StateName AS CallState,
                     us.EmployeeId,
                     us.FullName AS AssignedTo,
-                    sle.Notes
+                    sle.Notes,
+                    sle.Due
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
@@ -157,10 +158,10 @@ public class CallTasksTableRepository
             "FullName",
             "SequenceNumber",
             "CampaignName",
-            // "SubjectName",
+             "SubjectName",
             "OpenCount",
             "ClickCount",
-            "CallState",
+            "Due",
             "AssignedTo"
         };
     }

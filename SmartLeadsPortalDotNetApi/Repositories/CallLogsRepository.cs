@@ -63,6 +63,27 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 leadcon.Dispose();
             }
         }
+        public async Task<int> UpdateCallLogs(CallsUpdate request)
+        {
+            try
+            {
+                string _proc = "sm_spUpdateCallLogs";
+                var param = new DynamicParameters();
+                param.Add("@guid", request.Guid);
+                param.Add("@callpurposeid", request.CallPurposeId);
+                param.Add("@calldispositionid", request.CallDispositionId);
+                param.Add("@calltagsid", request.CallTagsId);
+                param.Add("@notes", request.Notes);
+
+                int ret = await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure);
+
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
 
     }
 }

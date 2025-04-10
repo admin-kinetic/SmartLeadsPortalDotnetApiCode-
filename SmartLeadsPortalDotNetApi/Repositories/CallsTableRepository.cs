@@ -35,13 +35,18 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             	    cl.ProspectName, 
             	    cl.ProspectNumber, 
             	    cl.CalledDate,
+                    cl.CallStateId,
             	    cs.StateName AS CallState,
             	    cl.Duration,
+                    cl.CallPurposeId,
             	    cp.CallPurposeName AS CallPurpose,
+                    cl.CallDispositionId,
             	    cd.CallDispositionName AS CallDisposition,
             	    cl.Notes,
+                    cl.CallTagsId,
             	    ct.TagName AS CallTags,
-            	    cl.AddedBy
+            	    cl.AddedBy,
+                    cl.RecordedLink
                 FROM [dbo].[Calls] cl
                 LEFT JOIN CallPurpose cp ON cl.CallPurposeId = cp.Id
                 LEFT JOIN CallDisposition cd ON cl.CallDispositionId = cd.Id
