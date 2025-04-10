@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RestSharp;
 using Serilog;
+using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 using SmartLeadsPortalDotNetApi.Configs;
 using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
@@ -82,6 +83,9 @@ builder.Services.AddScoped<CallTasksTableRepository>();
 builder.Services.AddScoped<CallsTableRepository>();
 builder.Services.AddScoped<SavedTableViewsRepository>();
 builder.Services.AddScoped<VoipPhoneNumberRepository>();
+builder.Services.AddScoped<OutboundCallEventParser>();
+builder.Services.AddScoped<OutboundEventStore>();
+builder.Services.AddScoped<OutboundCallRepository>();
 
 
 // Add services to the container.
