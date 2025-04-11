@@ -59,6 +59,7 @@
         public int? CallTagsId { get; set; }
         public string? AddedBy { get; set; }
         public int StatisticId { get; set; }
+        public DateTime? Due { get; set; }
     }
     public class CallsUpdate
     {

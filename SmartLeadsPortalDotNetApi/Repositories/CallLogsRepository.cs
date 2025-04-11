@@ -29,6 +29,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 param.Add("@callstateid", keyword.CallStateId);
                 param.Add("@addedby", keyword.AddedBy);
                 param.Add("@statisticid", keyword.StatisticId);
+                param.Add("@due", keyword.Due);
 
                 int ret = await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure);
 

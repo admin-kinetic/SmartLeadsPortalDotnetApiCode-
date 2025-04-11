@@ -191,9 +191,31 @@ public class CallTasksTableRepository
                 string _proc = "sm_spUpdateCallTasks";
                 var param = new DynamicParameters();
                 param.Add("@guid", request.GuId);
-                param.Add("@stateid", request.StateId);
+                param.Add("@due", request.Due);
                 param.Add("@assignto", request.AssignedTo);
                 param.Add("@notes", request.Notes);
+
+                int ret = await connection.ExecuteAsync(_proc, param);
+
+                return ret;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Database error: " + ex.Message);
+        }
+    }
+    public async Task<int> RescheduleCallTasks(CallTasksUpdateParam request)
+    {
+        try
+        {
+            using (var connection = this.dbConnectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spRescheduleCallTasks";
+                var param = new DynamicParameters();
+                param.Add("@guid", request.GuId);
+                param.Add("@due", request.Due);
 
                 int ret = await connection.ExecuteAsync(_proc, param);
 
