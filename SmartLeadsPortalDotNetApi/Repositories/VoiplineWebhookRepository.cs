@@ -15,7 +15,18 @@ public class VoiplineWebhookRepository
         this.logger = logger;
     }
 
-    public async Task InsertWebhook(string payload)
+    public async Task<List<string>> GetAllUniqueCallId(){
+        using( var connection = dbConnectionFactory.GetSqlConnection()){
+            var query = """
+                Select UniqueCallId From VoiplineWebhooks
+                Order By Id DESC;
+            """;
+            var result = await connection.QueryAsync<string>(query);
+            return result.Distinct().ToList();
+        }
+    }
+
+    public async Task InsertWebhook(string webhookType, string payload)
     {
         logger.LogInformation($"Inserting voipline webhook into database");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -23,8 +34,8 @@ public class VoiplineWebhookRepository
         try
         {
             using var connection = dbConnectionFactory.GetSqlConnection();
-            var insert = @"INSERT INTO VoiplineWebhooks (Request, CreatedAt) VALUES (@payload, GETDATE());";
-            await connection.ExecuteAsync(insert, new { payload });
+            var insert = @"INSERT INTO VoiplineWebhooks (Type, Request, CreatedAt) VALUES (@webhookType, @payload, GETDATE());";
+            await connection.ExecuteAsync(insert, new { payload, webhookType });
         }
         finally
         {

@@ -128,9 +128,25 @@ public class CallTasksTableRepository
                 countQuery += whereStatement;
             }
 
+            // Sorting to follow after where
+            if (request.sorting != null)
+            {
+                switch (request.sorting.column.ToLower())
+                {
+                    case "due":
+                        baseQuery += $" ORDER BY sle.Due {(request.sorting.direction == "asc" ? "ASC" : "DESC")} ";
+                        break;
+                    case "priority":
+                        baseQuery += $" ORDER BY sle.OpenCount {(request.sorting.direction == "asc" ? "ASC" : "DESC")} ";
+                        break;
+                    default:
+                        baseQuery += $" ORDER BY sle.OpenCount DESC";
+                        break;
+                }
+            }
+
             // Add ORDER BY and pagination
             baseQuery += """
-                ORDER BY sle.OpenCount DESC
                 OFFSET (@PageNumber - 1) * @PageSize ROWS
                 FETCH NEXT @PageSize ROWS ONLY
             """;
@@ -183,7 +199,7 @@ public class CallTasksTableRepository
 
                 return ret;
             }
-            
+
         }
         catch (Exception ex)
         {
