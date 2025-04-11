@@ -11,7 +11,8 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spInsertCallLogs]
 @calltagsid INT,
 @callstateid INT,
 @addedby VARCHAR(200),
-@statisticid INT
+@statisticid INT,
+@due DATETIME
 AS
 BEGIN
 	BEGIN
@@ -47,8 +48,23 @@ BEGIN
 		GETDATE())
 	END
 
+	-- Use GETDATE() if @due is NULL
+	DECLARE @finalDue DATETIME = ISNULL(@due, GETDATE());
+
 	BEGIN
-		UPDATE SmartLeadsEmailStatistics SET CallStateId = @callstateid WHERE Id=@statisticid
+		BEGIN TRANSACTION; -- Start a transaction
+
+		BEGIN TRY
+			UPDATE SmartLeadsEmailStatistics 
+			SET CallStateId = @callstateid,
+				Due = @finalDue
+			WHERE Id=@statisticid
+			COMMIT;
+		END TRY
+		BEGIN CATCH
+			ROLLBACK; -- Rollback the transaction in case of an error
+		END CATCH
+
 	END
 END
 GO
