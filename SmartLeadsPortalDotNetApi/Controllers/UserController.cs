@@ -57,5 +57,20 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             }
             return this.Ok();
         }
+
+        [HttpGet("get-userphone-by-id")]
+        public async Task<IActionResult> GetUsersPhoneById()
+        {
+            var contextUser = this.HttpContext.User;
+            var detail = await this.userRepository.GetUsersPhoneById(int.Parse(contextUser.FindFirst("employeeId").Value));
+            return this.Ok(detail);
+        }
+
+        [HttpGet("get-users-with-phone")]
+        public async Task<IActionResult> GetUsersWithPhoneAssigned()
+        {
+            var detail = await this.userRepository.GetUsersWithPhoneAssigned();
+            return this.Ok(detail);
+        }
     }
 }

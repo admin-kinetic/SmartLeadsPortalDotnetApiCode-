@@ -1,8 +1,9 @@
-using System;
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
+using System;
+using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Repositories;
 
@@ -83,6 +84,44 @@ public class UserRepository
 
             var result = await connection.QueryAsync<SmartleadsPortalUser>(query);
             return result.ToList();
+        }
+    }
+    public async Task<UsersPhone?> GetUsersPhoneById(int id)
+    {
+        try
+        {
+            using (var connection = this.connectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spGetUsersPhoneById";
+                var param = new DynamicParameters();
+                param.Add("@id", id);
+                UsersPhone? list = await connection.QueryFirstOrDefaultAsync<UsersPhone>(_proc, param);
+
+                return list;
+            }
+            
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+    }
+    public async Task<IEnumerable<UsersPhone?>> GetUsersWithPhoneAssigned()
+    {
+        try
+        {
+            using (var connection = this.connectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spGetUsersWithPhoneAssigned";
+                IEnumerable<UsersPhone>? list = await connection.QueryAsync<UsersPhone>(_proc);
+
+                return list;
+            }
+
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
         }
     }
 }

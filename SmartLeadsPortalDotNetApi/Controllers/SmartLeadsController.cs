@@ -203,5 +203,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             //};
             return Ok(new { data = result });
         }
+
+        [HttpPost("update-call-tasks")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpdateCallTasks([FromBody] CallTasksUpdateParam request)
+        {
+            var ret = await this.callTasksTableRepository.UpdateCallTasks(request);
+            return Ok(ret);
+        }
     }
 }

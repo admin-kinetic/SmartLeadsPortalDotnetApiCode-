@@ -33,5 +33,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(new { message = "call logs created successfully." });
         }
 
+        [HttpPost("update-call-logs")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpdateCallLogs([FromBody] CallsUpdate request)
+        {
+            await _callLogsRepository.UpdateCallLogs(request);
+            return Ok(new { message = "call logs created successfully." });
+        }
+
     }
 }

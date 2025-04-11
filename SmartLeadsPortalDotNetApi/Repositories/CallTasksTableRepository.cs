@@ -1,6 +1,8 @@
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
+using System.Data;
+using System.Drawing;
 
 public class CallTasksTableRepository
 {
@@ -36,10 +38,16 @@ public class CallTasksTableRepository
                     sle.EmailSubject AS SubjectName, 
                     sle.OpenCount, 
                     sle.ClickCount,
-                    cs.StateName AS CallState
+                    cs.Id AS CallStateId,
+                    cs.StateName AS CallState,
+                    us.EmployeeId,
+                    us.FullName AS AssignedTo,
+                    sle.Notes,
+                    sle.Due
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
+                LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
             """;
             var queryParam = new
             {
@@ -90,10 +98,10 @@ public class CallTasksTableRepository
                             whereClause.Add("sle.EmailSubject LIKE @SubjectName");
                             parameters.Add("SubjectName", $"%{filter.Value}%");
                             break;
-                        // case "callstate":
-                        //     whereClause.Add("cs.StateName LIKE @CallState");
-                        //     parameters.Add("CallState", $"%{filter.Value}%");
-                        //     break;
+                        case "callstate":
+                            whereClause.Add("cs.StateName LIKE @CallState");
+                            parameters.Add("CallState", $"%{filter.Value}%");
+                            break;
                         case "opencount":
                             whereClause.Add($"sle.OpenCount {this.operatorsMap[filter.Operator]} @OpenCount");
                             parameters.Add("OpenCount", filter.Value);
@@ -150,10 +158,36 @@ public class CallTasksTableRepository
             "FullName",
             "SequenceNumber",
             "CampaignName",
-            // "SubjectName",
+             "SubjectName",
             "OpenCount",
             "ClickCount",
-            // "CallState"
+            "Due",
+            "AssignedTo"
         };
+    }
+
+    public async Task<int> UpdateCallTasks(CallTasksUpdateParam request)
+    {
+        try
+        {
+            using (var connection = this.dbConnectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spUpdateCallTasks";
+                var param = new DynamicParameters();
+                param.Add("@guid", request.GuId);
+                param.Add("@stateid", request.StateId);
+                param.Add("@assignto", request.AssignedTo);
+                param.Add("@notes", request.Notes);
+
+                int ret = await connection.ExecuteAsync(_proc, param);
+
+                return ret;
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Database error: " + ex.Message);
+        }
     }
 }
