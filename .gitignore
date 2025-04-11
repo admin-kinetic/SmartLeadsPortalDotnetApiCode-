@@ -398,3 +398,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Developer create this on their local
+SmartLeadsPortalDotNetApi/appsettings.Development.json
