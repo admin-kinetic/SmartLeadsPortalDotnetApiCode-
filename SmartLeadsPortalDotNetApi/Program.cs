@@ -1,8 +1,11 @@
 using System.Security.Cryptography;
 using System.Text;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Graph;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RestSharp;
@@ -11,6 +14,7 @@ using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 using SmartLeadsPortalDotNetApi.Configs;
 using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Factories;
 using SmartLeadsPortalDotNetApi.Helper;
 using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services;
@@ -32,6 +36,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
 builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
+builder.Services.Configure<MicrosoftGraphSettings>(builder.Configuration.GetSection("MicrosoftGraph"));
 
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
@@ -86,6 +91,36 @@ builder.Services.AddScoped<VoipPhoneNumberRepository>();
 builder.Services.AddScoped<OutboundCallEventParser>();
 builder.Services.AddScoped<OutboundEventStore>();
 builder.Services.AddScoped<OutboundCallRepository>();
+builder.Services.AddScoped<OutlookService>();
+builder.Services.AddSingleton<MicrosoftGraphAuthProvider>();
+builder.Services.AddScoped<MicrosoftGraphServiceClientFactory>();
+
+builder.Services.AddScoped(provider =>
+    {
+        var factory = provider.GetRequiredService<MicrosoftGraphServiceClientFactory>();
+        return new GraphClientWrapper(factory);
+    });
+
+
+builder.Services.AddSingleton(provider =>
+    {
+    return new StorageSharedKeyCredential(
+            builder.Configuration["AzureStorage:AccountName"], 
+            builder.Configuration["AzureStorage:AccountKey"]);
+    });
+
+// Register BlobServiceClient as a singleton
+builder.Services.AddSingleton(provider =>
+    {
+        // return new BlobServiceClient(azureConnectionString).GetBlobContainerClient("upload-container");
+        
+        var sharedKeyCredential = provider.GetRequiredService<StorageSharedKeyCredential>();
+        string blobContainerUrl = string.Format(
+            "https://{0}.blob.core.windows.net/{1}",
+            builder.Configuration["AzureStorage:AccountName"],
+            builder.Configuration["AzureStorage:Container"]);
+        return new BlobContainerClient(new Uri(blobContainerUrl), sharedKeyCredential);
+    });
 
 
 // Add services to the container.

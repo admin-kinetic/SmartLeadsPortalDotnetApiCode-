@@ -72,4 +72,16 @@ public class OutboundCallRepository
 
         await connection.ExecuteAsync(sql, aggregate);
     }
+
+    internal async Task UpdateAzureStorageRecordingLik(string uniqueCallId, string uri)
+    {
+        using var connection = this.dbConnectionFactory.GetSqlConnection();
+        const string sql = """
+            UPDATE OutboundCalls
+            SET AzureStorageCallRecordingLink = @uri
+            WHERE UniqueCallId = @uniqueCallId
+        """;
+
+        await connection.ExecuteAsync(sql, new { uniqueCallId, uri });
+    }
 }
