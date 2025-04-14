@@ -10,9 +10,13 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spInsertCallLogs]
 @notes VARCHAR(MAX),
 @calltagsid INT,
 @callstateid INT,
+@duration INT,
 @addedby VARCHAR(200),
 @statisticid INT,
-@due DATETIME
+@due DATETIME,
+@userid INT,
+@uniquecallid VARCHAR(255),
+@calleddate DATETIME
 AS
 BEGIN
 	BEGIN
@@ -29,23 +33,27 @@ BEGIN
 		Notes, 
 		CallTagsId,
 		CallStateId,
+		Duration,
 		AddedBy, 
-		AddedDate)
+		AddedDate,
+		UniqueCallId)
 		VALUES(NEWID(), 
-		@usercaller, 
+		@usercaller,
 		@userphonenumber,
 		@leademail,
 		@prospectname, 
 		@prospectnumber, 
-		GETDATE(), 
+		@calleddate, 
 		@callpurposeid, 
 		@calldispositionid, 
 		@calldirectionid, 
 		@notes,
 		@calltagsid, 
 		@callstateid,
+		@duration,
 		@addedby, 
-		GETDATE())
+		GETDATE(),
+		@uniquecallid)
 	END
 
 	-- Use GETDATE() if @due is NULL
@@ -57,6 +65,7 @@ BEGIN
 		BEGIN TRY
 			UPDATE SmartLeadsEmailStatistics 
 			SET CallStateId = @callstateid,
+				AssignedTo = @userid,
 				Due = @finalDue
 			WHERE Id=@statisticid
 			COMMIT;
