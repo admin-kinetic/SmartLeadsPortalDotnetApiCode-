@@ -153,12 +153,27 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     countQuery += whereStatement;
                 }
 
+                if(request.sorting != null){
+                    // Sorting to follow after where
+            if (request.sorting != null)
+            {
+                switch (request.sorting.column.ToLower())
+                {
+                    case "time & date":
+                        baseQuery += $" ORDER BY cl.CalledDate {(request.sorting.direction == "asc" ? "ASC" : "DESC")} ";
+                        break;
+                    default:
+                        baseQuery += $"  ORDER BY cl.CalledDate DESC";
+                        break;
+                }
+            }
+                }
+
                 // Add ORDER BY and pagination
                 baseQuery += """
-                ORDER BY cl.CalledDate DESC
-                OFFSET (@PageNumber - 1) * @PageSize ROWS
-                FETCH NEXT @PageSize ROWS ONLY
-            """;
+                    OFFSET (@PageNumber - 1) * @PageSize ROWS
+                    FETCH NEXT @PageSize ROWS ONLY
+                """;
 
 
                 var items = await connection.QueryAsync<SmartLeadsCalls>(baseQuery, parameters);

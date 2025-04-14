@@ -34,6 +34,16 @@ public class CallTasksTableRepository
                     sle.LeadEmail AS Email, 
                     JSON_VALUE(wh.Request, '$.to_name') AS FullName, 
                     sle.SequenceNumber,
+                    CASE 
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(US/CA)%' THEN 
+                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(AUS)%' THEN 
+                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(UK)%' THEN 
+                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(NZ)%' THEN 
+                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
+                    END AS LocalTime,
                     JSON_VALUE(wh.Request, '$.campaign_name') AS CampaignName, 
                     sle.EmailSubject AS SubjectName, 
                     sle.OpenCount, 
