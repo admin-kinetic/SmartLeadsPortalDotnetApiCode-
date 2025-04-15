@@ -60,6 +60,8 @@
         public string? AddedBy { get; set; }
         public int StatisticId { get; set; }
         public DateTime? Due { get; set; }
+        public int? UserId { get; set; }
+        public string? UniqueCallId { get; set; }
     }
     public class CallsUpdate
     {
@@ -78,5 +80,22 @@
     public class CallLogLeadNo
     {
         public string? phone { get; set; }
+    }
+    public class CallLogsOutbound
+    {
+        public string? UniqueCallId { get; set; }
+        public string? CallerId { get; set; }
+        public string? UserName { get; set; }
+        public string? DestNumber { get; set; }
+        public DateTime? CallStartAt { get; set; }
+        public DateTime? ConnectedAt { get; set; }
+        public int? CallDuration { get; set; }
+        public int? ConversationDuration { get; set; }
+        public string? AzureStorageCallRecordingLink { get; set; }
+    }
+    public class CallOutboundInfoParam
+    {
+        public string? UniqueCallId { get; set; }
+        public string? Filename { get; set; }
     }
 }

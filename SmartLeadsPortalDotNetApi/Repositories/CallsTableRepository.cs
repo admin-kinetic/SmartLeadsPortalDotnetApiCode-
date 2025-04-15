@@ -46,12 +46,13 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     cl.CallTagsId,
             	    ct.TagName AS CallTags,
             	    cl.AddedBy,
-                    cl.RecordedLink
+                    ob.AzureStorageCallRecordingLink AS RecordedLink
                 FROM [dbo].[Calls] cl
                 LEFT JOIN CallPurpose cp ON cl.CallPurposeId = cp.Id
                 LEFT JOIN CallDisposition cd ON cl.CallDispositionId = cd.Id
                 LEFT JOIN CallState cs ON cl.CallStateId = cs.Id
                 LEFT JOIN Tags ct ON cl.CallTagsId = ct.Id
+                LEFT JOIN OutboundCalls ob ON cl.UniqueCallId = ob.UniqueCallId
             """;
                 var queryParam = new
                 {
@@ -67,6 +68,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 LEFT JOIN CallDisposition cd ON cl.CallDispositionId = cd.Id
                 LEFT JOIN CallState cs ON cl.CallStateId = cs.Id
                 LEFT JOIN Tags ct ON cl.CallTagsId = ct.Id
+                LEFT JOIN OutboundCalls ob ON cl.UniqueCallId = ob.UniqueCallId
             """;
 
                 var countQueryParam = new
