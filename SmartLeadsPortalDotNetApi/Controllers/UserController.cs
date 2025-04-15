@@ -1,8 +1,10 @@
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services;
+using System.Threading.Tasks;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
 {
@@ -13,11 +15,15 @@ namespace SmartLeadsPortalDotNetApi.Controllers
     {
         private readonly UserRepository userRepository;
         private readonly VoipPhoneNumberRepository voipPhoneNumberRepository;
+        private readonly BlobService _blobservice;
+        private readonly StorageConfig _storageConfig;
 
-        public UserController(UserRepository userRepository, VoipPhoneNumberRepository voipPhoneNumberRepository)
+        public UserController(UserRepository userRepository, VoipPhoneNumberRepository voipPhoneNumberRepository, BlobService blobService, IOptions<StorageConfig> options)
         {
             this.userRepository = userRepository;
             this.voipPhoneNumberRepository = voipPhoneNumberRepository;
+            _blobservice = blobService;
+            _storageConfig = options.Value;
         }
 
         [HttpGet()]
@@ -71,6 +77,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             var detail = await this.userRepository.GetUsersWithPhoneAssigned();
             return this.Ok(detail);
+        }
+
+        [HttpGet("get-blob-token")]
+        public async Task<IActionResult> GetStorageSecuredToken()
+        {
+            var detail = await _blobservice.GetStorageSecuredToken(_storageConfig);
+            return Ok(detail);
         }
     }
 }
