@@ -10,7 +10,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
     {
         public async Task<int> InsertCallLogs(CallsInsert keyword)
         {
-            //var filename = "https://files-test.kineticstaff.com/callrecordings";
+            // var filename = "https://files-test.kineticstaff.com/callrecordings";
             // Add VOIP service API to get duration, call datetime
             if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
             {

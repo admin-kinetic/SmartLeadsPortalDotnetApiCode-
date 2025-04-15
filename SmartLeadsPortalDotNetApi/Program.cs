@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,8 +14,11 @@ using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Factories;
 using SmartLeadsPortalDotNetApi.Helper;
+using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services;
+using System.Security.Cryptography;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,7 @@ builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpCon
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
 builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
 builder.Services.Configure<MicrosoftGraphSettings>(builder.Configuration.GetSection("MicrosoftGraph"));
+builder.Services.Configure<StorageConfig>(builder.Configuration.GetSection("AzureStorage"));
 
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
@@ -82,6 +84,7 @@ builder.Services.Configure<FormOptions>(o =>
 });
 
 builder.Services.AddScoped<WebhookService>();
+builder.Services.AddScoped<BlobService>();
 builder.Services.AddScoped<LeadClicksRepository>();
 builder.Services.AddScoped<VoiplineWebhookRepository>();
 builder.Services.AddScoped<CallTasksTableRepository>();
