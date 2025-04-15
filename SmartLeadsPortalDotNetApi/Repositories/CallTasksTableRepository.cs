@@ -27,32 +27,6 @@ public class CallTasksTableRepository
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
             var baseQuery = """ 
-                WITH TimeZoneData AS (
-                    SELECT
-                        'US/CA' AS CampaignRegion,
-                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time' AS LocalTime
-                    UNION ALL
-                    SELECT
-                        'AUS',
-                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                    UNION ALL
-                    SELECT
-                        'NZ',
-                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
-                    UNION ALL
-                    SELECT
-                        'UK',
-                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                ),
-                TargetTimeData AS (
-                    SELECT
-                        CampaignRegion,
-                        LocalTime,
-                        CAST(LocalTime AS TIME) AS CurrentLocalTime,
-                        CAST('09:00:00' AS TIME) AS TargetTime,
-                        ABS(DATEDIFF(MINUTE, CAST(LocalTime AS TIME), CAST('09:00:00' AS TIME))) AS TimeDifferenceInMinutes
-                    FROM TimeZoneData
-                )
                 SELECT
                     sle.Id,
                     sle.GuId,
@@ -61,15 +35,39 @@ public class CallTasksTableRepository
                     JSON_VALUE(wh.Request, '$.to_name') AS FullName, 
                     sle.SequenceNumber,
                     CASE 
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(US/CA)%' THEN 
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (US/CA) Bot - Job Ads (manual)' 
+                            OR JSON_VALUE(wh.Request, '$.campaign_name') = '(US/CA) Bot - Job Ads (full auto)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(AUS)%' THEN 
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (AUS) Bot - Job Ads (manual)' 
+                            OR JSON_VALUE(wh.Request, '$.campaign_name') = '(AUS) Bot - Job Ads (full auto)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(UK)%' THEN 
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(NZ)%' THEN 
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(NZ) Bot - Job Ads (full auto)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
+                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(EU) Bot - Job Ads (full auto)' THEN 
+                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
                     END AS LocalTime,
+                    ABS(
+                        DATEDIFF(
+                            MINUTE, 
+                            CAST(CASE 
+                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (US/CA) Bot - Job Ads (manual)' 
+                                        OR JSON_VALUE(wh.Request, '$.campaign_name') = '(US/CA) Bot - Job Ads (full auto)' THEN 
+                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
+                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (AUS) Bot - Job Ads (manual)' 
+                                        OR JSON_VALUE(wh.Request, '$.campaign_name') = '(AUS) Bot - Job Ads (full auto)' THEN 
+                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
+                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
+                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
+                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(NZ) Bot - Job Ads (full auto)' THEN 
+                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
+                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(EU) Bot - Job Ads (full auto)' THEN 
+                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
+                                END AS TIME),
+                            CAST('09:00:00' AS TIME)
+                        )
+                    ) AS TimeDifferenceInMinutes,
                     JSON_VALUE(wh.Request, '$.campaign_name') AS CampaignName, 
                     sle.EmailSubject AS SubjectName, 
                     sle.OpenCount, 
@@ -84,14 +82,8 @@ public class CallTasksTableRepository
                 INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
-                LEFT JOIN TargetTimeData tz
-                    ON CASE 
-                            WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(US/CA)%' THEN 'US/CA'
-                            WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(AUS)%' THEN 'AUS'
-                            WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(UK)%' THEN 'UK'
-                            WHEN JSON_VALUE(wh.Request, '$.campaign_name') LIKE '%(NZ)%' THEN 'NZ'
-                        END = tz.CampaignRegion
             """;
+
             var queryParam = new
             {
                 PageNumber = request.paginator.page,
@@ -183,7 +175,7 @@ public class CallTasksTableRepository
                         baseQuery += $" ORDER BY sle.OpenCount {(request.sorting.direction == "asc" ? "ASC" : "DESC")} ";
                         break;
                     case "sequence":
-                        baseQuery += $" ORDER BY tz.TimeDifferenceInMinutes {(request.sorting.direction == "asc" ? "ASC" : "DESC")} , sle.SequenceNumber DESC   ";
+                        baseQuery += $" ORDER BY TimeDifferenceInMinutes {(request.sorting.direction == "asc" ? "ASC" : "DESC")} , sle.SequenceNumber DESC   ";
                         break;
                     default:
                         baseQuery += $" ORDER BY sle.OpenCount DESC";
