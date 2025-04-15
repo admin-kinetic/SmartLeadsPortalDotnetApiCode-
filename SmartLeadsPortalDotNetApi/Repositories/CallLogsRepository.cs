@@ -10,7 +10,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
     {
         public async Task<int> InsertCallLogs(CallsInsert keyword)
         {
-            var filename = "https://files-test.kineticstaff.com/callrecordings";
+            //var filename = "https://files-test.kineticstaff.com/callrecordings";
             // Add VOIP service API to get duration, call datetime
             if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
             {
@@ -49,11 +49,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                 int ret = await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure);
 
-                if (!string.IsNullOrEmpty(callLogsOutbound.UniqueCallId))
-                {
-                    filename = filename+"/"+callLogsOutbound.UniqueCallId+".mp3";
-                    await UpdateOutboundCallsInfo(callLogsOutbound.UniqueCallId, filename);
-                }
+                //if (!string.IsNullOrEmpty(callLogsOutbound.UniqueCallId))
+                //{
+                //    filename = filename+"/"+callLogsOutbound.UniqueCallId+".mp3";
+                //    await UpdateOutboundCallsInfo(callLogsOutbound.UniqueCallId, filename);
+                //}
 
                 return ret;
             }
