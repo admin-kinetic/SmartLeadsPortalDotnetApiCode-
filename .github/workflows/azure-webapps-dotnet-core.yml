@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to an Azure Web App - KineticChatBotAPI
+name: Build and deploy ASP.Net Core app to an Azure Web App - Smartleads Portal API
 
 env:
   AZURE_WEBAPP_NAME: app-smartleadsapi-test-sea
