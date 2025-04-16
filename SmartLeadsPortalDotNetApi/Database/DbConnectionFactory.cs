@@ -16,7 +16,7 @@ public class DbConnectionFactory : IDisposable
 
     public DbConnectionFactory(IConfiguration configuration, ILogger<DbConnectionFactory> logger)
     {
-        _sqlConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:SmartleadsPortalDb")
+        _sqlConnectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
             ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
             ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
 
