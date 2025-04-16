@@ -33,7 +33,7 @@ public class OutlookService
     {
         try
         {
-            var accountEmail = "admin@kinetic-offshore.com";
+            var accountEmail = "smartleadscallrecording@kineticstaff.com";
             var graphServiceClient = await this.graphClientWrapper.GetClientAsync();
             var emails = await graphServiceClient.Users[accountEmail].MailFolders["Inbox"].Messages
                 .GetAsync(requestConfiguration =>
