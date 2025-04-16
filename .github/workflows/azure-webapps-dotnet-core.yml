@@ -6,9 +6,9 @@ env:
   DOTNET_VERSION: '8.0'                
 
 on:
-  push:
-    # branches: 
-    #   - main
+  # push:
+  #   branches: 
+  #     - main
   workflow_dispatch:
   
 jobs:
