@@ -58,7 +58,7 @@ public class OutlookService
                             await blobClient.UploadAsync(stream, overwrite: true);
                         }
 
-                        var uri = $"{this.configuration["AzureStorage:Url"]}/{fileName}";
+                        var uri = $"/{this.configuration["AzureStorage:Container"]}/{fileName}";
 
                         await this.outboundCallRepository.UpdateAzureStorageRecordingLik(uniqueCallId, uri);
                     }
