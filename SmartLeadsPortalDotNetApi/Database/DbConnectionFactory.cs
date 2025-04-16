@@ -26,6 +26,7 @@ public class DbConnectionFactory : IDisposable
         // _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
         //     ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
         this.logger = logger;
+        this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("ConnectionStrings:SmartleadsPortalDb")}");
         this.logger.LogInformation($"SQL Connection String: {this._sqlConnectionString}");
     }
 
