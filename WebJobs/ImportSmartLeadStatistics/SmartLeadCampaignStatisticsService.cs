@@ -29,6 +29,7 @@ public class SmartLeadCampaignStatisticsService
                 {
                     var statistics = await this.smartLeadHttpService.FetchCampaigncStatisticsByCampaignId(campaign.id, offset, limit);
                     hasData = statistics.data.Count > 0;
+                    Console.WriteLine($"Campaign ID: {campaign.id}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
 
                     if (statistics.data.Count > 0)
                     {
@@ -54,15 +55,47 @@ public class SmartLeadCampaignStatisticsService
                         {
                             try
                             {
-                                var insert = """
-                                    INSERT INTO SmartLeadsEmailStatistics (GuId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenTime, ClickTime, ReplyTime, OpenCount, ClickCount)
-                                    VALUES (NEWID(), @LeadEmail, @SequenceNumber, @EmailSubject, @SentTime, @OpenTime, @ClickTime, @ReplyTime, @OpenCount, @ClickCount)
+                                var upsert = """
+                                    MERGE INTO SmartLeadsEmailStatistics AS target
+                                    USING (VALUES (@GuId, @LeadEmail, @SequenceNumber, @EmailSubject, @SentTime, @OpenTime, @ClickTime, @ReplyTime, @OpenCount, @ClickCount)) 
+                                        AS source (GuId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenTime, ClickTime, ReplyTime, OpenCount, ClickCount)
+                                    ON target.LeadEmail = source.LeadEmail AND target.SequenceNumber = source.SequenceNumber
+                                    WHEN MATCHED THEN
+                                        UPDATE SET 
+                                            SequenceNumber = source.SequenceNumber,
+                                            EmailSubject = source.EmailSubject,
+                                            SentTime = source.SentTime,
+                                            OpenTime = source.OpenTime,
+                                            ClickTime = source.ClickTime,
+                                            ReplyTime = source.ReplyTime,
+                                            OpenCount = source.OpenCount,
+                                            ClickCount = source.ClickCount
+                                    WHEN NOT MATCHED THEN
+                                        INSERT (GuId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenTime, ClickTime, ReplyTime, OpenCount, ClickCount)
+                                        VALUES (source.GuId, source.LeadEmail, source.SequenceNumber, source.EmailSubject, source.SentTime, source.OpenTime, source.ClickTime, source.ReplyTime, source.OpenCount, source.ClickCount);
                                 """;
-                                await connection.ExecuteAsync(insert, smartLeadCampaignStatistics, transaction);
+                                await connection.ExecuteAsync(
+                                    upsert, 
+                                    smartLeadCampaignStatistics.Select(cs => new {
+                                        GuId = Guid.NewGuid(),
+                                        cs.LeadEmail,
+                                        cs.SequenceNumber,
+                                        cs.EmailSubject,
+                                        cs.SentTime,
+                                        cs.OpenTime,
+                                        cs.ClickTime,
+                                        cs.ReplyTime,
+                                        cs.OpenCount,
+                                        cs.ClickCount
+                                    }), 
+                                    transaction);
                                 transaction.Commit();
+
+                                Console.WriteLine("Successfully saved campaign statistics.");
                             }
                             catch (System.Exception ex)
                             {
+                                Console.WriteLine(ex.Message);
                                 transaction.Rollback();
                                 throw;
                             }
@@ -71,7 +104,6 @@ public class SmartLeadCampaignStatisticsService
 
                     offset += limit;
                 } while (hasData);
-
             }
         }
     }

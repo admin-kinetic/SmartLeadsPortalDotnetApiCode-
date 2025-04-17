@@ -3,6 +3,8 @@ using ImportSmartLeadStatistics;
 using ImportSmartLeadStatistics.Services;
 using Microsoft.Extensions.Configuration;
 
+Console.WriteLine("Starting SmartLead Statistics Import...");
+
 var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json").Build();
 var dbConnectionFactory = new DbConnectionFactory(configuration);
@@ -13,3 +15,5 @@ var smartLeadHttpService = new SmartLeadHttpService();
 
 var smartLeadCampaignStatisticsService = new SmartLeadCampaignStatisticsService(dbConnectionFactory, smartLeadHttpService);
 await smartLeadCampaignStatisticsService.SaveAllSmartLeadCampaignStatistics();
+
+Console.WriteLine("Done SmartLead Statistics Import.");

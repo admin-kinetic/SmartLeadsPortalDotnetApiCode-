@@ -23,13 +23,15 @@ public class WebhookService
         this.logger = logger;
     }
 
-    public async Task HandleClick(Dictionary<string, object> payload)
+    public async Task HandleClick(string payload)
     {
         this.logger.LogInformation("Handling click webhook");
-        var serializedPayload = JsonSerializer.Serialize(payload);
-        await this.webhooksRepository.InsertWebhook(serializedPayload);
+        await this.webhooksRepository.InsertWebhook(payload);
 
-        var email = payload["to_email"];
+        var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
+        
+        this.logger.LogInformation($"Handling click webhook for {payloadObject["to_email"]}");
+        var email = payloadObject["to_email"];
         if(email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
