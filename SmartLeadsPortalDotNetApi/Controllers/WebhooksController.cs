@@ -21,17 +21,20 @@ public class WebhooksController: ControllerBase
     }
 
     [HttpPost("click")]
-    public async Task<IActionResult> Click([FromBody] Dictionary<string, object> payload)
+    public async Task<IActionResult> Click()
     {
+        using var reader = new StreamReader(Request.Body);
+        string payload = await reader.ReadToEndAsync();
         await webhookService.HandleClick(payload);
         return Ok();
     }
 
     [HttpPost("email-reply")]
-    public async Task<IActionResult> EmailReply([FromBody] Dictionary<string, object> payload)
+    public async Task<IActionResult> EmailReply()
     {
-        var serializedPayload = JsonSerializer.Serialize(payload);
-        await this.webhooksRepository.InsertWebhook(serializedPayload);
+        using var reader = new StreamReader(Request.Body);
+        string payload = await reader.ReadToEndAsync();
+        await this.webhooksRepository.InsertWebhook(payload);
         return Ok();
     }
 }
