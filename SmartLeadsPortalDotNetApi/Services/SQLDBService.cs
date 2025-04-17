@@ -96,15 +96,15 @@ namespace SmartLeadsPortalDotNetApi.Services
                     con.Close();
                 }
 
-                if (leadcon.State == ConnectionState.Open)
-                {
-                    leadcon.Close();
-                }
+                // if (leadcon.State == ConnectionState.Open)
+                // {
+                //     leadcon.Close();
+                // }
 
-                if (mysqlcon.State == ConnectionState.Open)
-                {
-                    mysqlcon.Close();
-                }
+                // if (mysqlcon.State == ConnectionState.Open)
+                // {
+                //     mysqlcon.Close();
+                // }
 
             }
             catch (Exception ex)
@@ -118,15 +118,15 @@ namespace SmartLeadsPortalDotNetApi.Services
                     con.Dispose();
                 }
 
-                if (leadcon != null)
-                {
-                    leadcon.Dispose();
-                }
+                // if (leadcon != null)
+                // {
+                //     leadcon.Dispose();
+                // }
 
-                if (mysqlcon != null)
-                {
-                    mysqlcon.Dispose();
-                }
+                // if (mysqlcon != null)
+                // {
+                //     mysqlcon.Dispose();
+                // }
             }
 
             //throw new NotImplementedException(); 
