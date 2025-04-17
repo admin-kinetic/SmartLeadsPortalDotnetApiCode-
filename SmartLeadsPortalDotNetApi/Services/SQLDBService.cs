@@ -32,9 +32,14 @@ namespace SmartLeadsPortalDotNetApi.Services
                 .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
-            con = new SqlConnection(configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString"));
-            leadcon = new SqlConnection(configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString"));
-            mysqlcon = new MySqlConnection(configuration.GetConnectionString("MySQLDBConnectionString"));
+            
+            var connectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
+               ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
+               ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
+            con = new SqlConnection(connectionString);
+            
+            // leadcon = new SqlConnection(configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString"));
+            // mysqlcon = new MySqlConnection(configuration.GetConnectionString("MySQLDBConnectionString"));
         }
         public void CheckIfOpen()
         {
