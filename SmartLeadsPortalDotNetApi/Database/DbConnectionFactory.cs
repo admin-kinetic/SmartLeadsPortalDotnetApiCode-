@@ -16,8 +16,9 @@ public class DbConnectionFactory : IDisposable
 
     public DbConnectionFactory(IConfiguration configuration, ILogger<DbConnectionFactory> logger)
     {
-        _sqlConnectionString = configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
-            ?? throw new ArgumentNullException(nameof(configuration), "Smart Leads SQL Server connection string is missing.");
+        _sqlConnectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
+            ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
+            ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
 
         // _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
         //     ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
@@ -25,6 +26,8 @@ public class DbConnectionFactory : IDisposable
         // _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
         //     ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
         this.logger = logger;
+        this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("ConnectionStrings:SmartleadsPortalDb")}");
+        this.logger.LogInformation($"SQL Connection String: {this._sqlConnectionString}");
     }
 
     public IDbConnection GetSqlConnection()
