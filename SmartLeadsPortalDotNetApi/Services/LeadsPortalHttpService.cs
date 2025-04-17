@@ -28,7 +28,7 @@ public class LeadsPortalHttpService
 
         if (response.StatusCode == HttpStatusCode.NoContent)
         {
-            return null;
+            return new LeadsPortalContactDetailsResponse();
         }
 
         var content = await response.Content.ReadAsStringAsync();
@@ -36,4 +36,9 @@ public class LeadsPortalHttpService
 
         return responseObject;
     }
+
+    // internal async Task GetleadContactNoByEmail(string email)
+    // {
+    //     throw new NotImplementedException();
+    // }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
 {
@@ -12,16 +13,19 @@ namespace SmartLeadsPortalDotNetApi.Controllers
     public class CallLogsController : ControllerBase
     {
         private readonly CallLogsRepository _callLogsRepository;
-        public CallLogsController(CallLogsRepository callLogsRepository)
+        private readonly LeadsPortalHttpService leadsPortalHttpService;
+
+        public CallLogsController(CallLogsRepository callLogsRepository, LeadsPortalHttpService leadsPortalHttpService)
         {
             _callLogsRepository = callLogsRepository;
+            this.leadsPortalHttpService = leadsPortalHttpService;
         }
 
         [HttpGet("get-lead-phone/{email}")]
         [EnableCors("CorsApi")]
         public async Task<IActionResult> GetleadContactNoByEmail(string email)
         {
-            CallLogLeadNo? list = await _callLogsRepository.GetleadContactNoByEmail(email);
+            var list = await this.leadsPortalHttpService.GetContactDetailsByEmail(email);
             return Ok(list);
         }
 

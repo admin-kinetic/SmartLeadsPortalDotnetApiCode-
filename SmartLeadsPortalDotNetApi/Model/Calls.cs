@@ -81,6 +81,7 @@
     {
         public string? phone { get; set; }
     }
+    
     public class CallLogsOutbound
     {
         public string? UniqueCallId { get; set; }
