@@ -1,25 +1,31 @@
 using System;
+using Common.Models;
 using Common.Services;
 using ImportSmartLeadStatistics.Entities;
 using Dapper;
+using Microsoft.Extensions.Configuration;
 
-namespace ImportSmartLeadStatistics.Services;
+namespace ImportSmartLeadStatistics;
 
 public class SmartLeadCampaignStatisticsService
 {
     private readonly DbConnectionFactory connectionFactory;
     private readonly SmartLeadHttpService smartLeadHttpService;
+    private readonly IConfiguration configuration;
 
-    public SmartLeadCampaignStatisticsService(DbConnectionFactory connectionFactory, SmartLeadHttpService smartLeadHttpService)
+    public SmartLeadCampaignStatisticsService(DbConnectionFactory connectionFactory, SmartLeadHttpService smartLeadHttpService, IConfiguration  configuration)
     {
         this.connectionFactory = connectionFactory;
         this.smartLeadHttpService = smartLeadHttpService;
+        this.configuration = configuration;
     }
 
     public async Task SaveAllSmartLeadCampaignStatistics(){
         using (var connection = this.connectionFactory.CreateConnection())
         {
+            var campaignsConfig = this.configuration.GetSection("Campaigns").Get<List<int>>();
             var campaigns = await this.smartLeadHttpService.ListAllCampaigns();
+            campaigns = campaigns.Where(c => campaignsConfig.Contains(c.id.Value)).ToList();
             foreach (var campaign in campaigns.Where(s => s.status == "ACTIVE"))
             {
                 var hasData = false;
@@ -27,9 +33,9 @@ public class SmartLeadCampaignStatisticsService
                 var limit = 100;
                 do
                 {
-                    var statistics = await this.smartLeadHttpService.FetchCampaigncStatisticsByCampaignId(campaign.id, offset, limit);
+                    var statistics = await this.smartLeadHttpService.FetchCampaigncStatisticsByCampaignId(campaign.id.Value, offset, limit);
                     hasData = statistics.data.Count > 0;
-                    Console.WriteLine($"Campaign ID: {campaign.id}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
+                    Console.WriteLine($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
 
                     if (statistics.data.Count > 0)
                     {
@@ -80,7 +86,7 @@ public class SmartLeadCampaignStatisticsService
                                         GuId = Guid.NewGuid(),
                                         cs.LeadEmail,
                                         cs.SequenceNumber,
-                                        cs.EmailSubject,
+                                        EmailSubject = cs.EmailSubject.Length > 500 ? cs.EmailSubject.Substring(0, 500) : cs.EmailSubject,
                                         cs.SentTime,
                                         cs.OpenTime,
                                         cs.ClickTime,

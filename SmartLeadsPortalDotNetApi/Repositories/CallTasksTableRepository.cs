@@ -4,6 +4,8 @@ using SmartLeadsPortalDotNetApi.Model;
 using System.Data;
 using System.Drawing;
 
+namespace SmartLeadsPortalDotNetApi.Repositories;
+
 public class CallTasksTableRepository
 {
     private readonly DbConnectionFactory dbConnectionFactory;
