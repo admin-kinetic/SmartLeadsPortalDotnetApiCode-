@@ -1,17 +1,21 @@
 ﻿using Dapper;
+using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Services;
 using System.Data;
-using System.Drawing;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public class CallLogsRepository : SQLDBService
     {
+        private readonly DbConnectionFactory dbConnectionFactory;
+        public CallLogsRepository(DbConnectionFactory dbConnectionFactory)
+        {
+            this.dbConnectionFactory = dbConnectionFactory;
+        }
         public async Task<int> InsertCallLogs(CallsInsert keyword)
         {
-            // var filename = "https://files-test.kineticstaff.com/callrecordings";
-            // Add VOIP service API to get duration, call datetime
+            await Task.Delay(3000);
             if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
             {
                 throw new ArgumentException("UserPhoneNumber, UserCaller, and ProspectNumber cannot be null or empty.");
@@ -26,44 +30,38 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
             try
             {
-                string _proc = "sm_spInsertCallLogs";
-                var param = new DynamicParameters();
-                param.Add("@usercaller", keyword.UserCaller);
-                param.Add("@userphonenumber", callLogsOutbound.CallerId);
-                param.Add("@leademail", keyword.LeadEmail);
-                param.Add("@prospectname", keyword.ProspectName);
-                param.Add("@prospectnumber", callLogsOutbound.DestNumber);
-                param.Add("@callpurposeid", keyword.CallPurposeId);
-                param.Add("@calldispositionid", keyword.CallDispositionId);
-                param.Add("@calldirectionid", keyword.CallDirectionId);
-                param.Add("@notes", keyword.Notes);
-                param.Add("@calltagsid", keyword.CallTagsId);
-                param.Add("@callstateid", keyword.CallStateId);
-                param.Add("@duration", callLogsOutbound.ConversationDuration);
-                param.Add("@addedby", keyword.AddedBy);
-                param.Add("@statisticid", keyword.StatisticId);
-                param.Add("@due", keyword.Due);
-                param.Add("@userid", keyword.UserId);
-                param.Add("@uniquecallid", callLogsOutbound.UniqueCallId);
-                param.Add("@calleddate", callLogsOutbound.CallStartAt);
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spInsertCallLogs";
+                    var param = new DynamicParameters();
+                    param.Add("@usercaller", keyword.UserCaller);
+                    param.Add("@userphonenumber", callLogsOutbound.CallerId);
+                    param.Add("@leademail", keyword.LeadEmail);
+                    param.Add("@prospectname", keyword.ProspectName);
+                    param.Add("@prospectnumber", callLogsOutbound.DestNumber);
+                    param.Add("@callpurposeid", keyword.CallPurposeId);
+                    param.Add("@calldispositionid", keyword.CallDispositionId);
+                    param.Add("@calldirectionid", keyword.CallDirectionId);
+                    param.Add("@notes", keyword.Notes);
+                    param.Add("@calltagsid", keyword.CallTagsId);
+                    param.Add("@callstateid", keyword.CallStateId);
+                    param.Add("@duration", callLogsOutbound.ConversationDuration);
+                    param.Add("@addedby", keyword.AddedBy);
+                    param.Add("@statisticid", keyword.StatisticId);
+                    param.Add("@due", keyword.Due);
+                    param.Add("@userid", keyword.UserId);
+                    param.Add("@uniquecallid", callLogsOutbound.UniqueCallId);
+                    param.Add("@calleddate", callLogsOutbound.CallStartAt);
 
-                int ret = await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure);
+                    int ret = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
 
-                //if (!string.IsNullOrEmpty(callLogsOutbound.UniqueCallId))
-                //{
-                //    filename = filename+"/"+callLogsOutbound.UniqueCallId+".mp3";
-                //    await UpdateOutboundCallsInfo(callLogsOutbound.UniqueCallId, filename);
-                //}
-
-                return ret;
+                    return ret;
+                }
+                
             }
             catch (Exception ex)
             {
                 throw new Exception("Database error: " + ex.Message);
-            }
-            finally
-            {
-                con.Dispose();
             }
         }
         public async Task<CallLogLeadNo?> GetleadContactNoByEmail(string email)
@@ -112,13 +110,16 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                string _proc = "sm_spGetOutboundCallsByCallLogs";
-                var param = new DynamicParameters();
-                param.Add("@callerid", callerid);
-                param.Add("@destnumber", destnumber);
-                CallLogsOutbound? result = await SqlMapper.QuerySingleOrDefaultAsync<CallLogsOutbound>(con, _proc, param, commandType: CommandType.StoredProcedure);
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetOutboundCallsByCallLogs";
+                    var param = new DynamicParameters();
+                    param.Add("@callerid", callerid);
+                    param.Add("@destnumber", destnumber);
+                    CallLogsOutbound? result = await connection.QuerySingleOrDefaultAsync<CallLogsOutbound>(_proc, param, commandType: CommandType.StoredProcedure);
 
-                return result;
+                    return result;
+                }
             }
             catch (Exception e)
             {
