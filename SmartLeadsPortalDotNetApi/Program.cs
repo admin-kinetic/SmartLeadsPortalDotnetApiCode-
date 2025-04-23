@@ -94,6 +94,7 @@ builder.Services.AddScoped<VoipPhoneNumberRepository>();
 builder.Services.AddScoped<OutboundCallEventParser>();
 builder.Services.AddScoped<OutboundEventStore>();
 builder.Services.AddScoped<OutboundCallRepository>();
+builder.Services.AddScoped<ProspectRepository>();
 builder.Services.AddScoped<OutlookService>();
 builder.Services.AddSingleton<MicrosoftGraphAuthProvider>();
 builder.Services.AddScoped<MicrosoftGraphServiceClientFactory>();
