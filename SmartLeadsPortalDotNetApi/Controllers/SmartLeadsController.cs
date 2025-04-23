@@ -67,6 +67,20 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             }
         }
 
+        [HttpGet("lead-by-email/{email}")]
+        public async Task<IActionResult> GetLeadByEmail(string email)
+        {
+            try
+            {
+                var leads = await _smartLeadsApiService.GetLeadByEmail(email);
+                return Ok(leads ?? new SmartLeadsByEmailResponse());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("get-leads-all-account")]
         public async Task<IActionResult> GetAllLeadsAllAccount([FromQuery] string? createdDate = null, string? email = null, int offset = 0, int limit = 0)
         {
