@@ -162,25 +162,6 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         public async Task<IActionResult> CallsFind(TableRequest request)
         {
             var result = await this.callsTableRepository.Find(request);
-            //var result = new TableResponse<SmartleadsCalls>
-            //{
-            //    Items = new List<SmartleadsCalls>{
-            //        new SmartleadsCalls{
-            //            Id = 1,
-            //            User = "Ralph Malaga",
-            //            ProspectName = "Jane Smith",
-            //            ProspectPhoneNumber = "123-456-7890",
-            //            DateTime = "2023-10-01T12:00:00Z",
-            //            State = "Completed",
-            //            Duration = "00:30:00",
-            //            Purpose = "Follow-up",
-            //            Disposition = "Interested",
-            //            Notes = "Discussed product features and pricing."
-            //        }
-            //    },
-            //    Total = 1
-
-            //};
             return Ok(result);
         }
 
@@ -189,18 +170,6 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             var result = this.callsTableRepository.AllColumns();
             result.Sort();
-            //var result = new List<string>{
-            //    "Id",
-            //    "User",
-            //    "ProspectName",
-            //    "ProspectPhoneNumber",
-            //    "DateTime",
-            //    "State",
-            //    "Duration",
-            //    "Purpose",
-            //    "Disposition",
-            //    "Notes"
-            //};
             return Ok(new { data = result });
         }
 

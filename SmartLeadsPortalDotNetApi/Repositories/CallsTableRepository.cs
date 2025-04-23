@@ -138,6 +138,10 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                                 whereClause.Add($"cl.Duration {this.operatorsMap[filter.Operator]} @Duration");
                                 parameters.Add("Duration", filter.Value);
                                 break;
+                            case "leademail":
+                                whereClause.Add("cl.LeadEmail LIKE @LeadEmail");
+                                parameters.Add("LeadEmail", $"%{filter.Value}%");
+                                break;
                             default:
                                 // For numeric fields or exact matches
                                 whereClause.Add($"{filter.Column} = @{filter.Column}");
