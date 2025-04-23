@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SmartLeadsPortalDotNetApi.Configs;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Services.Model;
 using System.Collections.Generic;
 using System.Globalization;
@@ -87,6 +88,28 @@ public class SmartLeadsApiService
 
         var content = await response.Content.ReadAsStringAsync();
         var campaigns = JsonConvert.DeserializeObject<SmartLeadsResponse>(content);
+        return campaigns;
+    }
+
+    //Get lead by email
+    public async Task<SmartLeadsByEmailResponse?> GetLeadByEmail(string email)
+    {
+
+        var client = httpClientFactory.CreateClient();
+        var queryString = HttpUtility.ParseQueryString(string.Empty);
+        queryString["api_key"] = smartLeadConfig.ApiKey;
+        queryString["email"] = email;
+
+        var response = await client.GetAsync($"{smartLeadConfig.BaseUrl}/leads?{queryString}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error fetching data: {response.StatusCode} - {errorMessage}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        var campaigns = JsonConvert.DeserializeObject<SmartLeadsByEmailResponse>(content);
         return campaigns;
     }
 
