@@ -67,6 +67,20 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             }
         }
 
+        [HttpGet("lead-by-email/{email}")]
+        public async Task<IActionResult> GetLeadByEmail(string email)
+        {
+            try
+            {
+                var leads = await _smartLeadsApiService.GetLeadByEmail(email);
+                return Ok(leads ?? new SmartLeadsByEmailResponse());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         [HttpGet("get-leads-all-account")]
         public async Task<IActionResult> GetAllLeadsAllAccount([FromQuery] string? createdDate = null, string? email = null, int offset = 0, int limit = 0)
         {
@@ -162,25 +176,6 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         public async Task<IActionResult> CallsFind(TableRequest request)
         {
             var result = await this.callsTableRepository.Find(request);
-            //var result = new TableResponse<SmartleadsCalls>
-            //{
-            //    Items = new List<SmartleadsCalls>{
-            //        new SmartleadsCalls{
-            //            Id = 1,
-            //            User = "Ralph Malaga",
-            //            ProspectName = "Jane Smith",
-            //            ProspectPhoneNumber = "123-456-7890",
-            //            DateTime = "2023-10-01T12:00:00Z",
-            //            State = "Completed",
-            //            Duration = "00:30:00",
-            //            Purpose = "Follow-up",
-            //            Disposition = "Interested",
-            //            Notes = "Discussed product features and pricing."
-            //        }
-            //    },
-            //    Total = 1
-
-            //};
             return Ok(result);
         }
 
@@ -189,18 +184,6 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             var result = this.callsTableRepository.AllColumns();
             result.Sort();
-            //var result = new List<string>{
-            //    "Id",
-            //    "User",
-            //    "ProspectName",
-            //    "ProspectPhoneNumber",
-            //    "DateTime",
-            //    "State",
-            //    "Duration",
-            //    "Purpose",
-            //    "Disposition",
-            //    "Notes"
-            //};
             return Ok(new { data = result });
         }
 
