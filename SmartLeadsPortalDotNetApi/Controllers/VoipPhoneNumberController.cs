@@ -17,9 +17,18 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllVoipPhoneNumbers()
+        public async Task<IActionResult> GetAllVoipPhoneNumbers([FromBody]Paginator paginator)
         {
-            var phoneNumbers = await this.voipPhoneNumberRepository.GetAllVoipPhoneNumbers();
+            paginator.page = 1;
+            paginator.pageSize = 10;
+            var phoneNumbers = await this.voipPhoneNumberRepository.GetAllVoipPhoneNumbers(paginator);
+            return this.Ok(phoneNumbers);
+        }
+
+        [HttpPost("find")]
+        public async Task<IActionResult> Find([FromBody]Paginator paginator)
+        {
+            var phoneNumbers = await this.voipPhoneNumberRepository.GetAllVoipPhoneNumbers(paginator);
             return this.Ok(phoneNumbers);
         }
 
