@@ -15,16 +15,38 @@ public class VoipPhoneNumberRepository
         this.connectionFactory = connectionFactory;
     }
 
-    public async Task<List<VoipPhoneNumberResponse>> GetAllVoipPhoneNumbers()
+    public async Task<TableResponse<VoipPhoneNumberResponse>> GetAllVoipPhoneNumbers(Paginator paginator)
     {
         using (var connection = this.connectionFactory.GetSqlConnection())
         {
             var query = """
-                SELECT VoipPhoneNumbers.*, Users.FullName AS [UserFullName] FROM VoipPhoneNumbers 
-                LEFT JOIN Users ON VoipPhoneNumbers.EmployeeId = Users.EmployeeId;
+                SELECT VoipPhoneNumbers.*, Users.FullName AS [UserFullName] 
+                FROM VoipPhoneNumbers 
+                LEFT JOIN Users ON VoipPhoneNumbers.EmployeeId = Users.EmployeeId
+                ORDER BY VoipPhoneNumbers.Id ASC
+                OFFSET (@PageNumber - 1) * @PageSize ROWS
+                FETCH NEXT @PageSize ROWS ONLY
             """;
-            var result = await connection.QueryAsync<VoipPhoneNumberResponse>(query);
-            return result.ToList();
+            var queryParam = new
+            {
+                PageNumber = paginator.page,
+                PageSize = paginator.pageSize
+            };
+            var queryResult = await connection.QueryAsync<VoipPhoneNumberResponse>(query, queryParam);
+
+             var queryTotal = """
+                SELECT Count(VoipPhoneNumbers.Id) 
+                FROM VoipPhoneNumbers 
+                LEFT JOIN Users ON VoipPhoneNumbers.EmployeeId = Users.EmployeeId
+            """;
+            var queryTotalResult = await connection.QueryFirstAsync<int>(queryTotal);
+
+
+            return new TableResponse<VoipPhoneNumberResponse>
+            {
+                Items = queryResult.ToList(),
+                Total = queryTotalResult
+            };
         }
     }
 
