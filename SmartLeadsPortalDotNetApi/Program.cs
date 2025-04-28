@@ -37,15 +37,25 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
 builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
-builder.Services.Configure<MicrosoftGraphSettings>(builder.Configuration.GetSection("MicrosoftGraph"));
+builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
+{
+    builder.Configuration.GetSection("MicrosoftGraph").Bind(graphSettings);
+
+    var clientSecret = Environment.GetEnvironmentVariable("MicrosoftGraph");
+    if (!string.IsNullOrEmpty(clientSecret))
+    {
+        graphSettings.ClientSecret = clientSecret;
+    }
+});
+
 builder.Services.Configure<StorageConfig>(storageConfig =>
 {
     builder.Configuration.GetSection("AzureStorage").Bind(storageConfig);
 
-    var envValue = Environment.GetEnvironmentVariable("AZURESTORAGE_ACCOUNTKEY");
-    if (!string.IsNullOrEmpty(envValue))
+    var accountKey = Environment.GetEnvironmentVariable("AZURESTORAGE_ACCOUNTKEY");
+    if (!string.IsNullOrEmpty(accountKey))
     {
-        storageConfig.AccountKey = envValue;
+        storageConfig.AccountKey = accountKey;
     }
 });
 
