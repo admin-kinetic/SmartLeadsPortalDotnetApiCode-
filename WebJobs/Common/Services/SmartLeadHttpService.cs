@@ -107,8 +107,8 @@ public class SmartLeadHttpService
                     { "limit", limit.ToString() },
                     { "offset", offset.ToString() },
                     { "email_status", "opened"},
-                    // { "sent_time_start_date", "2025-05-26" }, // Example start date
-                    // { "sent_time_end_date", "2025-05-31" } // Example end date
+                    { "sent_time_start_date", "2025-04-17" }, // Example start date
+                    { "sent_time_end_date", "2025-04-28" } // Example end date
                 };
 
                 // Serialize the dictionary into a query string
