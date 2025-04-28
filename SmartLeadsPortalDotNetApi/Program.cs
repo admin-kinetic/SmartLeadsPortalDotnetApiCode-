@@ -38,7 +38,16 @@ builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpCon
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
 builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
 builder.Services.Configure<MicrosoftGraphSettings>(builder.Configuration.GetSection("MicrosoftGraph"));
-builder.Services.Configure<StorageConfig>(builder.Configuration.GetSection("AzureStorage"));
+builder.Services.Configure<StorageConfig>(storageConfig =>
+{
+    builder.Configuration.GetSection("AzureStorage").Bind(storageConfig);
+
+    var envValue = Environment.GetEnvironmentVariable("AZURESTORAGE_ACCOUNTKEY");
+    if (!string.IsNullOrEmpty(envValue))
+    {
+        storageConfig.AccountKey = envValue;
+    }
+});
 
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
