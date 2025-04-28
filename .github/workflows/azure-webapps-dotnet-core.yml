@@ -33,10 +33,10 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj
+        run: dotnet build --configuration Release --runtime win-x64 ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj
 
       - name: dotnet publish
-        run: dotnet publish -c Release ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj -o ${{env.DOTNET_ROOT}}/dist
+        run: dotnet publish -c Release --runtime win-x64 ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj -o ${{env.DOTNET_ROOT}}/dist
     
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
