@@ -36,7 +36,7 @@ jobs:
         run: dotnet restore --runtime win-x64
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release --runtime win-x64 ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj
+        run: dotnet build --configuration Release --runtime win-x64 --no-restore ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj
 
       - name: dotnet publish
         run: dotnet publish -c Release --runtime win-x64 --self-contained true --no-build ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj -o ${{env.DOTNET_ROOT}}/dist
