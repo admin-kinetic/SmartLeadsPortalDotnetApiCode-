@@ -36,7 +36,7 @@ jobs:
         run: dotnet build --configuration Release --runtime win-x64 ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj
 
       - name: dotnet publish
-        run: dotnet publish -c Release --runtime win-x64 ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj -o ${{env.DOTNET_ROOT}}/dist
+        run: dotnet publish -c Release --runtime win-x64 --no-build ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj -o ${{env.DOTNET_ROOT}}/dist
     
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
