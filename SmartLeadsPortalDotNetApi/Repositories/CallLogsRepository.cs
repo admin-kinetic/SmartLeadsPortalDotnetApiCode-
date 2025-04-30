@@ -142,6 +142,27 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
+        public async Task<int> DeleteCallLogs(CallsUpdate request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spDeleteCallLogs";
+                    var param = new DynamicParameters();
+                    param.Add("@guid", request.Guid);
+
+                    int ret = await connection.ExecuteAsync(_proc, param);
+
+                    return ret;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
 
     }
 }

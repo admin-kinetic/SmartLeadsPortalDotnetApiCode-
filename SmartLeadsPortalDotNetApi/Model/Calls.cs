@@ -42,6 +42,7 @@
         public string? CallTags { get; set; }
         public string? AddedBy { get; set; }
         public string? RecordedLink { get; set; }
+        public bool? IsDeleted { get; set; }
     }
     public class CallsInsert
     {
