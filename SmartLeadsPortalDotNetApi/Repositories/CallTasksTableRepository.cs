@@ -79,11 +79,13 @@ public class CallTasksTableRepository
                     us.EmployeeId,
                     us.FullName AS AssignedTo,
                     sle.Notes,
-                    sle.Due
+                    sle.Due,
+                    sle.IsDeleted
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             var queryParam = new
@@ -98,6 +100,7 @@ public class CallTasksTableRepository
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             var countQueryParam = new
@@ -160,9 +163,9 @@ public class CallTasksTableRepository
             // Add WHERE clause if needed
             if (whereClause.Count > 0)
             {
-                var whereStatement = " WHERE " + string.Join(" AND ", whereClause);
-                baseQuery += whereStatement;
-                countQuery += whereStatement;
+                var filterClause = " AND " + string.Join(" AND ", whereClause);
+                baseQuery += filterClause;
+                countQuery += filterClause;
             }
 
             // Sorting to follow after where
@@ -256,6 +259,27 @@ public class CallTasksTableRepository
                 var param = new DynamicParameters();
                 param.Add("@guid", request.GuId);
                 param.Add("@due", request.Due);
+
+                int ret = await connection.ExecuteAsync(_proc, param);
+
+                return ret;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Database error: " + ex.Message);
+        }
+    }
+    public async Task<int> DeleteCallTasks(CallTasksUpdateParam request)
+    {
+        try
+        {
+            using (var connection = this.dbConnectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spDeleteCallTasks";
+                var param = new DynamicParameters();
+                param.Add("@guid", request.GuId);
 
                 int ret = await connection.ExecuteAsync(_proc, param);
 

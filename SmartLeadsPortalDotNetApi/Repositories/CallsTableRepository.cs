@@ -46,13 +46,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     cl.CallTagsId,
             	    ct.TagName AS CallTags,
             	    cl.AddedBy,
-                    ob.AzureStorageCallRecordingLink AS RecordedLink
+                    ob.AzureStorageCallRecordingLink AS RecordedLink,
+                    cl.IsDeleted
                 FROM [dbo].[Calls] cl
                 LEFT JOIN CallPurpose cp ON cl.CallPurposeId = cp.Id
                 LEFT JOIN CallDisposition cd ON cl.CallDispositionId = cd.Id
                 LEFT JOIN CallState cs ON cl.CallStateId = cs.Id
                 LEFT JOIN Tags ct ON cl.CallTagsId = ct.Id
                 LEFT JOIN OutboundCalls ob ON cl.UniqueCallId = ob.UniqueCallId
+                WHERE (cl.IsDeleted IS NULL OR cl.IsDeleted = 0)
             """;
                 var queryParam = new
                 {
@@ -69,6 +71,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 LEFT JOIN CallState cs ON cl.CallStateId = cs.Id
                 LEFT JOIN Tags ct ON cl.CallTagsId = ct.Id
                 LEFT JOIN OutboundCalls ob ON cl.UniqueCallId = ob.UniqueCallId
+                WHERE (cl.IsDeleted IS NULL OR cl.IsDeleted = 0)
             """;
 
                 var countQueryParam = new
@@ -154,12 +157,12 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 // Add WHERE clause if needed
                 if (whereClause.Count > 0)
                 {
-                    var whereStatement = " WHERE " + string.Join(" AND ", whereClause);
-                    baseQuery += whereStatement;
-                    countQuery += whereStatement;
+                    var filterClause = " AND " + string.Join(" AND ", whereClause);
+                    baseQuery += filterClause;
+                    countQuery += filterClause;
                 }
 
-                if(request.sorting != null){
+                if (request.sorting != null){
                     // Sorting to follow after where
             if (request.sorting != null)
             {

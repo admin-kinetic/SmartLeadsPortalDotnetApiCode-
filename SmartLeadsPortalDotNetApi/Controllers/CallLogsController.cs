@@ -45,5 +45,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(new { message = "call logs created successfully." });
         }
 
+        [HttpPost("delete-call-logs")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> DeleteCallLogs([FromBody] CallsUpdate request)
+        {
+            var ret = await _callLogsRepository.DeleteCallLogs(request);
+            return Ok(ret);
+        }
+
     }
 }
