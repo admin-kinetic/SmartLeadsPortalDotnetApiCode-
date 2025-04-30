@@ -19,6 +19,7 @@
         public string? AssignedTo { get; set; }
         public string? Notes { get; set; }
         public DateTime? Due { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 
     public class SmartLeadsEmailStatistics
