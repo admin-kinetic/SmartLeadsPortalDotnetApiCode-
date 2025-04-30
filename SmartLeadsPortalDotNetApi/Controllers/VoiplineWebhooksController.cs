@@ -92,5 +92,110 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
             return Ok();
         }
+
+        [HttpPost("user-inbound-call")]
+        public async Task<IActionResult> InboundCall()
+        {
+            var secret = this.configuration["VoiplineWebhook:Secret"];
+            if (Request.Headers.TryGetValue("x-pbx-token", out var requestToken) && requestToken != secret)
+            {
+                return BadRequest("Invalid token");
+            }
+
+            using var reader = new StreamReader(Request.Body);
+            string payload = await reader.ReadToEndAsync();
+            await this.voiplineWebhookRepository.InsertWebhook("UserInboundCall", payload);
+
+            var userOutboundCall = outboundCallEventParser.ParseEvent(payload);
+            var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(userOutboundCall.UniqueCallId);
+            outboundCall.ApplyEvent(userOutboundCall);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+            return Ok(outboundCall);
+        }
+
+        [HttpPost("user-inbound-call-answered")]
+        public async Task<IActionResult> InboundCallAnswered()
+        {
+            using var reader = new StreamReader(Request.Body);
+            string payload = await reader.ReadToEndAsync();
+            await this.voiplineWebhookRepository.InsertWebhook("UserInboundCallAnswered", payload);
+
+
+            var userOutboundCallAnswered = outboundCallEventParser.ParseEvent(payload);
+            var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(userOutboundCallAnswered.UniqueCallId);
+            outboundCall.ApplyEvent(userOutboundCallAnswered);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+            return Ok();
+        }
+
+        [HttpPost("user-inbound-call-completion")]
+        public async Task<IActionResult> InboundCallCompletion()
+        {
+            using var reader = new StreamReader(Request.Body);
+            string payload = await reader.ReadToEndAsync();
+            await this.voiplineWebhookRepository.InsertWebhook("UserInbountCallCompletion", payload);
+
+            var userOutboundCallCompletion = outboundCallEventParser.ParseEvent(payload);
+            var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(userOutboundCallCompletion.UniqueCallId);
+            outboundCall.ApplyEvent(userOutboundCallCompletion);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+            return Ok();
+        }
+
+        [HttpPost("queue-call-summary")]
+        public async Task<IActionResult> QueueCallSummary()
+        {
+            using var reader = new StreamReader(Request.Body);
+            string payload = await reader.ReadToEndAsync();
+            await this.voiplineWebhookRepository.InsertWebhook("QueueCallSummary", payload);
+
+            var outboundCallRecording = outboundCallEventParser.ParseEvent(payload);
+            var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(outboundCallRecording.UniqueCallId);
+            outboundCall.ApplyEvent(outboundCallRecording);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+            return Ok();
+        }
+
+        [HttpPost("ring-group-call-summary")]
+        public async Task<IActionResult> RingGroupCallSummary()
+        {
+            using var reader = new StreamReader(Request.Body);
+            string payload = await reader.ReadToEndAsync();
+            await this.voiplineWebhookRepository.InsertWebhook("RingGroupCallSummary", payload);
+
+            var outboundCallRecording = outboundCallEventParser.ParseEvent(payload);
+            var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(outboundCallRecording.UniqueCallId);
+            outboundCall.ApplyEvent(outboundCallRecording);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+            return Ok();
+        }
+
+        [HttpPost("voicemail")]
+        public async Task<IActionResult> Voicemail()
+        {
+            using var reader = new StreamReader(Request.Body);
+            string payload = await reader.ReadToEndAsync();
+            await this.voiplineWebhookRepository.InsertWebhook("Voicemail", payload);
+
+            var outboundCallRecording = outboundCallEventParser.ParseEvent(payload);
+            var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(outboundCallRecording.UniqueCallId);
+            outboundCall.ApplyEvent(outboundCallRecording);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+            return Ok();
+        }
+
+        [HttpPost("inbound-call-recording")]
+        public async Task<IActionResult> InboundCallRecording()
+        {
+            using var reader = new StreamReader(Request.Body);
+            string payload = await reader.ReadToEndAsync();
+            await this.voiplineWebhookRepository.InsertWebhook("InboundCallRecording", payload);
+
+            var outboundCallRecording = outboundCallEventParser.ParseEvent(payload);
+            var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(outboundCallRecording.UniqueCallId);
+            outboundCall.ApplyEvent(outboundCallRecording);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+            return Ok();
+        }
     }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.ObjectModel;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +9,10 @@ public class DbConnectionFactory
     private readonly string conectionString;
     public DbConnectionFactory(IConfiguration configuration)
     {
-        this.conectionString = configuration?.GetConnectionString("SmartLeadsPortalDB");
+        this.conectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
+           ?? configuration?.GetConnectionString("SmartLeadsPortalDB")
+           ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
+        Console.WriteLine($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
     }   
 
     public DbConnection CreateConnection()
