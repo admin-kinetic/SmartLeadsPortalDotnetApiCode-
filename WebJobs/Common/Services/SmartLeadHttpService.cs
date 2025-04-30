@@ -94,12 +94,15 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<FetchCampaignStatisticsByCampaignIdResponse> FetchCampaigncStatisticsByCampaignId(int campaignId, int offset = 0, int limit = 500) //, DateTime startDate, DateTime endData, int limit, int offset)
+    public async Task<FetchCampaignStatisticsByCampaignIdResponse> FetchCampaignStatisticsByCampaignId(int campaignId, int offset = 0, int limit = 500) //, DateTime startDate, DateTime endData, int limit, int offset)
     {
         try
         {
             using (var httpClient = new HttpClient())
             {
+
+                var weekAgo = DateTime.Now.AddDays(-7);
+
                 var queryParams = new Dictionary<string, string>
                 {
                     // { "created_at_gt", fromDate.ToString("yyyy-MM-dd") },
@@ -107,8 +110,8 @@ public class SmartLeadHttpService
                     { "limit", limit.ToString() },
                     { "offset", offset.ToString() },
                     { "email_status", "opened"},
-                    { "sent_time_start_date", "2025-04-17" }, // Example start date
-                    { "sent_time_end_date", "2025-04-28" } // Example end date
+                    { "sent_time_start_date", weekAgo.ToString("yyyy-MM-dd") },
+                    { "sent_time_end_date", DateTime.Now.ToString("yyyy-MM-dd") } 
                 };
 
                 // Serialize the dictionary into a query string
