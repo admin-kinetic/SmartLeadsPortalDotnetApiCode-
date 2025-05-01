@@ -29,12 +29,41 @@ public class WebhooksController: ControllerBase
         return Ok();
     }
 
+    
+    [HttpPost("email-open")]
+    public async Task<IActionResult> EmailClick()
+    {
+        using var reader = new StreamReader(Request.Body);
+        string payload = await reader.ReadToEndAsync();
+        await this.webhooksRepository.InsertWebhook("EMAIL_OPEN", payload);
+        return Ok();
+    }
+
+    [HttpPost("email-sent")]
+    public async Task<IActionResult> EmailSent()
+    {
+        using var reader = new StreamReader(Request.Body);
+        string payload = await reader.ReadToEndAsync();
+        await this.webhooksRepository.InsertWebhook("EMAIL_SENT", payload);
+        return Ok();
+    }
+
     [HttpPost("email-reply")]
     public async Task<IActionResult> EmailReply()
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("EMAIL_REPLY", payload);
+        await webhookService.HandleReply(payload);
+        return Ok();
+    }
+
+    [HttpPost("email-bounce")]
+    public async Task<IActionResult> EmailBounce()
+    {
+        using var reader = new StreamReader(Request.Body);
+        string payload = await reader.ReadToEndAsync();
+        await this.webhooksRepository.InsertWebhook("EMAIL_BOUNCE", payload);
         await webhookService.HandleReply(payload);
         return Ok();
     }
