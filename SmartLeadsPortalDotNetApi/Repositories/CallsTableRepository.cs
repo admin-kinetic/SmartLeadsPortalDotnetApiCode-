@@ -47,7 +47,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             	    ct.TagName AS CallTags,
             	    cl.AddedBy,
                     ob.AzureStorageCallRecordingLink AS RecordedLink,
-                    cl.IsDeleted
+                    cl.IsDeleted,
+                    cl.CallDirectionId
                 FROM [dbo].[Calls] cl
                 LEFT JOIN CallPurpose cp ON cl.CallPurposeId = cp.Id
                 LEFT JOIN CallDisposition cd ON cl.CallDispositionId = cd.Id
