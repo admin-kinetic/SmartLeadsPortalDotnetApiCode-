@@ -725,5 +725,31 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw;
             }
         }
+
+        public async Task UpdateReply(string email)
+        {
+            try
+            {
+                var lead = await this.GetByEmail(email.ToString());
+                if (lead == null)
+                {
+                    throw new ArgumentException("Email not found in leads.");
+                }
+
+                using var connection = this.dbConnectionFactory.GetSqlConnection();
+                var update = """
+                    UPDATE SmartLeadsExportedContacts 
+                    SET HasReply = 1, 
+                        RepliedAt = NOW()
+                    WHERE Email = @email
+                """;
+                await connection.ExecuteAsync(update, new { email });
+            }
+            catch (System.Exception ex)
+            {
+                this.logger.LogError("Database error: {0}", ex.Message);
+                throw;
+            }
+        }
     }
 }

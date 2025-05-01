@@ -78,12 +78,26 @@ public class SmartLeadsExportedContactsRepository
                             parameters.Add("HasReview", filter.Value);
                             break;
                         case "exporteddatefrom":
-                            whereClause.Add("slec.ExportedDate <= @ExportedDateFrom");
-                            parameters.Add("ExportedDateFrom", $"%{filter.Value}%");
+                            whereClause.Add("slec.ExportedDate >= @ExportedDateFrom");
+                            parameters.Add("ExportedDateFrom", filter.Value);
                             break;
                         case "exporteddateto":
-                            whereClause.Add("slec.ExportedDate <= @ExportedDateTo");
-                            parameters.Add("ExportedDateTo", $"%{filter.Value}%");
+                            whereClause.Add("slec.ExportedDate <  DATEADD(day, 1, @ExportedDateTo)");
+                            parameters.Add("ExportedDateTo", filter.Value);
+                            break;
+                        case "category":
+                            switch (filter.Value.ToLower())
+                            {
+                                case "responses-today":
+                                    whereClause.Add("slec.RepliedAt >=  @RepliedAt");
+                                    parameters.Add("RepliedAt", DateTime.Now.Date.ToString("yyyy-MM-dd"));
+                                    break; 
+                                case "positive-response":
+                                    whereClause.Add("slec.HasReviewed = 1");
+                                    break; 
+                                default:
+                                    break;
+                            }
                             break;
                         default:
                             // For numeric fields or exact matches
