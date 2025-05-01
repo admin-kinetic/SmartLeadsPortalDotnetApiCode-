@@ -64,10 +64,7 @@ public class WebhooksController: ControllerBase
         await webhookService.HandleClick(payload);
         return Ok();
     }
-
     
-    
-
     [HttpPost("email-reply")]
     public async Task<IActionResult> EmailReply()
     {
@@ -78,8 +75,8 @@ public class WebhooksController: ControllerBase
         return Ok();
     }
 
-    [HttpPost("lead-unsubscribe")]
-    public async Task<IActionResult> LeadUnsubscribe()
+    [HttpPost("lead-unsubscribed")]
+    public async Task<IActionResult> LeadUnsubscribed()
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
@@ -89,8 +86,28 @@ public class WebhooksController: ControllerBase
     }
 
     
-    [HttpPost("lead-category-updated")]
-    public async Task<IActionResult> LeadCategoryUpdated()
+    [HttpPost("lead-category-updated-prospect")]
+    public async Task<IActionResult> LeadCategoryUpdatedProspect()
+    {
+        using var reader = new StreamReader(Request.Body);
+        string payload = await reader.ReadToEndAsync();
+        await this.webhooksRepository.InsertWebhook("LEAD_CATEGORY_UPDATED", payload);
+        await webhookService.HandleReply(payload);
+        return Ok();
+    }
+
+    [HttpPost("lead-category-updated-invalid")]
+    public async Task<IActionResult> LeadCategoryUpdatedInvalid()
+    {
+        using var reader = new StreamReader(Request.Body);
+        string payload = await reader.ReadToEndAsync();
+        await this.webhooksRepository.InsertWebhook("LEAD_CATEGORY_UPDATED", payload);
+        await webhookService.HandleReply(payload);
+        return Ok();
+    }
+
+    [HttpPost("lead-category-updated-unavailable")]
+    public async Task<IActionResult> LeadCategoryUpdatedUnavailable()
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
