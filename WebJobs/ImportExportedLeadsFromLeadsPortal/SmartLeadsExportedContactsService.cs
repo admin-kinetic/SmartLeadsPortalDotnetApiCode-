@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Common.Database;
 using Dapper;
 
 namespace ExportedLeadsFromLeadsPortal;
@@ -17,7 +18,9 @@ public class SmartLeadsExportedContactsService
 
     public async Task SaveExportedContacts(DateTime fromDate, DateTime toDate)
     {
-        var exportedContacts = this.leadsPortalService.GetExportedToSmartleadsContacts(fromDate, toDate).Result;
+        var exportedContacts = this.leadsPortalService.GetExportedToSmartleadsContacts(fromDate, fromDate).Result;
+
+        Console.WriteLine($"Retrieved contacts for {fromDate}: {exportedContacts.Count()}");
 
         using (var connection = this.dbConnectionFactory.CreateConnection())
         {
@@ -38,10 +41,13 @@ public class SmartLeadsExportedContactsService
                     await connection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts OFF;", transaction: transaction);
 
                     transaction.Commit();
+                    Console.WriteLine($"Save {exportedContacts.Count()} contacts exported on {fromDate}");
+
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
+                    Console.WriteLine($"Error saving contacts exported on {fromDate}: {ex.Message}");
                     throw ex;
                 }
             }
