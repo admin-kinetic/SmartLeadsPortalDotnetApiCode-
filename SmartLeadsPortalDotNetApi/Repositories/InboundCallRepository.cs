@@ -34,11 +34,11 @@ public class InboundCallRepository
             USING (VALUES (
                 @UniqueCallId, @CallerId, @CallerName, @UserName, @UserNumber, @DestNumber,
                 @CallStartAt, @QueueName, @Status, @RingGroupName, @ConnectedAt, @CallDuration, @ConversationDuration, @RecordedAt,
-                @Emails, @EmailSubject, @EmailMessage, @CallRecordingLink, @LastEventType
+                @Emails, @EmailSubject, @EmailMessage, @AudioFileJson, @CallRecordingLink, @LastEventType
             )) AS source (
                 UniqueCallId, CallerId, CallerName, UserName, UserNumber, DestNumber,
                 CallStartAt, QueueName, Status, RingGroupName, ConnectedAt, CallDuration, ConversationDuration, RecordedAt,
-                Emails, EmailSubject, EmailMessage, CallRecordingLink, LastEventType
+                Emails, EmailSubject, EmailMessage, AudioFileJson, CallRecordingLink, LastEventType
             )
             ON target.UniqueCallId = source.UniqueCallId
             WHEN MATCHED THEN
@@ -60,17 +60,18 @@ public class InboundCallRepository
                     Emails = source.Emails,
                     EmailSubject = source.EmailSubject,
                     EmailMessage = source.EmailMessage,
+                    AudioFile = source.AudioFileJson,
                     CallRecordingLink = source.CallRecordingLink,
                     LastEventType = source.LastEventType
             WHEN NOT MATCHED THEN
                 INSERT (
                     UniqueCallId, CallerId, CallerName, UserName, UserNumber, DestNumber,
                     CallStartAt, QueueName, Status, RingGroupName, ConnectedAt, CallDuration, ConversationDuration, RecordedAt,
-                    Emails, EmailSubject, EmailMessage, CallRecordingLink, LastEventType
+                    Emails, EmailSubject, EmailMessage, AudioFile, CallRecordingLink, LastEventType
                 ) VALUES (
                     @UniqueCallId, @CallerId, @CallerNAme, @UserName, @UserNumber, @DestNumber,
                     @CallStartAt, @QueueName, @Status, @RingGroupName, @ConnectedAt, @CallDuration, @ConversationDuration, @RecordedAt,
-                    @Emails, @EmailSubject, @EmailMessage, @CallRecordingLink, @LastEventType
+                    @Emails, @EmailSubject, @EmailMessage, @AudioFileJson, @CallRecordingLink, @LastEventType
                 );
             """;
 
