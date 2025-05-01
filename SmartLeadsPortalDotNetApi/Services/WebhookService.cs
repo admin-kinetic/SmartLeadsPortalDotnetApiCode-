@@ -64,4 +64,19 @@ public class WebhookService
 
         await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
     }
+
+    public async Task HandleLeadCategoryUpdated(string payload)
+    {
+        var payloadObject = JsonSerializer.Deserialize<dynamic>(payload);
+        var email = payloadObject["to_email"];
+
+        if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
+        {
+            throw new ArgumentNullException("to_email", "Email is required.");
+        }
+
+        var category = payloadObject["lead_category"]["new_name"];
+
+        await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), category.ToString());
+    }
 }
