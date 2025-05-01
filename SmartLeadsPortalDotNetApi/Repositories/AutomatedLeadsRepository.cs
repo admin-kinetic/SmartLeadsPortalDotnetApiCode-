@@ -726,7 +726,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
         }
 
-        public async Task UpdateReply(string email)
+        public async Task UpdateReply(string email, string repliedAt)
         {
             try
             {
@@ -736,14 +736,16 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     throw new ArgumentException("Email not found in leads.");
                 }
 
+                DateTime.TryParse(repliedAt, out var formatedRepliedAt);
+
                 using var connection = this.dbConnectionFactory.GetSqlConnection();
                 var update = """
                     UPDATE SmartLeadsExportedContacts 
                     SET HasReply = 1, 
-                        RepliedAt = NOW()
+                        RepliedAt = @formatedRepliedAt
                     WHERE Email = @email
                 """;
-                await connection.ExecuteAsync(update, new { email });
+                await connection.ExecuteAsync(update, new { email, formatedRepliedAt });
             }
             catch (System.Exception ex)
             {
