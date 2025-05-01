@@ -89,11 +89,27 @@ public class SmartLeadsExportedContactsRepository
                             switch (filter.Value.ToLower())
                             {
                                 case "responses-today":
-                                    whereClause.Add("slec.RepliedAt >=  @RepliedAt");
-                                    parameters.Add("RepliedAt", DateTime.Now.Date.ToString("yyyy-MM-dd"));
+                                    var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                                    var nowInLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone);
+                                    var startOfDayLocal = nowInLocal.Date;
+                                    var endOfDayLocal = startOfDayLocal.AddDays(1).AddTicks(-1);
+                                    var startOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(startOfDayLocal, localTimeZone);
+                                    var endOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(endOfDayLocal, localTimeZone);
+                                    whereClause.Add("slec.RepliedAt BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
+                                    parameters.Add("RepliedAtStartDay", startOfDayUtc);
+                                    parameters.Add("RepliedAtEndDay", endOfDayUtc);
                                     break; 
                                 case "positive-response":
                                     whereClause.Add("slec.HasReviewed = 1");
+                                    break; 
+                                case "out-of-office":
+                                    whereClause.Add("slec.SmartleadsCategory = 'Out Of Office'");
+                                    break;
+                                case "incorrect-contact":
+                                    whereClause.Add("slec.SmartleadsCategory = 'Wrong Person'");
+                                    break; 
+                                case "email-error":
+                                    whereClause.Add("slec.SmartleadsCategory = 'Sender Originated Bounce'");
                                     break; 
                                 default:
                                     break;
