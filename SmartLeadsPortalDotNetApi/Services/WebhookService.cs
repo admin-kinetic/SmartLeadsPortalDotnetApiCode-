@@ -54,11 +54,14 @@ public class WebhookService
     {
         var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
         var email = payloadObject["to_email"];
+
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        await this.automatedLeadsRepository.UpdateReply(email.ToString());
+        var replyAt = payloadObject["event_timestamp"];
+
+        await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
     }
 }

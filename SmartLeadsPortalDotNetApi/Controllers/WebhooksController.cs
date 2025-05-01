@@ -38,4 +38,24 @@ public class WebhooksController: ControllerBase
         await webhookService.HandleReply(payload);
         return Ok();
     }
+
+    // [HttpPost("process-email-reply")]
+    // public async Task<IActionResult> ProcessEmailReply()
+    // {
+    //     var emailReplyWebhooks = await this.webhooksRepository.GetEmailReplyWebhooks();
+    //     foreach (var emailReplyWebhook in emailReplyWebhooks)
+    //     {
+    //         try
+    //         {
+    //             await webhookService.HandleReply(emailReplyWebhook);
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             // Log the error and continue processing other webhooks
+    //             Console.WriteLine($"Error processing webhook: {ex.Message}");
+    //             continue;
+    //         }
+    //     }
+    //     return Ok();
+    // }
 }
