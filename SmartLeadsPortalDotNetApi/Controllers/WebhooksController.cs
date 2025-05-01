@@ -47,14 +47,14 @@ public class WebhooksController: ControllerBase
         return Ok();
     }
 
-    [HttpPost("click")]
-    public async Task<IActionResult> Click()
-    {
-        using var reader = new StreamReader(Request.Body);
-        string payload = await reader.ReadToEndAsync();
-        await webhookService.HandleClick(payload);
-        return Ok();
-    }
+    // [HttpPost("click")]
+    // public async Task<IActionResult> Click()
+    // {
+    //     using var reader = new StreamReader(Request.Body);
+    //     string payload = await reader.ReadToEndAsync();
+    //     await webhookService.HandleClick(payload);
+    //     return Ok();
+    // }
 
     [HttpPost("email-link-click")]
     public async Task<IActionResult> EmailLinkClick()
@@ -64,7 +64,7 @@ public class WebhooksController: ControllerBase
         await webhookService.HandleClick(payload);
         return Ok();
     }
-    
+
     [HttpPost("email-reply")]
     public async Task<IActionResult> EmailReply()
     {
@@ -81,7 +81,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("LEAD_UNSUBSCRIBED", payload);
-        await webhookService.HandleReply(payload);
+        // await webhookService.HandleReply(payload);
         return Ok();
     }
 
@@ -92,7 +92,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("LEAD_CATEGORY_UPDATED", payload);
-        await webhookService.HandleReply(payload);
+        // await webhookService.HandleReply(payload);
         return Ok();
     }
 
@@ -102,7 +102,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("LEAD_CATEGORY_UPDATED", payload);
-        await webhookService.HandleReply(payload);
+        await webhookService.HandleLeadCategoryUpdated(payload);
         return Ok();
     }
 
@@ -112,7 +112,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("LEAD_CATEGORY_UPDATED", payload);
-        await webhookService.HandleReply(payload);
+        await webhookService.HandleLeadCategoryUpdated(payload);
         return Ok();
     }
 
@@ -123,7 +123,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("EMAIL_BOUNCE", payload);
-        await webhookService.HandleReply(payload);
+        // await webhookService.HandleReply(payload);
         return Ok();
     }
 
@@ -133,7 +133,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("CAMPAIGN_STATUS_CHANGED", payload);
-        await webhookService.HandleReply(payload);
+        // await webhookService.HandleReply(payload);
         return Ok();
     }
 
@@ -143,7 +143,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("MANUAL_STEP_REACHED", payload);
-        await webhookService.HandleReply(payload);
+        // await webhookService.HandleReply(payload);
         return Ok();
     }
 
@@ -153,7 +153,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("UNTRACKED_REPLIES", payload);
-        await webhookService.HandleReply(payload);
+        // await webhookService.HandleReply(payload);
         return Ok();
     }
 
