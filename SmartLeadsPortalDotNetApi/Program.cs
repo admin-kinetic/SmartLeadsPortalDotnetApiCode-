@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RestSharp;
 using Serilog;
+using SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 using SmartLeadsPortalDotNetApi.Configs;
 using SmartLeadsPortalDotNetApi.Conventions;
@@ -37,15 +38,25 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
 builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
-builder.Services.Configure<MicrosoftGraphSettings>(builder.Configuration.GetSection("MicrosoftGraph"));
+builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
+{
+    builder.Configuration.GetSection("MicrosoftGraph").Bind(graphSettings);
+
+    var clientSecret = Environment.GetEnvironmentVariable("MicrosoftGraph");
+    if (!string.IsNullOrEmpty(clientSecret))
+    {
+        graphSettings.ClientSecret = clientSecret;
+    }
+});
+
 builder.Services.Configure<StorageConfig>(storageConfig =>
 {
     builder.Configuration.GetSection("AzureStorage").Bind(storageConfig);
 
-    var envValue = Environment.GetEnvironmentVariable("AZURESTORAGE_ACCOUNTKEY");
-    if (!string.IsNullOrEmpty(envValue))
+    var accountKey = Environment.GetEnvironmentVariable("AZURESTORAGE_ACCOUNTKEY");
+    if (!string.IsNullOrEmpty(accountKey))
     {
-        storageConfig.AccountKey = envValue;
+        storageConfig.AccountKey = accountKey;
     }
 });
 
@@ -65,6 +76,7 @@ builder.Services.AddScoped<VoipHttpService>();
 builder.Services.AddScoped<SmartLeadsApiService>();
 builder.Services.AddScoped<LeadsPortalHttpService>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<SmartLeadsExportedContactsRepository>();
 
 builder.Services.AddScoped<RestClient>(provider =>
 {
@@ -102,8 +114,10 @@ builder.Services.AddScoped<CallsTableRepository>();
 builder.Services.AddScoped<SavedTableViewsRepository>();
 builder.Services.AddScoped<VoipPhoneNumberRepository>();
 builder.Services.AddScoped<OutboundCallEventParser>();
+builder.Services.AddScoped<InboundCallEventParser>();
 builder.Services.AddScoped<OutboundEventStore>();
 builder.Services.AddScoped<OutboundCallRepository>();
+builder.Services.AddScoped<InboundCallRepository>();
 builder.Services.AddScoped<ProspectRepository>();
 builder.Services.AddScoped<OutlookService>();
 builder.Services.AddSingleton<MicrosoftGraphAuthProvider>();
