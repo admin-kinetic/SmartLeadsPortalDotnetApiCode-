@@ -23,6 +23,12 @@ public class InboundCallAggregate
     public string? EmailMessage { get; private set; }
     public string? CallRecordingLink { get; private set; }
     public List<string>? AudioFile { get; private set; }
+    public string? AudioFileJson
+    {
+        get => AudioFile == null || AudioFile.Count == 0 ? null : System.Text.Json.JsonSerializer.Serialize(AudioFile);
+        private set { }
+    }
+
     public string? LastEventType { get; private set; }
 
     private readonly List<IInboundCallEvent> _events = new List<IInboundCallEvent>();
