@@ -4,6 +4,7 @@ using Common.Services;
 using ImportSmartLeadStatistics.Entities;
 using Dapper;
 using Microsoft.Extensions.Configuration;
+using Common.Database;
 
 namespace ImportSmartLeadStatistics;
 
@@ -33,7 +34,7 @@ public class SmartLeadCampaignStatisticsService
                 var limit = 100;
                 do
                 {
-                    var statistics = await this.smartLeadHttpService.FetchCampaigncStatisticsByCampaignId(campaign.id.Value, offset, limit);
+                    var statistics = await this.smartLeadHttpService.FetchCampaignStatisticsByCampaignId(campaign.id.Value, offset, limit);
                     hasData = statistics.data.Count > 0;
                     Console.WriteLine($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
 

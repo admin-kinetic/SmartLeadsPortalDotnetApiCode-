@@ -1,18 +1,17 @@
-using System;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
-namespace ImportSmartLeadStatistics;
+namespace Common.Database;
 
 public class DbConnectionFactory
 {
     private readonly string conectionString;
     public DbConnectionFactory(IConfiguration configuration)
     {
-        this.conectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB") 
-            ?? configuration?.GetConnectionString("SmartLeadsPortalDB") 
-            ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
+        this.conectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
+           ?? configuration?.GetConnectionString("SmartLeadsPortalDB")
+           ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
         Console.WriteLine($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
     }   
 
@@ -21,3 +20,4 @@ public class DbConnectionFactory
         return new SqlConnection(this.conectionString);
     }
 }
+

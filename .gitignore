@@ -400,4 +400,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Developer create this on their local
-SmartLeadsPortalDotNetApi/appsettings.Development.json
+*/**/appsettings.Development.json
+
