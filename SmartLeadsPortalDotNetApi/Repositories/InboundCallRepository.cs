@@ -1,5 +1,6 @@
 using System;
 using Dapper;
+using SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 using SmartLeadsPortalDotNetApi.Database;
 
@@ -14,29 +15,29 @@ public class InboundCallRepository
         this.dbConnectionFactory = dbConnectionFactory;
     }
 
-    public async Task<OutboundCallAggregate> GetOutboundCallAggregate(string uniqueCallId)
+    public async Task<InboundCallAggregate> GetInboundCallAggregate(string uniqueCallId)
     {
         using var connection = this.dbConnectionFactory.GetSqlConnection();
         const string sql = """
             SELECT * FROM InboundCalls WHERE UniqueCallId = @uniqueCallId
         """;
 
-        var result = await connection.QuerySingleOrDefaultAsync<OutboundCallAggregate>(sql, new { uniqueCallId });
-        return result ?? new OutboundCallAggregate(uniqueCallId);
+        var result = await connection.QuerySingleOrDefaultAsync<InboundCallAggregate>(sql, new { uniqueCallId });
+        return result ?? new InboundCallAggregate(uniqueCallId);
     }
 
-    public async Task UpsertOutboundCallAggregate(OutboundCallAggregate aggregate)
+    public async Task UpsertInboundCallAggregate(InboundCallAggregate aggregate)
     {
         using var connection = this.dbConnectionFactory.GetSqlConnection();
         const string sql = """
             MERGE INTO InboundCalls AS target
             USING (VALUES (
-                @UniqueCallId, @CallerId, @UserName, @UserNumber, @DestNumber,
-                @CallStartAt, @ConnectedAt, @CallDuration, @ConversationDuration, @RecordedAt,
+                @UniqueCallId, @CallerId, @CallerName, @UserName, @UserNumber, @DestNumber,
+                @CallStartAt, @QueueName, @Status, @RingGroupName, @ConnectedAt, @CallDuration, @ConversationDuration, @RecordedAt,
                 @Emails, @EmailSubject, @EmailMessage, @CallRecordingLink, @LastEventType
             )) AS source (
-                UniqueCallId, CallerId, UserName, UserNumber, DestNumber,
-                CallStartAt, ConnectedAt, CallDuration, ConversationDuration, RecordedAt,
+                UniqueCallId, CallerId, CallerName, UserName, UserNumber, DestNumber,
+                CallStartAt, QueueName, Status, RingGroupName, ConnectedAt, CallDuration, ConversationDuration, RecordedAt,
                 Emails, EmailSubject, EmailMessage, CallRecordingLink, LastEventType
             )
             ON target.UniqueCallId = source.UniqueCallId
@@ -44,10 +45,14 @@ public class InboundCallRepository
                 UPDATE SET
                     UniqueCallId = source.UniqueCallId,
                     CallerId = source.CallerId,
+                    CallerName = source.CallerName,
                     UserName = source.UserName,
                     UserNumber = source.UserNumber,
                     DestNumber = source.DestNumber,
                     CallStartAt = source.CallStartAt,
+                    QueueName = source.QueueName,
+                    Status = source.Status,
+                    RingGroupName = source.RingGroupName,
                     ConnectedAt = source.ConnectedAt,
                     CallDuration = source.CallDuration,
                     ConversationDuration = source.ConversationDuration,
@@ -59,12 +64,12 @@ public class InboundCallRepository
                     LastEventType = source.LastEventType
             WHEN NOT MATCHED THEN
                 INSERT (
-                    UniqueCallId, CallerId, UserName, UserNumber, DestNumber,
-                    CallStartAt, ConnectedAt, CallDuration, ConversationDuration, RecordedAt,
+                    UniqueCallId, CallerId, CallerName, UserName, UserNumber, DestNumber,
+                    CallStartAt, QueueName, Status, RingGroupName, ConnectedAt, CallDuration, ConversationDuration, RecordedAt,
                     Emails, EmailSubject, EmailMessage, CallRecordingLink, LastEventType
                 ) VALUES (
-                    @UniqueCallId, @CallerId, @UserName, @UserNumber, @DestNumber,
-                    @CallStartAt, @ConnectedAt, @CallDuration, @ConversationDuration, @RecordedAt,
+                    @UniqueCallId, @CallerId, @CallerNAme, @UserName, @UserNumber, @DestNumber,
+                    @CallStartAt, @QueueName, @Status, @RingGroupName, @ConnectedAt, @CallDuration, @ConversationDuration, @RecordedAt,
                     @Emails, @EmailSubject, @EmailMessage, @CallRecordingLink, @LastEventType
                 );
             """;

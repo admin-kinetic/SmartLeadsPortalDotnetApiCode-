@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services;
 using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
@@ -14,15 +15,33 @@ namespace SmartLeadsPortalDotNetApi.Controllers
     [ApiController]
     public class AutomatedLeadsController : ControllerBase
     {
+        private readonly SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository;
         AutomatedLeadsRepository _automatedLeadsRepository;
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
 
-        public AutomatedLeadsController(AutomatedLeadsRepository automatedLeadsRepository, HttpClient httpClient, IConfiguration configuration)
+        public AutomatedLeadsController(
+            SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository,
+            AutomatedLeadsRepository automatedLeadsRepository,
+            HttpClient httpClient,
+            IConfiguration configuration)
         {
+            this.smartLeadsExportedContactsRepository = smartLeadsExportedContactsRepository;
             _automatedLeadsRepository = automatedLeadsRepository;
             _httpClient = httpClient;
             _configuration = configuration;
+        }
+
+        [HttpPost("find")]
+        public async Task<IActionResult> Find([FromBody] TableRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            var result = await smartLeadsExportedContactsRepository.Find(request);
+            return Ok(result);
         }
 
         //MSSQL API

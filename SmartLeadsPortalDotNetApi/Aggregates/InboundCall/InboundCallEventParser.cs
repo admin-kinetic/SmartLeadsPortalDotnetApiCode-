@@ -17,16 +17,16 @@ public class InboundCallEventParser
     {
         using var doc = JsonDocument.Parse(json);
         var type = doc.RootElement.GetProperty("type").GetString();
-
+        
         return type switch
         {
             "user_inbound" => JsonSerializer.Deserialize<UserInboundEvent>(json, Options),
-            "user_user_inbound_answered" => JsonSerializer.Deserialize<UserInboundAnsweredEvent>(json, Options),
-            "user_user_inbound_completed" => JsonSerializer.Deserialize<UserInboundCompletedEvent>(json, Options),
+            "user_inbound_answered" => JsonSerializer.Deserialize<UserInboundAnsweredEvent>(json, Options),
+            "user_inbound_completed" => JsonSerializer.Deserialize<UserInboundCompletedEvent>(json, Options),
             "queue_call" => JsonSerializer.Deserialize<QueueCallEvent>(json, Options),
             "ring_group_call" => JsonSerializer.Deserialize<RingGroupCallEvent>(json, Options),
             "voicemail" => JsonSerializer.Deserialize<VoicemailEvent>(json, Options),
-            "recording_user_inbound" => JsonSerializer.Deserialize<RecordingInboundEvent>(json, Options),
+            "recording_inbound" => JsonSerializer.Deserialize<RecordingInboundEvent>(json, Options),
             _ => throw new NotSupportedException($"Event type {type} is not supported")
         };
     }
