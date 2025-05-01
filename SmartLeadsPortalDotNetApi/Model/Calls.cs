@@ -43,6 +43,7 @@
         public string? AddedBy { get; set; }
         public string? RecordedLink { get; set; }
         public bool? IsDeleted { get; set; }
+        public int? CallDirectionId { get; set; }
     }
     public class CallsInsert
     {
@@ -59,7 +60,7 @@
         public string? Notes { get; set; }
         public int? CallTagsId { get; set; }
         public string? AddedBy { get; set; }
-        public int StatisticId { get; set; }
+        public int? StatisticId { get; set; }
         public DateTime? Due { get; set; }
         public int? UserId { get; set; }
         public string? UniqueCallId { get; set; }

@@ -34,7 +34,8 @@ public class WebhooksController: ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
-        await this.webhooksRepository.InsertWebhook(payload);
+        await this.webhooksRepository.InsertWebhook("EMAIL_REPLY", payload);
+        await webhookService.HandleReply(payload);
         return Ok();
     }
 }
