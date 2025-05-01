@@ -12,9 +12,10 @@ public class WebhookService
     private readonly ILogger<WebhookService> logger;
 
     public WebhookService(
-        AutomatedLeadsRepository automatedLeadsRepository, 
+        AutomatedLeadsRepository automatedLeadsRepository,
         WebhooksRepository webhooksRepository,
         LeadClicksRepository leadClicksRepository,
+        SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository,
         ILogger<WebhookService> logger)
     {
         this.automatedLeadsRepository = automatedLeadsRepository;
@@ -26,26 +27,38 @@ public class WebhookService
     public async Task HandleClick(string payload)
     {
         this.logger.LogInformation("Handling click webhook");
-        await this.webhooksRepository.InsertWebhook(payload);
+        await this.webhooksRepository.InsertWebhook("EMAIL_LINK_CLICK", payload);
 
         var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
-        
+
         this.logger.LogInformation($"Handling click webhook for {payloadObject["to_email"]}");
         var email = payloadObject["to_email"];
-        if(email == null || string.IsNullOrWhiteSpace(email.ToString()))
+        if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
         var lead = await this.automatedLeadsRepository.GetByEmail(email.ToString());
-        if(lead == null)
+        if (lead == null)
         {
             throw new ArgumentException("Email not found in leads.");
         }
 
         await this.leadClicksRepository.UpsertById(lead.Id);
 
-       
+
         this.logger.LogInformation("Completed handling click webhook");
+    }
+
+    public async Task HandleReply(string payload)
+    {
+        var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
+        var email = payloadObject["to_email"];
+        if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
+        {
+            throw new ArgumentNullException("to_email", "Email is required.");
+        }
+
+        await this.automatedLeadsRepository.UpdateReply(email.ToString());
     }
 }
