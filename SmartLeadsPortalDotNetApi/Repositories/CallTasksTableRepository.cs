@@ -32,45 +32,45 @@ public class CallTasksTableRepository
                 SELECT
                     sle.Id,
                     sle.GuId,
-                    JSON_VALUE(wh.Request, '$.sl_email_lead_id') AS LeadId, 
+                    slal.LeadId, 
                     sle.LeadEmail AS Email, 
-                    JSON_VALUE(wh.Request, '$.to_name') AS FullName, 
+                    slal.FirstName + ' ' + slal.LastName AS FullName, 
                     sle.SequenceNumber,
                     CASE 
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (US/CA) Bot - Job Ads (manual)' 
-                            OR JSON_VALUE(wh.Request, '$.campaign_name') = '(US/CA) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name = 'Dondi (US/CA) Bot - Job Ads (manual)' 
+                            OR  slc.Name = '(US/CA) Bot - Job Ads (full auto)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (AUS) Bot - Job Ads (manual)' 
-                            OR JSON_VALUE(wh.Request, '$.campaign_name') = '(AUS) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name = 'Dondi (AUS) Bot - Job Ads (manual)' 
+                            OR  slc.Name = '(AUS) Bot - Job Ads (full auto)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
+                        WHEN slc.Name = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(NZ) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name = '(NZ) Bot - Job Ads (full auto)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
-                        WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(EU) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name = '(EU) Bot - Job Ads (full auto)' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
                     END AS LocalTime,
                     ABS(
                         DATEDIFF(
                             MINUTE, 
                             CAST(CASE 
-                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (US/CA) Bot - Job Ads (manual)' 
-                                        OR JSON_VALUE(wh.Request, '$.campaign_name') = '(US/CA) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name = 'Dondi (US/CA) Bot - Job Ads (manual)' 
+                                        OR slc.Name = '(US/CA) Bot - Job Ads (full auto)' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
-                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (AUS) Bot - Job Ads (manual)' 
-                                        OR JSON_VALUE(wh.Request, '$.campaign_name') = '(AUS) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name = 'Dondi (AUS) Bot - Job Ads (manual)' 
+                                        OR slc.Name = '(AUS) Bot - Job Ads (full auto)' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
+                                    WHEN slc.Name = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(NZ) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name = '(NZ) Bot - Job Ads (full auto)' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
-                                    WHEN JSON_VALUE(wh.Request, '$.campaign_name') = '(EU) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name = '(EU) Bot - Job Ads (full auto)' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
                                 END AS TIME),
                             CAST('09:00:00' AS TIME)
                         )
                     ) AS TimeDifferenceInMinutes,
-                    JSON_VALUE(wh.Request, '$.campaign_name') AS CampaignName, 
+                    slc.Name AS CampaignName, 
                     sle.EmailSubject AS SubjectName, 
                     sle.OpenCount, 
                     sle.ClickCount,
@@ -81,7 +81,8 @@ public class CallTasksTableRepository
                     sle.Notes,
                     sle.Due
                 FROM SmartLeadsEmailStatistics sle
-                INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
+                INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
+                INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
             """;
@@ -96,7 +97,8 @@ public class CallTasksTableRepository
                 SELECT
                     count(sle.Id) as Total
                 FROM SmartLeadsEmailStatistics sle
-                INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
+                INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
+                INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
             """;
 
@@ -124,11 +126,11 @@ public class CallTasksTableRepository
                             parameters.Add("Email", $"%{filter.Value}%");
                             break;
                         case "fullname":
-                            whereClause.Add("JSON_VALUE(wh.Request, '$.to_name') LIKE @FullName");
+                            whereClause.Add("slal.FirstName + ' ' + slal.LastName) LIKE @FullName");
                             parameters.Add("FullName", $"%{filter.Value}%");
                             break;
                         case "campaignname":
-                            whereClause.Add("JSON_VALUE(wh.Request, '$.campaign_name') LIKE @CampaignName");
+                            whereClause.Add("slc.Name LIKE @CampaignName");
                             parameters.Add("CampaignName", $"%{filter.Value}%");
                             break;
                         case "subjectname":
