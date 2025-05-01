@@ -27,7 +27,6 @@ public class WebhookService
     public async Task HandleClick(string payload)
     {
         this.logger.LogInformation("Handling click webhook");
-        await this.webhooksRepository.InsertWebhook("EMAIL_LINK_CLICK", payload);
 
         var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
 
@@ -78,5 +77,29 @@ public class WebhookService
         var category = payloadObject["lead_category"]["new_name"];
 
         await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), category.ToString());
+    }
+
+    private async Task HandleOpen(string payload)
+    {
+         this.logger.LogInformation("Handling open webhook");
+
+        var payloadObject = JsonSerializer.Deserialize<dynamic>(payload);
+
+        this.logger.LogInformation($"Handling open webhook for {payloadObject["to_email"]}");
+        var email = payloadObject["to_email"];
+        if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
+        {
+            throw new ArgumentNullException("to_email", "Email is required.");
+        }
+
+        var lead = await this.automatedLeadsRepository.GetByEmail(email.ToString());
+        if (lead == null)
+        {
+            throw new ArgumentException("Email not found in leads.");
+        }
+
+        // await this.leadClicksRepository.UpsertById(lead.Id);
+
+        this.logger.LogInformation("Completed handling opwn webhook");
     }
 }

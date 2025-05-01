@@ -39,11 +39,12 @@ public class WebhooksController: ControllerBase
     }
 
     [HttpPost("email-open")]
-    public async Task<IActionResult> EmailClick()
+    public async Task<IActionResult> EmailOpen()
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("EMAIL_OPEN", payload);
+        // await this.webhookService.HandleOpen(payload);
         return Ok();
     }
 
@@ -61,6 +62,7 @@ public class WebhooksController: ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
+        await this.webhooksRepository.InsertWebhook("EMAIL_LINK_CLICK", payload);
         await webhookService.HandleClick(payload);
         return Ok();
     }
