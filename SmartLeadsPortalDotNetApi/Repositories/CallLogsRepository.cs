@@ -64,7 +64,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
-        public async Task<int> InsertInboundCallLogs(CallsInsert keyword)
+        public async Task<int> InsertInboundCallLogs(CallsInsertInbound keyword)
         {
             await Task.Delay(3000);
             if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
@@ -72,7 +72,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new ArgumentException("UserPhoneNumber, UserCaller, and ProspectNumber cannot be null or empty.");
             }
 
-            CallLogsOutbound? callLogsOutbound = await GetInboundcallsInfo(keyword.UserPhoneNumber, keyword.ProspectNumber);
+            CallLogsOutbound? callLogsOutbound = await GetInboundcallsInfo(keyword.ProspectNumber, keyword.UserPhoneNumber);
 
             if (callLogsOutbound == null)
             {
