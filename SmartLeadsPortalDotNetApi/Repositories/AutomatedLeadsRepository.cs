@@ -262,9 +262,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "SELECT * FROM SmartLeadsExportedContacts";
                     var countQuery = "SELECT COUNT(Id) as Count FROM SmartLeadsExportedContacts";
                     var conditions = new List<string>();
@@ -368,9 +367,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "SELECT * FROM SmartLeadsExportedContacts";
                     var countQuery = "SELECT COUNT(Id) as Count FROM SmartLeadsExportedContacts";
                     var conditions = new List<string>();
@@ -451,9 +449,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "UPDATE SmartLeadsExportedContacts SET HasReviewed = 1 WHERE Id = @Id";
                     await connection.ExecuteAsync(query, new { Id = request.Id });
                 }
@@ -467,9 +464,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "UPDATE SmartLeadsExportedContacts SET HasReviewed = 0 WHERE Id = @Id";
                     await connection.ExecuteAsync(query, new { Id = request.Id });
                 }
@@ -483,15 +479,17 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
-                    var query = @"
-                    SELECT DATE(ExportedDate) Date, COUNT(id) AS Count 
-                    FROM SmartLeadsExportedContacts
-                    WHERE ExportedDate >= CURDATE() - INTERVAL 10 DAY
-                    GROUP BY DATE(ExportedDate) 
-                    ORDER BY ExportedDate DESC";
+                    var query = """
+                        SELECT 
+                            CAST(ExportedDate AS DATE) AS [Date], 
+                            COUNT(id) AS [Count]
+                        FROM SmartLeadsExportedContacts
+                        WHERE ExportedDate >= CAST(GETDATE() - 10 AS DATE)
+                        GROUP BY CAST(ExportedDate AS DATE)
+                        ORDER BY [Date] DESC;
+                    """;
                     var result = await connection.QueryAsync<ExportedDateResult>(query);
                     return result;
                 }
@@ -505,15 +503,17 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
-                    var query = @"
-                    SELECT DATE(RepliedAt) Date, COUNT(id) AS Count 
-                    FROM SmartLeadsExportedContacts
-                    WHERE RepliedAt >= CURDATE() - INTERVAL 10 DAY
-                    GROUP BY DATE(RepliedAt) 
-                    ORDER BY RepliedAt DESC";
+                    var query = """
+                        SELECT 
+                            CAST(RepliedAt AS DATE) AS [Date], 
+                            COUNT(id) AS [Count]
+                        FROM SmartLeadsExportedContacts
+                        WHERE RepliedAt >= CAST(GETDATE() - 10 AS DATE)
+                        GROUP BY CAST(RepliedAt AS DATE)
+                        ORDER BY [Date] DESC;
+                    """;
                     var result = await connection.QueryAsync<ExportedDateResult>(query);
                     return result;
                 }
@@ -527,9 +527,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS HasReplyCount FROM SmartLeadsExportedContacts WHERE HasReply = 1";
                     var result = await connection.QueryFirstOrDefaultAsync<HasReplyCountModel>(query);
                     return result ?? new HasReplyCountModel { HasReplyCount = 0 };
@@ -544,9 +543,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var singaporeTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                     var nowInSingapore = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, singaporeTimeZone);
                     var todayStartLocal = new DateTime(nowInSingapore.Year, nowInSingapore.Month, nowInSingapore.Day,
@@ -555,7 +553,12 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                     var startUtc = TimeZoneInfo.ConvertTimeToUtc(todayStartLocal, singaporeTimeZone);
                     var endUtc = TimeZoneInfo.ConvertTimeToUtc(todayEndLocal, singaporeTimeZone);
-                    var query = "SELECT Count(Id) AS TotalResponseToday FROM SmartLeadsExportedContacts WHERE RepliedAt BETWEEN @StartUtc AND @EndUtc";
+                    var query = """
+                        SELECT Count(Id) AS TotalResponseToday 
+                        FROM SmartLeadsExportedContacts 
+                        WHERE (SmartleadsCategory IS NULL OR SmartleadsCategory = '') 
+                            AND RepliedAt BETWEEN @StartUtc AND @EndUtc
+                    """;
                     var result = await connection.QueryFirstOrDefaultAsync<TotalResponseTodayModel>(query, new
                     {
                         StartUtc = startUtc.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -574,9 +577,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalValidResponse FROM SmartLeadsExportedContacts WHERE HasReviewed = 1";
                     var result = await connection.QueryFirstOrDefaultAsync<TotalValidResponseModel>(query);
                     return result ?? new TotalValidResponseModel { TotalValidResponse = 0 };
@@ -591,9 +593,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalInvalidResponse FROM SmartLeadsExportedContacts WHERE HasReviewed = 0";
                     var result = await connection.QueryFirstOrDefaultAsync<TotalInvalidResponseModel>(query);
                     return result ?? new TotalInvalidResponseModel { TotalInvalidResponse = 0 };
@@ -608,9 +609,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = "SELECT Count(Id) AS TotalLeadsSent FROM SmartLeadsExportedContacts WHERE ExportedDate >= '2025-01-01'";
                     var result = await connection.QueryFirstOrDefaultAsync<TotalLeadsSentModel>(query);
                     return result ?? new TotalLeadsSentModel { TotalLeadsSent = 0 };
@@ -625,16 +625,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
-                    var query = @"
-                    SELECT Count(Id) AS TotalEmailErrorResponse
-                    FROM SmartLeadsExportedContacts 
-                    WHERE ModifiedAt IS NOT NULL 
-                        AND ExportedDate >= '2025-01-01'
-                        AND HasReply = 1
-                        AND MessageHistory REGEXP 'error|not found|problem deliver|be delivered|blocked|unable to recieve|unable to deliver'";
+                    var query = """
+                        SELECT Count(Id) AS TotalEmailErrorResponse
+                        FROM SmartLeadsExportedContacts 
+                        WHERE ModifiedAt IS NOT NULL 
+                            AND ExportedDate >= '2025-01-01'
+                            AND SmartLeadsCategory = 'Sender Originated Bounce'
+                    """;
                     var result = await connection.QueryFirstOrDefaultAsync<TotalEmailErrorResponseModel>(query);
                     return result ?? new TotalEmailErrorResponseModel { TotalEmailErrorResponse = 0 };
                 }
@@ -648,16 +647,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
-                    var query = @"
-                    SELECT Count(Id) AS TotalOutOfOfficeResponse
-                    FROM SmartLeadsExportedContacts 
-                    WHERE ModifiedAt IS NOT NULL 
-                        AND ExportedDate >= '2025-01-01'
-                        AND HasReply = 1
-                        AND MessageHistory REGEXP 'out of office|on leave|maternity leave|leave'";
+                    var query = """
+                        SELECT Count(Id) AS TotalOutOfOfficeResponse
+                        FROM SmartLeadsExportedContacts 
+                        WHERE ModifiedAt IS NOT NULL 
+                            AND ExportedDate >= '2025-01-01'
+                            AND SmartLeadsCategory = 'Out Of Office'
+                        """;
                     var result = await connection.QueryFirstOrDefaultAsync<TotalOutOfOfficeResponseModel>(query);
                     return result ?? new TotalOutOfOfficeResponseModel { TotalOutOfOfficeResponse = 0 };
                 }
@@ -671,16 +669,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
-                    var query = @"
-                    SELECT Count(Id) AS TotalIncorrectContactResponse
-                    FROM SmartLeadsExportedContacts 
-                    WHERE ModifiedAt IS NOT NULL 
-                        AND ExportedDate >= '2025-01-01'
-                        AND HasReply = 1
-                        AND MessageHistory REGEXP 'not the right person|no longer working with|no longer work for|not interested|in charge|onshore|remove me|unsubscribe'";
+                    var query = """
+                        SELECT Count(Id) AS TotalIncorrectContactResponse
+                        FROM SmartLeadsExportedContacts 
+                        WHERE ModifiedAt IS NOT NULL 
+                            AND ExportedDate >= '2025-01-01'
+                            AND SmartleadsCategory = 'Wrong Person'
+                    """;
                     var result = await connection.QueryFirstOrDefaultAsync<TotalIncorrectContactResponseModel>(query);
                     return result ?? new TotalIncorrectContactResponseModel { TotalIncorrectContactResponse = 0 };
                     ;
@@ -695,9 +692,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                using (var connection = new MySqlConnection(_mysqlconnectionString))
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
-                    await connection.OpenAsync();
                     var query = @"
                 SELECT *
                 FROM users";
