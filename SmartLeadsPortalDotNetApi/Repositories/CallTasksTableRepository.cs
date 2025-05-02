@@ -80,12 +80,24 @@ public class CallTasksTableRepository
                     us.FullName AS AssignedTo,
                     sle.Notes,
                     sle.Due,
-                    sle.IsDeleted
+                    sle.IsDeleted,
+                    ISNULL(cs_applied.CategoryName, 'Low') AS Category
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
+                OUTER APPLY (
+                SELECT TOP 1 cs.CategoryName
+                FROM CategorySettings cs
+                WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
+                ORDER BY 
+                    CASE 
+                        WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
+                        WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
+                        ELSE cs.ClickCount
+                    END DESC
+                ) cs_applied
                 WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
@@ -102,6 +114,17 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
+                OUTER APPLY (
+                SELECT TOP 1 cs.CategoryName
+                FROM CategorySettings cs
+                WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
+                ORDER BY 
+                    CASE 
+                        WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
+                        WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
+                        ELSE cs.ClickCount
+                    END DESC
+                ) cs_applied
                 WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
@@ -151,6 +174,10 @@ public class CallTasksTableRepository
                         case "clickcount":
                             whereClause.Add($"sle.ClickCount {this.operatorsMap[filter.Operator]} @ClickCount");
                             parameters.Add("ClickCount", filter.Value);
+                            break;
+                        case "priority":
+                            whereClause.Add("cs_applied.CategoryName LIKE @Priority");
+                            parameters.Add("Priority", $"%{filter.Value}%");
                             break;
                         // Add more cases for other filterable columns
                         default:
@@ -219,9 +246,10 @@ public class CallTasksTableRepository
             "FullName",
             "SequenceNumber",
             "CampaignName",
-             "SubjectName",
+            "SubjectName",
             "OpenCount",
             "ClickCount",
+            "Priority",
             "Due",
             "AssignedTo"
         };
