@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.Kiota.Abstractions;
 
 namespace SmartLeadsPortalDotNetApi.Model
 {
@@ -48,7 +49,7 @@ namespace SmartLeadsPortalDotNetApi.Model
     }
     public class ExportedDateResult
     {
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
         public int Count { get; set; }
     }
 
