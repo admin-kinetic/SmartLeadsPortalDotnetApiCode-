@@ -15,7 +15,7 @@ var smartLeadHttpService = new SmartLeadHttpService();
 // var allLeads = await smartLeadHttpService.GetAllLeads(fromDate, 0);
 
 var smartLeadAllLeadsService = new SmartLeadAllLeadsService(dbConnectionFactory, smartLeadHttpService);
-// await smartLeadAllLeadsService.SaveAllLeads();
-await smartLeadAllLeadsService.SaveAllLeadsByEmail();
+await smartLeadAllLeadsService.SaveAllLeads();
+//await smartLeadAllLeadsService.SaveAllLeadsByEmail();
 
 Console.WriteLine("Done importing Smartlead All Leads to Portal");
