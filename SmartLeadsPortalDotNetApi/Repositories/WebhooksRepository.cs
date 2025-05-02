@@ -85,4 +85,29 @@ public class WebhooksRepository
             );
         }
     }
+
+    public async Task<List<string>> GetLeadCategoryUpdated()
+    {
+        logger.LogInformation($"Getting email reply webhook data from database");
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var query = """
+                Select Request From Webhooks
+                Where JSON_VALUE(Request,'$.event_type') = 'LEAD_CATEGORY_UPDATED'
+                ORDER By Id Asc; 
+                """;
+            var result = await connection.QueryAsync<string>(query);
+            return result.ToList();
+        }
+        finally
+        {
+            stopwatch.Stop();
+            logger.LogInformation(
+                $"Getting email reply webhook data from database in {stopwatch.ElapsedMilliseconds} ms"
+            );
+        }
+    }
 }

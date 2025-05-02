@@ -98,6 +98,7 @@ public class SmartLeadsExportedContactsRepository
                                     whereClause.Add("slec.RepliedAt BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
                                     parameters.Add("RepliedAtStartDay", startOfDayUtc);
                                     parameters.Add("RepliedAtEndDay", endOfDayUtc);
+                                    whereClause.Add("slec.SmartleadsCategory IS NULL OR slec.SmartleadsCategory = ''");
                                     break;
                                 case "positive-response":
                                     whereClause.Add("slec.HasReviewed = 1");
@@ -166,7 +167,10 @@ public class SmartLeadsExportedContactsRepository
     {
         using (var connection = this.dbConnectionFactory.GetSqlConnection())
         {
-            connection.Open();
+            if(connection.State == System.Data.ConnectionState.Closed)
+            {
+                connection.Open();
+            }
 
             using (var transaction = connection.BeginTransaction())
             {

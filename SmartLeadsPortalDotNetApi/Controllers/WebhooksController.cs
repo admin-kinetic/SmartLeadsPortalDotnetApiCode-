@@ -13,11 +13,13 @@ public class WebhooksController: ControllerBase
 {
     private readonly WebhooksRepository webhooksRepository;
     private readonly WebhookService webhookService;
+    private readonly ILogger<WebhooksController> logger;
 
-    public WebhooksController(WebhooksRepository webhooksRepository, WebhookService webhookService)
+    public WebhooksController(WebhooksRepository webhooksRepository, WebhookService webhookService, ILogger<WebhooksController> logger)
     {
         this.webhooksRepository = webhooksRepository;
         this.webhookService = webhookService;
+        this.logger = logger;
     }
 
     [HttpPost("email-sent")]
@@ -173,6 +175,26 @@ public class WebhooksController: ControllerBase
     //         {
     //             // Log the error and continue processing other webhooks
     //             Console.WriteLine($"Error processing webhook: {ex.Message}");
+    //             continue;
+    //         }
+    //     }
+    //     return Ok();
+    // }
+
+    // [HttpPost("process-lead-category-updated")]
+    // public async Task<IActionResult> ProcessLeadCategoryUpdated()
+    // {
+    //     var emailReplyWebhooks = await this.webhooksRepository.GetLeadCategoryUpdated();
+    //     foreach (var emailReplyWebhook in emailReplyWebhooks)
+    //     {
+    //         try
+    //         {
+    //             await webhookService.HandleLeadCategoryUpdated(emailReplyWebhook);
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             // Log the error and continue processing other webhooks
+    //             this.logger.LogError($"Error processing webhook: {ex.Message}");
     //             continue;
     //         }
     //     }
