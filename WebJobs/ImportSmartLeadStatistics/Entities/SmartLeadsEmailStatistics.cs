@@ -8,6 +8,7 @@ public class SmartLeadsEmailStatistics
     public Guid GuId { get; set; }
     public int LeadId { get; set; }
     public string? LeadEmail { get; set; }
+    public string? LeadName { get; set; }
     public int? SequenceNumber { get; set; }
     public string? EmailSubject { get; set; }
     public DateTime? SentTime { get; set; }

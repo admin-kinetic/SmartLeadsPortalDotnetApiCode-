@@ -16,7 +16,7 @@ public class WebhooksRepository
         this.logger = logger;
     }
 
-    public async Task InsertWebhook(string payload)
+    public async Task InsertWebhook(string eventType, string payload)
     {
         logger.LogInformation($"Inserting webhook into database");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -24,8 +24,8 @@ public class WebhooksRepository
         try
         {
             using var connection = dbConnectionFactory.GetSqlConnection();
-            var insert = @"INSERT INTO Webhooks (Request, CreatedAt) VALUES (@payload, GETDATE());";
-            await connection.ExecuteAsync(insert, new { payload });
+            var insert = @"INSERT INTO Webhooks (EventType, Request, CreatedAt) VALUES (@eventType, @payload, GETDATE());";
+            await connection.ExecuteAsync(insert, new { eventType, payload });
         }
         finally
         {
@@ -57,6 +57,31 @@ public class WebhooksRepository
             stopwatch.Stop();
             logger.LogInformation(
                 $"Inserted webhook into database in {stopwatch.ElapsedMilliseconds} ms"
+            );
+        }
+    }
+
+    public async Task<List<string>> GetEmailReplyWebhooks()
+    {
+        logger.LogInformation($"Getting email reply webhook data from database");
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var query = """
+                Select Request From Webhooks
+                Where JSON_VALUE(Request,'$.event_type') = 'EMAIL_REPLY'
+                ORder By Id Asc; 
+                """;
+            var result = await connection.QueryAsync<string>(query);
+            return result.ToList();
+        }
+        finally
+        {
+            stopwatch.Stop();
+            logger.LogInformation(
+                $"Getting email reply webhook data from database in {stopwatch.ElapsedMilliseconds} ms"
             );
         }
     }

@@ -78,12 +78,42 @@ public class SmartLeadsExportedContactsRepository
                             parameters.Add("HasReview", filter.Value);
                             break;
                         case "exporteddatefrom":
-                            whereClause.Add("slec.ExportedDate <= @ExportedDateFrom");
-                            parameters.Add("ExportedDateFrom", $"%{filter.Value}%");
+                            whereClause.Add("slec.ExportedDate >= @ExportedDateFrom");
+                            parameters.Add("ExportedDateFrom", filter.Value);
                             break;
                         case "exporteddateto":
-                            whereClause.Add("slec.ExportedDate <= @ExportedDateTo");
-                            parameters.Add("ExportedDateTo", $"%{filter.Value}%");
+                            whereClause.Add("slec.ExportedDate <  DATEADD(day, 1, @ExportedDateTo)");
+                            parameters.Add("ExportedDateTo", filter.Value);
+                            break;
+                        case "category":
+                            switch (filter.Value.ToLower())
+                            {
+                                case "responses-today":
+                                    var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                                    var nowInLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, localTimeZone);
+                                    var startOfDayLocal = nowInLocal.Date;
+                                    var endOfDayLocal = startOfDayLocal.AddDays(1).AddTicks(-1);
+                                    var startOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(startOfDayLocal, localTimeZone);
+                                    var endOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(endOfDayLocal, localTimeZone);
+                                    whereClause.Add("slec.RepliedAt BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
+                                    parameters.Add("RepliedAtStartDay", startOfDayUtc);
+                                    parameters.Add("RepliedAtEndDay", endOfDayUtc);
+                                    break; 
+                                case "positive-response":
+                                    whereClause.Add("slec.HasReviewed = 1");
+                                    break; 
+                                case "out-of-office":
+                                    whereClause.Add("slec.SmartleadsCategory = 'Out Of Office'");
+                                    break;
+                                case "incorrect-contact":
+                                    whereClause.Add("slec.SmartleadsCategory = 'Wrong Person'");
+                                    break; 
+                                case "email-error":
+                                    whereClause.Add("slec.SmartleadsCategory = 'Sender Originated Bounce'");
+                                    break; 
+                                default:
+                                    break;
+                            }
                             break;
                         default:
                             // For numeric fields or exact matches

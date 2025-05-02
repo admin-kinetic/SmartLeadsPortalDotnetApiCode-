@@ -43,6 +43,7 @@ public class SmartLeadCampaignStatisticsService
                         var smartLeadCampaignStatistics = statistics.data.Select(statistic => new SmartLeadsEmailStatistics
                         {
                             LeadEmail = statistic.lead_email,
+                            LeadName = statistic.lead_name,
                             SequenceNumber = statistic.sequence_number,
                             EmailSubject = statistic.email_subject,
                             SentTime = statistic.sent_time,
@@ -64,8 +65,8 @@ public class SmartLeadCampaignStatisticsService
                             {
                                 var upsert = """
                                     MERGE INTO SmartLeadsEmailStatistics AS target
-                                    USING (VALUES (@GuId, @LeadEmail, @SequenceNumber, @EmailSubject, @SentTime, @OpenTime, @ClickTime, @ReplyTime, @OpenCount, @ClickCount)) 
-                                        AS source (GuId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenTime, ClickTime, ReplyTime, OpenCount, ClickCount)
+                                    USING (VALUES (@GuId, @LeadEmail, @LeadName, @SequenceNumber, @EmailSubject, @SentTime, @OpenTime, @ClickTime, @ReplyTime, @OpenCount, @ClickCount)) 
+                                        AS source (GuId, LeadEmail, LeadName, SequenceNumber, EmailSubject, SentTime, OpenTime, ClickTime, ReplyTime, OpenCount, ClickCount)
                                     ON target.LeadEmail = source.LeadEmail AND target.SequenceNumber = source.SequenceNumber
                                     WHEN MATCHED THEN
                                         UPDATE SET 
@@ -78,8 +79,8 @@ public class SmartLeadCampaignStatisticsService
                                             OpenCount = source.OpenCount,
                                             ClickCount = source.ClickCount
                                     WHEN NOT MATCHED THEN
-                                        INSERT (GuId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenTime, ClickTime, ReplyTime, OpenCount, ClickCount)
-                                        VALUES (source.GuId, source.LeadEmail, source.SequenceNumber, source.EmailSubject, source.SentTime, source.OpenTime, source.ClickTime, source.ReplyTime, source.OpenCount, source.ClickCount);
+                                        INSERT (GuId, LeadEmail, LeadName, SequenceNumber, EmailSubject, SentTime, OpenTime, ClickTime, ReplyTime, OpenCount, ClickCount)
+                                        VALUES (source.GuId, source.LeadEmail, source.LeadName, source.SequenceNumber, source.EmailSubject, source.SentTime, source.OpenTime, source.ClickTime, source.ReplyTime, source.OpenCount, source.ClickCount);
                                 """;
                                 await connection.ExecuteAsync(
                                     upsert, 
