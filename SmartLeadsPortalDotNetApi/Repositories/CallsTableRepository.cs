@@ -47,6 +47,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             	    ct.TagName AS CallTags,
             	    cl.AddedBy,
                     ob.AzureStorageCallRecordingLink AS RecordedLink,
+                    ib.AzureStorageCallRecordingLink AS InboundRecordedLink,
                     cl.IsDeleted,
                     cl.CallDirectionId
                 FROM [dbo].[Calls] cl
@@ -55,6 +56,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 LEFT JOIN CallState cs ON cl.CallStateId = cs.Id
                 LEFT JOIN Tags ct ON cl.CallTagsId = ct.Id
                 LEFT JOIN OutboundCalls ob ON cl.UniqueCallId = ob.UniqueCallId
+                LEFT JOIN InboundCalls ib ON cl.UniqueCallId = ib.UniqueCallId
                 WHERE (cl.IsDeleted IS NULL OR cl.IsDeleted = 0)
             """;
                 var queryParam = new
@@ -72,6 +74,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 LEFT JOIN CallState cs ON cl.CallStateId = cs.Id
                 LEFT JOIN Tags ct ON cl.CallTagsId = ct.Id
                 LEFT JOIN OutboundCalls ob ON cl.UniqueCallId = ob.UniqueCallId
+                LEFT JOIN InboundCalls ib ON cl.UniqueCallId = ib.UniqueCallId
                 WHERE (cl.IsDeleted IS NULL OR cl.IsDeleted = 0)
             """;
 
