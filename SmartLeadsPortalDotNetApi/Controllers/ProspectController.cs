@@ -23,6 +23,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             ProspectResponseModel<Prospect> list = await _prospectRepository.GetSmartLeadsProspect(param);
             return Ok(list);
         }
+
         [HttpGet("get-all-prospect")]
         [EnableCors("CorsApi")]
         public async Task<IActionResult> GetSmartLeadsAllProspect()
