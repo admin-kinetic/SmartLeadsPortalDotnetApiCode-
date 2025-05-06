@@ -98,19 +98,20 @@ public class SmartLeadsExportedContactsRepository
                                     whereClause.Add("slec.RepliedAt BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
                                     parameters.Add("RepliedAtStartDay", startOfDayUtc);
                                     parameters.Add("RepliedAtEndDay", endOfDayUtc);
-                                    break; 
+                                    whereClause.Add("(slec.SmartleadsCategory IS NULL OR slec.SmartleadsCategory = '')");
+                                    break;
                                 case "positive-response":
                                     whereClause.Add("slec.HasReviewed = 1");
-                                    break; 
+                                    break;
                                 case "out-of-office":
                                     whereClause.Add("slec.SmartleadsCategory = 'Out Of Office'");
                                     break;
                                 case "incorrect-contact":
                                     whereClause.Add("slec.SmartleadsCategory = 'Wrong Person'");
-                                    break; 
+                                    break;
                                 case "email-error":
                                     whereClause.Add("slec.SmartleadsCategory = 'Sender Originated Bounce'");
-                                    break; 
+                                    break;
                                 default:
                                     break;
                             }
@@ -159,6 +160,43 @@ public class SmartLeadsExportedContactsRepository
                 Total = count
             };
             return response;
+        }
+    }
+
+    public async Task SaveExportedContacts(List<ExportedContactsPayload>? exportedContactsPayload)
+    {
+        using (var connection = this.dbConnectionFactory.GetSqlConnection())
+        {
+            if(connection.State == System.Data.ConnectionState.Closed)
+            {
+                connection.Open();
+            }
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    await connection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts ON;", transaction: transaction);
+
+                    var insert = """
+                        INSERT INTO SmartLeadsExportedContacts (Id, ExportedDate, Email, ContactSource, Rate)
+                        VALUES (@id, @exportedDate, @email, @contactSource, @rate)
+                    """;
+
+                    await connection.ExecuteAsync(insert, exportedContactsPayload, transaction);
+                    await connection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts OFF;", transaction: transaction);
+
+                    transaction.Commit();
+                    Console.WriteLine($"Save {exportedContactsPayload.Count()} exported contacts");
+
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Error saving exported contacts: {ex.Message}");
+                    throw ex;
+                }
+            }
         }
     }
 }

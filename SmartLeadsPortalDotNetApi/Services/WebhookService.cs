@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using SmartLeadsPortalDotNetApi.Repositories;
 
 namespace SmartLeadsPortalDotNetApi.Services;
@@ -66,17 +67,17 @@ public class WebhookService
 
     public async Task HandleLeadCategoryUpdated(string payload)
     {
-        var payloadObject = JsonSerializer.Deserialize<dynamic>(payload);
-        var email = payloadObject["to_email"];
+        var payloadObject = JsonSerializer.Deserialize<JsonElement>(payload);
+        var email = payloadObject.GetProperty("lead_email");
 
-        if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
+        if (string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        var category = payloadObject["lead_category"]["new_name"];
+        var leadCategoryName = payloadObject.GetProperty("lead_category").GetProperty("new_name");
 
-        await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), category.ToString());
+        await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
     }
 
     private async Task HandleOpen(string payload)
