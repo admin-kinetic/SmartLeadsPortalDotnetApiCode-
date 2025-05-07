@@ -16,8 +16,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             _prospectRepository = prospectRepository;
         }
 
+        [HttpPost("find")]
+        public async Task<IActionResult> Find(TableRequest request)
+        {
+            var list = await _prospectRepository.Find(request);
+            return Ok(list);
+        }
+
         [HttpPost("get-all-prospect-list")]
-        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetAllCallDispositionList(ExcludedKeywordsListRequest param)
         {
             ProspectResponseModel<Prospect> list = await _prospectRepository.GetSmartLeadsProspect(param);
