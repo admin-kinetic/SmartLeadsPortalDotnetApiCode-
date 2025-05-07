@@ -28,12 +28,12 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             using (var connection = dbConnectionFactory.GetSqlConnection())
             {
                 var baseQuery = """ 
-                SELECT DISTINCT JSON_VALUE(wh.Request, '$.sl_email_lead_id') AS LeadId,
-                sle.LeadEmail AS Email, 
-                JSON_VALUE(wh.Request, '$.to_name') AS FullName
-                FROM [dbo].[SmartLeadsEmailStatistics] sle
-                INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
-             """;
+                    SELECT al.LeadId,
+                        sle.LeadEmail AS Email, 
+                        al.FirstName + ' ' + al.LastName as FullName
+                    FROM [dbo].[SmartLeadsEmailStatistics] sle
+                    INNER JOIN SmartLeadAllLeads al ON al.email = sle.LeadEmail
+                """;
                 var queryParam = new
                 {
                     PageNumber = request.paginator.page,
@@ -41,11 +41,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 };
 
                 var countQuery = """ 
-                SELECT
-                    count(sle.Id) as Total
-                FROM [dbo].[SmartLeadsEmailStatistics] sle
-               INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
-            """;
+                    SELECT
+                        count(sle.Id) as Total
+                    FROM [dbo].[SmartLeadsEmailStatistics] sle
+                    INNER JOIN SmartLeadAllLeads al ON al.email = sle.LeadEmail
+                """;
 
                 var countQueryParam = new
                 {
@@ -66,10 +66,10 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         // Handle different column types appropriately
                         switch (filter.Column.ToLower())
                         {
-                            case "fullname":
-                                whereClause.Add("JSON_VALUE(wh.Request, '$.to_name') LIKE @FullName");
-                                parameters.Add("FullName", $"%{filter.Value}%");
-                                break;
+                            // case "fullname":
+                            //     whereClause.Add("(al.FirstName + ' ' + al.LastName) LIKE @FullName");
+                            //     parameters.Add("FullName", $"%{filter.Value}%");
+                            //     break;
                             case "email":
                                 whereClause.Add("sle.LeadEmail LIKE @Email");
                                 parameters.Add("Email", $"%{filter.Value}%");
@@ -93,6 +93,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                 // Add ORDER BY and pagination
                 baseQuery += """
+                    ORDER BY sle.LeadId DESC
                     OFFSET (@PageNumber - 1) * @PageSize ROWS
                     FETCH NEXT @PageSize ROWS ONLY
                 """;
