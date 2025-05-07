@@ -130,5 +130,22 @@ public class PermissionRepository
             throw;
         }
     }
+
+    internal async Task Update(Permission permission)
+    {
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var insert = """
+                    UPDATE Permissions SET Name = @Name, Description = @Description 
+                    WHERE Id = @Id
+                """;
+            await connection.ExecuteAsync(insert, permission);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
 }
 

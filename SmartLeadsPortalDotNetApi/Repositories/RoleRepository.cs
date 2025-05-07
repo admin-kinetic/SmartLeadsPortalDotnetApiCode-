@@ -152,7 +152,7 @@ public class RoleRepository
 
     internal async Task<List<Role>> GetAll()
     {
-         try
+        try
         {
             using var connection = dbConnectionFactory.GetSqlConnection();
             var query = """
@@ -200,6 +200,23 @@ public class RoleRepository
                 """;
             var deletePermissionParam = new { roleId };
             await connection.ExecuteAsync(deletePermission, deletePermissionParam);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    internal async Task Update(Role role)
+    {
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var insert = """
+                    UPDATE Roles SET Name = @Name, Description = @Description 
+                    WHERE Id = @Id
+                """;
+            await connection.ExecuteAsync(insert, role);
         }
         catch (Exception ex)
         {
