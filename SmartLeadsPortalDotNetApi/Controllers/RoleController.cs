@@ -45,10 +45,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok();
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] RoleCreate permission)
+        [HttpPut("{roleId}")]
+        public async Task<IActionResult> Update(int roleId, [FromBody] Role role)
         {
-            await this.roleRepository.Create(permission);
+            if(roleId != role.Id){
+                return BadRequest();
+            }
+            
+            await this.roleRepository.Update(role);
             return Ok();
         }
 
