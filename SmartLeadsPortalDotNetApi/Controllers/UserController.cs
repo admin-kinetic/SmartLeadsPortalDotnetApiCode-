@@ -101,7 +101,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(detail);
         }
 
-        [HttpGet("current-user-permission")]
+        [HttpGet("current-user-permissions")]
         public async Task<IActionResult> CurrentUserPermissions()
         {
             var user = this.HttpContext.User;
