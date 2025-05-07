@@ -1,8 +1,8 @@
-﻿using System.Threading.Tasks;
-using Common.Database;
+﻿using Common.Database;
 using Microsoft.Extensions.Configuration;
 
-namespace ExportedLeadsFromLeadsPortal;
+namespace ImportExportedLeadsFromLeadsPortal;
+
 public class Program
 {
     static async Task Main(string[] args)
