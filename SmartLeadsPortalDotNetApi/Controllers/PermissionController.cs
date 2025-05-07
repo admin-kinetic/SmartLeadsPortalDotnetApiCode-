@@ -36,5 +36,11 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             await this.permissionRepository.Create(permission);
             return Ok();
         }
+
+        [HttpDelete("{permissionId}")]
+        public async Task<IActionResult> Delete(int permissionId){
+            await this.permissionRepository.Delete(permissionId);
+            return Ok();
+        }
     }
 }
