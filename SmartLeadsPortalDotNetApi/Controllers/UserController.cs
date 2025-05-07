@@ -33,6 +33,21 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return this.Ok(detail);
         }
 
+
+        [HttpPost("find")]
+        public async Task<IActionResult> Find(TableRequest request)
+        {
+            var result = await this.userRepository.Find(request);
+            return Ok(result);
+        }
+
+        [HttpPost("{employeeId}/assign-role/{roleId}")]
+        public async Task<IActionResult> GetPermisssions(int employeeId, int roleId)
+        {
+            await this.userRepository.AssignRole(employeeId, roleId);
+            return Ok();
+        }
+
         [HttpGet("with-assigned-phone-numbers")]
         public async Task<IActionResult> GetAllWithAssignedPhoneNumbers(){
             var contextUser = this.HttpContext.User;
@@ -84,6 +99,25 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             var detail = await _blobservice.GetStorageSecuredToken(_storageConfig);
             return Ok(detail);
+        }
+
+        [HttpGet("current-user-permission")]
+        public async Task<IActionResult> CurrentUserPermissions()
+        {
+            var user = this.HttpContext.User;
+            var currentUserRole = await this.userRepository.GetUserRole(user.FindFirst("employeeId")?.Value);
+            // if (currentUserRole != null && currentUserRole.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            // {
+            //     var adminPermission = await this.chatPermissionRepository.GetPermissions(1, 1000);
+            //     return Ok(adminPermission.Items);
+            // }
+            var permisssion = await this.userRepository.GetUserPermissions(user.FindFirst("employeeId")?.Value);
+            if(permisssion.Count == 0)
+            {
+                return Unauthorized("User does not have any permissions");
+            }
+
+            return Ok(permisssion);
         }
     }
 }

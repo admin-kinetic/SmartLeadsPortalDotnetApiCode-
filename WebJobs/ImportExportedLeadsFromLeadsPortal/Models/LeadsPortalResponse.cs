@@ -1,6 +1,4 @@
-using System;
-
-namespace ImportLeadsFromLeadsPortal.Models;
+namespace ImportExportedLeadsFromLeadsPortal.Models;
 
 public class LeadsPortalResponse
 {

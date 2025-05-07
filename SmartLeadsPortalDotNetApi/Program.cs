@@ -123,6 +123,8 @@ builder.Services.AddScoped<CategorySettingsRepository>();
 builder.Services.AddScoped<OutlookService>();
 builder.Services.AddSingleton<MicrosoftGraphAuthProvider>();
 builder.Services.AddScoped<MicrosoftGraphServiceClientFactory>();
+builder.Services.AddScoped<PermissionRepository>();
+builder.Services.AddScoped<RoleRepository>();
 
 builder.Services.AddScoped(provider =>
     {
