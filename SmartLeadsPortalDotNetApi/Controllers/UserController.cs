@@ -33,6 +33,21 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return this.Ok(detail);
         }
 
+
+        [HttpPost("find")]
+        public async Task<IActionResult> Find(TableRequest request)
+        {
+            var result = await this.userRepository.Find(request);
+            return Ok(result);
+        }
+
+        [HttpPost("{employeeId}/assign-role/{roleId}")]
+        public async Task<IActionResult> GetPermisssions(int employeeId, int roleId)
+        {
+            await this.userRepository.AssignRole(employeeId, roleId);
+            return Ok();
+        }
+
         [HttpGet("with-assigned-phone-numbers")]
         public async Task<IActionResult> GetAllWithAssignedPhoneNumbers(){
             var contextUser = this.HttpContext.User;
