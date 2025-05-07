@@ -40,7 +40,6 @@ public class UserRepository
                 PageNumber = request.paginator.page,
                 PageSize = request.paginator.pageSize
             };
-
             // Build WHERE clause if filters exist
             var whereClause = new List<string>();
             var parameters = new DynamicParameters();
@@ -53,6 +52,10 @@ public class UserRepository
                 {
                     switch (filter.Column.ToLower())
                     {
+                        case "fullname":
+                            whereClause.Add("Users.FullName LIKE @FullName");
+                            parameters.Add("FullName", $"%{filter.Value}%");
+                            break;
                         default:
                             break;
                     }
