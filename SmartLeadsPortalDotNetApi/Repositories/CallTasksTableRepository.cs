@@ -79,12 +79,26 @@ public class CallTasksTableRepository
                     us.EmployeeId,
                     us.FullName AS AssignedTo,
                     sle.Notes,
-                    sle.Due
+                    sle.Due,
+                    sle.IsDeleted,
+                    ISNULL(cs_applied.CategoryName, 'Low') AS Category
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
+                OUTER APPLY (
+                SELECT TOP 1 cs.CategoryName
+                FROM CategorySettings cs
+                WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
+                ORDER BY 
+                    CASE 
+                        WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
+                        WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
+                        ELSE cs.ClickCount
+                    END DESC
+                ) cs_applied
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             var queryParam = new
@@ -100,6 +114,18 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
+                OUTER APPLY (
+                SELECT TOP 1 cs.CategoryName
+                FROM CategorySettings cs
+                WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
+                ORDER BY 
+                    CASE 
+                        WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
+                        WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
+                        ELSE cs.ClickCount
+                    END DESC
+                ) cs_applied
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             var countQueryParam = new
@@ -149,6 +175,10 @@ public class CallTasksTableRepository
                             whereClause.Add($"sle.ClickCount {this.operatorsMap[filter.Operator]} @ClickCount");
                             parameters.Add("ClickCount", filter.Value);
                             break;
+                        case "priority":
+                            whereClause.Add("cs_applied.CategoryName LIKE @Priority");
+                            parameters.Add("Priority", $"%{filter.Value}%");
+                            break;
                         // Add more cases for other filterable columns
                         default:
                             // For numeric fields or exact matches
@@ -162,9 +192,9 @@ public class CallTasksTableRepository
             // Add WHERE clause if needed
             if (whereClause.Count > 0)
             {
-                var whereStatement = " WHERE " + string.Join(" AND ", whereClause);
-                baseQuery += whereStatement;
-                countQuery += whereStatement;
+                var filterClause = " AND " + string.Join(" AND ", whereClause);
+                baseQuery += filterClause;
+                countQuery += filterClause;
             }
 
             // Sorting to follow after where
@@ -216,9 +246,10 @@ public class CallTasksTableRepository
             "FullName",
             "SequenceNumber",
             "CampaignName",
-             "SubjectName",
+            "SubjectName",
             "OpenCount",
             "ClickCount",
+            "Priority",
             "Due",
             "AssignedTo"
         };
@@ -258,6 +289,27 @@ public class CallTasksTableRepository
                 var param = new DynamicParameters();
                 param.Add("@guid", request.GuId);
                 param.Add("@due", request.Due);
+
+                int ret = await connection.ExecuteAsync(_proc, param);
+
+                return ret;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Database error: " + ex.Message);
+        }
+    }
+    public async Task<int> DeleteCallTasks(CallTasksUpdateParam request)
+    {
+        try
+        {
+            using (var connection = this.dbConnectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spDeleteCallTasks";
+                var param = new DynamicParameters();
+                param.Add("@guid", request.GuId);
 
                 int ret = await connection.ExecuteAsync(_proc, param);
 

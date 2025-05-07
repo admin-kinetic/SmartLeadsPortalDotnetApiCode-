@@ -64,6 +64,55 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
+        public async Task<int> InsertInboundCallLogs(CallsInsertInbound keyword)
+        {
+            await Task.Delay(3000);
+            if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
+            {
+                throw new ArgumentException("UserPhoneNumber, UserCaller, and ProspectNumber cannot be null or empty.");
+            }
+
+            CallLogsOutbound? callLogsOutbound = await GetInboundcallsInfo(keyword.ProspectNumber, keyword.UserPhoneNumber);
+
+            if (callLogsOutbound == null)
+            {
+                throw new InvalidOperationException("Failed to retrieve outbound call information.");
+            }
+
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spInsertCallLogsInbound";
+                    var param = new DynamicParameters();
+                    param.Add("@usercaller", keyword.UserCaller);
+                    param.Add("@userphonenumber", callLogsOutbound.CallerId);
+                    param.Add("@leademail", keyword.LeadEmail);
+                    param.Add("@prospectname", keyword.ProspectName);
+                    param.Add("@prospectnumber", callLogsOutbound.DestNumber);
+                    param.Add("@callpurposeid", keyword.CallPurposeId);
+                    param.Add("@calldispositionid", keyword.CallDispositionId);
+                    param.Add("@calldirectionid", keyword.CallDirectionId);
+                    param.Add("@notes", keyword.Notes);
+                    param.Add("@calltagsid", keyword.CallTagsId);
+                    param.Add("@callstateid", keyword.CallStateId);
+                    param.Add("@duration", callLogsOutbound.ConversationDuration);
+                    param.Add("@addedby", keyword.AddedBy);
+                    param.Add("@userid", keyword.UserId);
+                    param.Add("@uniquecallid", callLogsOutbound.UniqueCallId);
+                    param.Add("@calleddate", callLogsOutbound.CallStartAt);
+
+                    int ret = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return ret;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
         public async Task<CallLogLeadNo?> GetleadContactNoByEmail(string email)
         {
             try
@@ -126,6 +175,26 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+        public async Task<CallLogsOutbound?> GetInboundcallsInfo(string callerid, string destnumber)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetInboundCallsByCallLogs";
+                    var param = new DynamicParameters();
+                    param.Add("@callerid", callerid);
+                    param.Add("@destnumber", destnumber);
+                    CallLogsOutbound? result = await connection.QuerySingleOrDefaultAsync<CallLogsOutbound>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
         public async Task UpdateOutboundCallsInfo(string uniquecallid, string filename)
         {
             try
@@ -136,6 +205,27 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 param.Add("@filename", filename);
 
                 await SqlMapper.ExecuteAsync(con, _proc, param, commandType: CommandType.StoredProcedure); ;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<int> DeleteCallLogs(CallsUpdate request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spDeleteCallLogs";
+                    var param = new DynamicParameters();
+                    param.Add("@guid", request.Guid);
+
+                    int ret = await connection.ExecuteAsync(_proc, param);
+
+                    return ret;
+                }
+
             }
             catch (Exception ex)
             {

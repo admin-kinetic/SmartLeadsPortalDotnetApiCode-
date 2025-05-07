@@ -155,5 +155,26 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
+        public async Task<IEnumerable<Prospect>> GetSmartLeadsAllProspect()
+        {
+            try
+            {
+                IEnumerable<Prospect> list = new List<Prospect>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetSmartLeadsAllProspect";
+
+                    list = await connection.QueryAsync<Prospect>(_proc, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
     }
 }
