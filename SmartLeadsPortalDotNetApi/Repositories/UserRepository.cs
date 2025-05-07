@@ -225,4 +225,48 @@ public class UserRepository
                 throw;
             }
     }
+
+     public async Task<Role?> GetUserRole(string? employeeId)
+        {
+            try
+            {
+                using var connection = connectionFactory.GetSqlConnection();
+                var query = """
+                    Select cr.* From Users cu
+                    Inner Join UserRoles cur ON cur.EmployeeId = cu.EmployeeId
+                    Inner Join Roles cr ON cr.Id = cur.RoleId
+                    Where cu.EmployeeId = @EmployeeId
+                    """;
+                var queryParam = new { EmployeeId = employeeId };
+                return await connection.QueryFirstOrDefaultAsync<Role>(query, queryParam);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+    internal async Task<List<Permission>> GetUserPermissions(string? employeeId)
+    {
+        try
+            {
+                using var connection = connectionFactory.GetSqlConnection();
+                var query = """
+                    Select cp.* From Users cu
+                    Inner Join UserRoles cur ON cur.EmployeeId = cu.EmployeeId
+                    Inner Join Roles cr ON cr.Id = cur.RoleId
+                    Inner Join RolePermission crp ON crp.RoleId = cr.Id
+                    Inner join Permissions cp ON cp.Id = crp.PermissionId
+                    Where cu.EmployeeId = @EmployeeId
+                    
+                    """;
+                var queryParam = new { EmployeeId = employeeId };
+                var result = await connection.QueryAsync<Permission>(query, queryParam);
+                return result.ToList();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+    }
 }

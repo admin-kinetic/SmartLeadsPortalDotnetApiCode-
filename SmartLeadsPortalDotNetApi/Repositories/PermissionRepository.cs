@@ -107,5 +107,28 @@ public class PermissionRepository
             throw;
         }
     }
+
+    internal async Task Delete(int permissionId)
+    {
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var delete = """
+                    DELETE FROM Permissions WHERE Id = @PermissionId
+                """;
+            var queryParam = new { permissionId };
+            await connection.ExecuteAsync(delete, queryParam);
+
+            var deletePermission = """
+                    DELETE FROM RolePermission WHERE PermissionId = @PermissionId
+                """;
+            var deletePermissionParam = new { permissionId };
+            await connection.ExecuteAsync(deletePermission, deletePermissionParam);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
 }
 

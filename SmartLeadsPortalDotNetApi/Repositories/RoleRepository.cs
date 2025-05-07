@@ -183,4 +183,27 @@ public class RoleRepository
             throw;
         }
     }
+
+    internal async Task Delete(int roleId)
+    {
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var delete = """
+                    DELETE FROM Roles WHERE Id = @RoleId
+                """;
+            var queryParam = new { roleId };
+            await connection.ExecuteAsync(delete, queryParam);
+
+            var deletePermission = """
+                    DELETE FROM RolePermission WHERE RoleId = @RoleId
+                """;
+            var deletePermissionParam = new { roleId };
+            await connection.ExecuteAsync(deletePermission, deletePermissionParam);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
 }
