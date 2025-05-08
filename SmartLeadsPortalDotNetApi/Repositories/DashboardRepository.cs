@@ -8,18 +8,22 @@ namespace SmartLeadsPortalDotNetApi.Repositories
     public class DashboardRepository
     {
         private readonly DbConnectionFactory dbConnectionFactory;
-        public DashboardRepository(DbConnectionFactory dbConnectionFactory)
+        private readonly ILogger<DashboardRepository> logger;
+
+        public DashboardRepository(DbConnectionFactory dbConnectionFactory, ILogger<DashboardRepository> logger)
         {
             this.dbConnectionFactory = dbConnectionFactory;
+            this.logger = logger;
         }
-        public async Task<DashboardTotalModel> GetDashboardUrgentTaskTotal()
+        public async Task<DashboardTotalModel> GetDashboardUrgentTaskTotal(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var countProcedure = "sm_spDashboardUrgentTaskTotal";
-                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(countProcedure, commandType: CommandType.StoredProcedure);
+                    var command = new CommandDefinition(countProcedure, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(command);
 
                     if (count == null)
                     {
@@ -29,19 +33,25 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     return count;
                 }
             }
+            catch (OperationCanceledException ex)
+            {
+                this.logger.LogInformation($"Operation Cancelled: {ex.Message}");
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new Exception("Database error: " + ex.Message);
             }
         }
-        public async Task<DashboardTotalModel> GetDashboardHighTaskTotal()
+        public async Task<DashboardTotalModel> GetDashboardHighTaskTotal(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var countProcedure = "sm_spDashboardHighTaskTotal";
-                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(countProcedure, commandType: CommandType.StoredProcedure);
+                    var command = new CommandDefinition(countProcedure, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(command);
 
                     if (count == null)
                     {
@@ -56,14 +66,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
-        public async Task<DashboardTotalModel> GetDashboardLowTaskTotal()
+        public async Task<DashboardTotalModel> GetDashboardLowTaskTotal(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var countProcedure = "sm_spDashboardLowTaskTotal";
-                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(countProcedure, commandType: CommandType.StoredProcedure);
+                    var command = new CommandDefinition(countProcedure, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(command);
 
                     if (count == null)
                     {
@@ -78,14 +89,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
-        public async Task<DashboardTotalModel> GetDashboardPastDueTaskTotal()
+        public async Task<DashboardTotalModel> GetDashboardPastDueTaskTotal(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var countProcedure = "sm_spDashboardPastDueTaskTotal";
-                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(countProcedure, commandType: CommandType.StoredProcedure);
+                    var command = new CommandDefinition(countProcedure, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(command);
 
                     if (count == null)
                     {
@@ -101,13 +113,14 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
         }
 
-        public async Task<DashboardTotalModel> GetDashboardProspectTotal()
+        public async Task<DashboardTotalModel> GetDashboardProspectTotal(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var countProcedure = "sm_spGetSmartLeadsProspectCount";
+                    var command = new CommandDefinition(countProcedure, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
                     var count = await connection.QueryFirstOrDefaultAsync<DashboardTotalModel>(countProcedure, commandType: CommandType.StoredProcedure);
 
                     if (count == null)
@@ -124,7 +137,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
         }
 
-        public async Task<IEnumerable<DashboardTodoTaskDue>> GetDashboardTodoTaskDue()
+        public async Task<IEnumerable<DashboardTodoTaskDue>> GetDashboardTodoTaskDue(CancellationToken cancellationToken)
         {
             try
             {
@@ -132,7 +145,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var proc = "sm_spDashboardTodoTaskDue";
-                    list = await connection.QueryAsync<DashboardTodoTaskDue>(proc, commandType: CommandType.StoredProcedure);
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardTodoTaskDue>(command);
 
                     return list;
                 }
@@ -142,7 +156,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
-        public async Task<IEnumerable<SmartLeadsCallTasks>> GetDashboardUrgentTaskList()
+        public async Task<IEnumerable<SmartLeadsCallTasks>> GetDashboardUrgentTaskList(CancellationToken cancellationToken)
         {
             try
             {
@@ -150,7 +164,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var proc = "sm_spDashboardUrgentTaskList";
-                    list = await connection.QueryAsync<SmartLeadsCallTasks>(proc, commandType: CommandType.StoredProcedure);
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<SmartLeadsCallTasks>(command);
 
                     return list;
                 }

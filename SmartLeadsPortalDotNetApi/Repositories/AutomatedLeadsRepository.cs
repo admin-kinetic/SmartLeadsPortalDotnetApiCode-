@@ -523,14 +523,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<HasReplyCountModel> GetHasReplyCount()
+        public async Task<HasReplyCountModel> GetHasReplyCount(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var query = "SELECT Count(Id) AS HasReplyCount FROM SmartLeadsExportedContacts WHERE HasReply = 1";
-                    var result = await connection.QueryFirstOrDefaultAsync<HasReplyCountModel>(query);
+                    var command = new CommandDefinition(query, cancellationToken: cancellationToken);
+                    var result = await connection.QueryFirstOrDefaultAsync<HasReplyCountModel>(command);
                     return result ?? new HasReplyCountModel { HasReplyCount = 0 };
                 }
             }
@@ -539,7 +540,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<TotalResponseTodayModel> GetNumberOfResponseToday()
+        public async Task<TotalResponseTodayModel> GetNumberOfResponseToday(CancellationToken cancellationToken)
         {
             try
             {
@@ -559,12 +560,13 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         WHERE (SmartleadsCategory IS NULL OR SmartleadsCategory = '') 
                             AND RepliedAt BETWEEN @StartUtc AND @EndUtc
                     """;
-                    var result = await connection.QueryFirstOrDefaultAsync<TotalResponseTodayModel>(query, new
+                    var queryParam = new
                     {
                         StartUtc = startUtc.ToString("yyyy-MM-dd HH:mm:ss"),
                         EndUtc = endUtc.ToString("yyyy-MM-dd HH:mm:ss")
-                    }
-                                );
+                    };
+                    var command = new CommandDefinition(query, queryParam, cancellationToken: cancellationToken);
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalResponseTodayModel>(command);
                     return result ?? new TotalResponseTodayModel { TotalResponseToday = 0 };
                 }
             }
@@ -573,14 +575,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<TotalValidResponseModel> GetNumberOfValidResponse()
+        public async Task<TotalValidResponseModel> GetNumberOfValidResponse(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var query = "SELECT Count(Id) AS TotalValidResponse FROM SmartLeadsExportedContacts WHERE HasReviewed = 1";
-                    var result = await connection.QueryFirstOrDefaultAsync<TotalValidResponseModel>(query);
+                    var command = new CommandDefinition(query, cancellationToken: cancellationToken);
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalValidResponseModel>(command);
                     return result ?? new TotalValidResponseModel { TotalValidResponse = 0 };
                 }
             }
@@ -605,14 +608,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<TotalLeadsSentModel> GetNumberOfLeadsSent()
+        public async Task<TotalLeadsSentModel> GetNumberOfLeadsSent(CancellationToken cancellationToken)
         {
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     var query = "SELECT Count(Id) AS TotalLeadsSent FROM SmartLeadsExportedContacts WHERE ExportedDate >= '2025-01-01'";
-                    var result = await connection.QueryFirstOrDefaultAsync<TotalLeadsSentModel>(query);
+                    var command = new CommandDefinition(query, cancellationToken: cancellationToken);
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalLeadsSentModel>(command);
                     return result ?? new TotalLeadsSentModel { TotalLeadsSent = 0 };
                 }
             }
@@ -621,7 +625,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<TotalEmailErrorResponseModel> GetEmailErrorResponse()
+        public async Task<TotalEmailErrorResponseModel> GetEmailErrorResponse(CancellationToken cancellationToken)
         {
             try
             {
@@ -634,7 +638,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                             AND ExportedDate >= '2025-01-01'
                             AND SmartLeadsCategory = 'Sender Originated Bounce'
                     """;
-                    var result = await connection.QueryFirstOrDefaultAsync<TotalEmailErrorResponseModel>(query);
+                    var command = new CommandDefinition(query, cancellationToken: cancellationToken);
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalEmailErrorResponseModel>(command);
                     return result ?? new TotalEmailErrorResponseModel { TotalEmailErrorResponse = 0 };
                 }
             }
@@ -643,7 +648,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<TotalOutOfOfficeResponseModel> GetOutOfOfficeResponse()
+        public async Task<TotalOutOfOfficeResponseModel> GetOutOfOfficeResponse(CancellationToken cancellationToken)
         {
             try
             {
@@ -656,7 +661,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                             AND ExportedDate >= '2025-01-01'
                             AND SmartLeadsCategory = 'Out Of Office'
                         """;
-                    var result = await connection.QueryFirstOrDefaultAsync<TotalOutOfOfficeResponseModel>(query);
+                    var command = new CommandDefinition(query, cancellationToken: cancellationToken);
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalOutOfOfficeResponseModel>(command);
                     return result ?? new TotalOutOfOfficeResponseModel { TotalOutOfOfficeResponse = 0 };
                 }
             }
@@ -665,7 +671,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<TotalIncorrectContactResponseModel> GetIncorrectContactsResponse()
+        public async Task<TotalIncorrectContactResponseModel> GetIncorrectContactsResponse(CancellationToken cancellationToken)
         {
             try
             {
@@ -678,7 +684,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                             AND ExportedDate >= '2025-01-01'
                             AND SmartleadsCategory = 'Wrong Person'
                     """;
-                    var result = await connection.QueryFirstOrDefaultAsync<TotalIncorrectContactResponseModel>(query);
+                    var command = new CommandDefinition(query, cancellationToken: cancellationToken);
+                    var result = await connection.QueryFirstOrDefaultAsync<TotalIncorrectContactResponseModel>(command);
                     return result ?? new TotalIncorrectContactResponseModel { TotalIncorrectContactResponse = 0 };
                     ;
                 }

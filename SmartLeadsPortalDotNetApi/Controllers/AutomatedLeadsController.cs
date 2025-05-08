@@ -194,25 +194,25 @@ namespace SmartLeadsPortalDotNetApi.Controllers
 
         [HttpGet("gethasreplycount")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetHasReplyCount()
+        public async Task<IActionResult> GetHasReplyCount(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetHasReplyCount();
+            var result = await _automatedLeadsRepository.GetHasReplyCount(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("gettotalresponsetoday")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetNumberOfResponseToday()
+        public async Task<IActionResult> GetNumberOfResponseToday(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetNumberOfResponseToday();
+            var result = await _automatedLeadsRepository.GetNumberOfResponseToday(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getnumberofvalidresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetNumberOfValidResponse()
+        public async Task<IActionResult> GetNumberOfValidResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetNumberOfValidResponse();
+            var result = await _automatedLeadsRepository.GetNumberOfValidResponse(cancellationToken);
             return Ok(result);
         }
 
@@ -226,33 +226,33 @@ namespace SmartLeadsPortalDotNetApi.Controllers
 
         [HttpGet("getnumberofleadsent")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetNumberOfLeadsSent()
+        public async Task<IActionResult> GetNumberOfLeadsSent(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetNumberOfLeadsSent();
+            var result = await _automatedLeadsRepository.GetNumberOfLeadsSent(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getemailerrorresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetEmailErrorResponse()
+        public async Task<IActionResult> GetEmailErrorResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetEmailErrorResponse();
+            var result = await _automatedLeadsRepository.GetEmailErrorResponse(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getoutofofficeresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetOutOfOfficeResponse()
+        public async Task<IActionResult> GetOutOfOfficeResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetOutOfOfficeResponse();
+            var result = await _automatedLeadsRepository.GetOutOfOfficeResponse(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getincorrectcontactresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetIncorrectContactsResponse()
+        public async Task<IActionResult> GetIncorrectContactsResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetIncorrectContactsResponse();
+            var result = await _automatedLeadsRepository.GetIncorrectContactsResponse(cancellationToken);
             return Ok(result);
         }
 
