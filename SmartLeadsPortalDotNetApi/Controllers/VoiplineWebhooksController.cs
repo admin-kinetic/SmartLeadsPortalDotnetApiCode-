@@ -227,5 +227,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             inboundCall.ApplyEvent(inboundCallEvent);
             await this.inboundCallRepository.UpsertInboundCallAggregate(inboundCall);
         }
+
+        [HttpPost("process-outbound-call/{uniqueCallId}")]
+        public async Task<IActionResult> ProcessCall(string uniqueCallId)
+        {
+
+            var callAggregate = await this.outboundEventStore.GetOutboundCallAggregate(uniqueCallId);
+            await this.outboundCallRepository.UpsertOutboundCallAggregate(callAggregate);
+            return Ok();
+        }
     }
 }

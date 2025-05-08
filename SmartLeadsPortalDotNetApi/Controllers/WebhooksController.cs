@@ -181,23 +181,43 @@ public class WebhooksController: ControllerBase
     //     return Ok();
     // }
 
-    // [HttpPost("process-lead-category-updated")]
-    // public async Task<IActionResult> ProcessLeadCategoryUpdated()
-    // {
-    //     var emailReplyWebhooks = await this.webhooksRepository.GetLeadCategoryUpdated();
-    //     foreach (var emailReplyWebhook in emailReplyWebhooks)
-    //     {
-    //         try
-    //         {
-    //             await webhookService.HandleLeadCategoryUpdated(emailReplyWebhook);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             // Log the error and continue processing other webhooks
-    //             this.logger.LogError($"Error processing webhook: {ex.Message}");
-    //             continue;
-    //         }
-    //     }
-    //     return Ok();
-    // }
+    [HttpPost("process-lead-category-updated")]
+    public async Task<IActionResult> ProcessLeadCategoryUpdated()
+    {
+        var emailReplyWebhooks = await this.webhooksRepository.GetLeadCategoryUpdated();
+        foreach (var emailReplyWebhook in emailReplyWebhooks)
+        {
+            try
+            {
+                await webhookService.HandleLeadCategoryUpdated(emailReplyWebhook);
+            }
+            catch (Exception ex)
+            {
+                // Log the error and continue processing other webhooks
+                this.logger.LogError($"Error processing webhook: {ex.Message}");
+                continue;
+            }
+        }
+        return Ok();
+    }
+
+    [HttpPost("process-lead-category-updated/{webhookId}")]
+    public async Task<IActionResult> ProcessLeadCategoryUpdatedByWebhookId(int webhookId)
+    {
+        var emailReplyWebhooks = await this.webhooksRepository.GetLeadCategoryUpdatedByWebhookId(webhookId);
+        foreach (var emailReplyWebhook in emailReplyWebhooks)
+        {
+            try
+            {
+                await webhookService.HandleLeadCategoryUpdated(emailReplyWebhook);
+            }
+            catch (Exception ex)
+            {
+                // Log the error and continue processing other webhooks
+                this.logger.LogError($"Error processing webhook: {ex.Message}");
+                continue;
+            }
+        }
+        return Ok();
+    }
 }

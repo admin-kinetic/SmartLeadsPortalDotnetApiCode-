@@ -9,6 +9,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
     public class ProspectRepository
     {
         private readonly DbConnectionFactory dbConnectionFactory;
+        private readonly ILogger<ProspectRepository> logger;
         private readonly Dictionary<string, string> operatorsMap = new Dictionary<string, string>
         {
             { "is", "=" },
@@ -19,11 +20,12 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             { "greater than equal", ">=" },
             { "contains", "LIKE" }
         };
-        public ProspectRepository(DbConnectionFactory dbConnectionFactory)
+        public ProspectRepository(DbConnectionFactory dbConnectionFactory, ILogger<ProspectRepository> logger)
         {
             this.dbConnectionFactory = dbConnectionFactory;
+            this.logger = logger;
         }
-        public async Task<TableResponse<Prospect>> Find(TableRequest request)
+        public async Task<TableResponse<Prospect>> Find(TableRequest request, CancellationToken cancellationToken)
         {
             using (var connection = dbConnectionFactory.GetSqlConnection())
             {
@@ -98,16 +100,24 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     FETCH NEXT @PageSize ROWS ONLY
                 """;
 
-
-                var items = await connection.QueryAsync<Prospect>(baseQuery, parameters);
-                var count = await connection.QueryFirstAsync<int>(countQuery, parameters);
-
-                var response = new TableResponse<Prospect>
+                try
                 {
-                    Items = items.ToList(),
-                    Total = count
-                };
-                return response;
+                    var baseQueryCommand = new CommandDefinition(baseQuery, parameters, cancellationToken: cancellationToken);
+                    var items = await connection.QueryAsync<Prospect>(baseQueryCommand);
+                    var countQueryCommand = new CommandDefinition(countQuery, parameters, cancellationToken: cancellationToken);
+                    var count = await connection.QueryFirstAsync<int>(countQueryCommand);
+                    var response = new TableResponse<Prospect>
+                    {
+                        Items = items.ToList(),
+                        Total = count
+                    };
+                    return response;
+                }
+                catch (OperationCanceledException ex)
+                {
+                    this.logger.LogError($"Operation Cancelled: {ex.Message}");
+                    throw;
+                }
             }
         }
 
@@ -133,7 +143,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     string _proc = "sm_spGetSmartLeadsProspect";
-                    
+
                     param.Add("@PageNumber", request.Page);
                     param.Add("@PageSize", request.PageSize);
 

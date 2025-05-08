@@ -17,9 +17,9 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("find")]
-        public async Task<IActionResult> Find(TableRequest request)
+        public async Task<IActionResult> Find(TableRequest request, CancellationToken cancellationToken)
         {
-            var list = await _prospectRepository.Find(request);
+            var list = await _prospectRepository.Find(request, cancellationToken);
             return Ok(list);
         }
 
