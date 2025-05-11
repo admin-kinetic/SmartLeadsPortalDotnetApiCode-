@@ -9,6 +9,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
     public class ProspectRepository
     {
         private readonly DbConnectionFactory dbConnectionFactory;
+        private readonly ILogger<ProspectRepository> logger;
         private readonly Dictionary<string, string> operatorsMap = new Dictionary<string, string>
         {
             { "is", "=" },
@@ -19,21 +20,22 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             { "greater than equal", ">=" },
             { "contains", "LIKE" }
         };
-        public ProspectRepository(DbConnectionFactory dbConnectionFactory)
+        public ProspectRepository(DbConnectionFactory dbConnectionFactory, ILogger<ProspectRepository> logger)
         {
             this.dbConnectionFactory = dbConnectionFactory;
+            this.logger = logger;
         }
-        public async Task<TableResponse<Prospect>> Find(TableRequest request)
+        public async Task<TableResponse<Prospect>> Find(TableRequest request, CancellationToken cancellationToken)
         {
             using (var connection = dbConnectionFactory.GetSqlConnection())
             {
                 var baseQuery = """ 
-                SELECT DISTINCT JSON_VALUE(wh.Request, '$.sl_email_lead_id') AS LeadId,
-                sle.LeadEmail AS Email, 
-                JSON_VALUE(wh.Request, '$.to_name') AS FullName
-                FROM [dbo].[SmartLeadsEmailStatistics] sle
-                INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
-             """;
+                    SELECT al.LeadId,
+                        sle.LeadEmail AS Email, 
+                        al.FirstName + ' ' + al.LastName as FullName
+                    FROM [dbo].[SmartLeadsEmailStatistics] sle
+                    INNER JOIN SmartLeadAllLeads al ON al.email = sle.LeadEmail
+                """;
                 var queryParam = new
                 {
                     PageNumber = request.paginator.page,
@@ -41,11 +43,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 };
 
                 var countQuery = """ 
-                SELECT
-                    count(sle.Id) as Total
-                FROM [dbo].[SmartLeadsEmailStatistics] sle
-               INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
-            """;
+                    SELECT
+                        count(sle.Id) as Total
+                    FROM [dbo].[SmartLeadsEmailStatistics] sle
+                    INNER JOIN SmartLeadAllLeads al ON al.email = sle.LeadEmail
+                """;
 
                 var countQueryParam = new
                 {
@@ -66,10 +68,10 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         // Handle different column types appropriately
                         switch (filter.Column.ToLower())
                         {
-                            case "fullname":
-                                whereClause.Add("JSON_VALUE(wh.Request, '$.to_name') LIKE @FullName");
-                                parameters.Add("FullName", $"%{filter.Value}%");
-                                break;
+                            // case "fullname":
+                            //     whereClause.Add("(al.FirstName + ' ' + al.LastName) LIKE @FullName");
+                            //     parameters.Add("FullName", $"%{filter.Value}%");
+                            //     break;
                             case "email":
                                 whereClause.Add("sle.LeadEmail LIKE @Email");
                                 parameters.Add("Email", $"%{filter.Value}%");
@@ -93,20 +95,29 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                 // Add ORDER BY and pagination
                 baseQuery += """
+                    ORDER BY sle.LeadId DESC
                     OFFSET (@PageNumber - 1) * @PageSize ROWS
                     FETCH NEXT @PageSize ROWS ONLY
                 """;
 
-
-                var items = await connection.QueryAsync<Prospect>(baseQuery, parameters);
-                var count = await connection.QueryFirstAsync<int>(countQuery, parameters);
-
-                var response = new TableResponse<Prospect>
+                try
                 {
-                    Items = items.ToList(),
-                    Total = count
-                };
-                return response;
+                    var baseQueryCommand = new CommandDefinition(baseQuery, parameters, cancellationToken: cancellationToken);
+                    var items = await connection.QueryAsync<Prospect>(baseQueryCommand);
+                    var countQueryCommand = new CommandDefinition(countQuery, parameters, cancellationToken: cancellationToken);
+                    var count = await connection.QueryFirstAsync<int>(countQueryCommand);
+                    var response = new TableResponse<Prospect>
+                    {
+                        Items = items.ToList(),
+                        Total = count
+                    };
+                    return response;
+                }
+                catch (OperationCanceledException ex)
+                {
+                    this.logger.LogError($"Operation Cancelled: {ex.Message}");
+                    throw;
+                }
             }
         }
 
@@ -132,7 +143,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     string _proc = "sm_spGetSmartLeadsProspect";
-                    
+
                     param.Add("@PageNumber", request.Page);
                     param.Add("@PageSize", request.PageSize);
 

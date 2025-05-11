@@ -16,16 +16,21 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             _prospectRepository = prospectRepository;
         }
 
+        [HttpPost("find")]
+        public async Task<IActionResult> Find(TableRequest request, CancellationToken cancellationToken)
+        {
+            var list = await _prospectRepository.Find(request, cancellationToken);
+            return Ok(list);
+        }
+
         [HttpPost("get-all-prospect-list")]
-        [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetSmartLeadsProspect(ExcludedKeywordsListRequest param)
+        public async Task<IActionResult> GetAllCallDispositionList(ExcludedKeywordsListRequest param)
         {
             ProspectResponseModel<Prospect> list = await _prospectRepository.GetSmartLeadsProspect(param);
             return Ok(list);
         }
 
         [HttpGet("get-all-prospect")]
-        [EnableCors("CorsApi")]
         public async Task<IActionResult> GetSmartLeadsAllProspect()
         {
             var list = await _prospectRepository.GetSmartLeadsAllProspect();
