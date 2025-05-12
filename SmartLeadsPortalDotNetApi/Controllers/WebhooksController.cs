@@ -127,7 +127,7 @@ public class WebhooksController: ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("EMAIL_BOUNCE", payload);
-        // await webhookService.HandleReply(payload);
+        await webhookService.HandleEmailBounce(payload);
         return Ok();
     }
 
@@ -210,6 +210,26 @@ public class WebhooksController: ControllerBase
             try
             {
                 await webhookService.HandleLeadCategoryUpdated(emailReplyWebhook);
+            }
+            catch (Exception ex)
+            {
+                // Log the error and continue processing other webhooks
+                this.logger.LogError($"Error processing webhook: {ex.Message}");
+                continue;
+            }
+        }
+        return Ok();
+    }
+
+     [HttpPost("process-email-bounce/{webhookId}")]
+    public async Task<IActionResult> ProcessEmailBounceByWebhookId(int webhookId)
+    {
+        var emailReplyWebhooks = await this.webhooksRepository.GetLeadCategoryUpdatedByWebhookId(webhookId);
+        foreach (var emailReplyWebhook in emailReplyWebhooks)
+        {
+            try
+            {
+                await webhookService.HandleEmailBounce(emailReplyWebhook);
             }
             catch (Exception ex)
             {

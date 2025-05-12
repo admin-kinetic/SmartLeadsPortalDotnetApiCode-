@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph.Models;
 using SmartLeadsPortalDotNetApi.Entities;
@@ -6,6 +7,7 @@ using SmartLeadsPortalDotNetApi.Repositories;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
 {
+    [Authorize]
     [Route("api/permission")]
     [ApiController]
     public class PermissionController : ControllerBase

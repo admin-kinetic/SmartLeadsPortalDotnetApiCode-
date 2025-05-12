@@ -15,3 +15,7 @@ public class Permission : PermissionBase {
 
 public class PermissionUpdate : Permission {}
 public class PermissionCreate : PermissionBase { }
+
+public class PermissionWithAssignment : Permission {
+    public bool? IsAssigned { get; set; }
+}
