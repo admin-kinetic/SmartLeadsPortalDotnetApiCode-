@@ -82,7 +82,7 @@ public class WebhookService
 
     private async Task HandleOpen(string payload)
     {
-         this.logger.LogInformation("Handling open webhook");
+        this.logger.LogInformation("Handling open webhook");
 
         var payloadObject = JsonSerializer.Deserialize<dynamic>(payload);
 
@@ -102,5 +102,18 @@ public class WebhookService
         // await this.leadClicksRepository.UpsertById(lead.Id);
 
         this.logger.LogInformation("Completed handling opwn webhook");
+    }
+
+    internal async Task HandleEmailBounce(string payload)
+    {
+        var payloadObject = JsonSerializer.Deserialize<JsonElement>(payload);
+        var email = payloadObject.GetProperty("to_email");
+
+        if (string.IsNullOrWhiteSpace(email.ToString()))
+        {
+            throw new ArgumentNullException("to_email", "Email is required.");
+        }
+
+        await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), "Sender Originated Bounce");
     }
 }
