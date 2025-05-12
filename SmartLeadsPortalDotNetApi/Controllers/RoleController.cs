@@ -40,6 +40,21 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(permissions);
         }
 
+        [HttpGet("{roleId}/permissions-with-assignment")]
+        public async Task<IActionResult> GetPermissionWithAssignmentStatus(int roleId)
+        {
+            var permissions = await this.roleRepository.GetPermissionWithAssignmentStatus(roleId);
+            return Ok(permissions);
+        }
+
+        [HttpPost("{roleId}/permissions-with-assignment")]
+        public async Task<IActionResult> SavePermissionWithAssignmentStatus(int roleId, [FromBody] List<PermissionWithAssignment> request)
+        {
+            await this.roleRepository.SavePermissionWithAssignmentStatus(roleId, request);
+            return Ok();
+        }
+
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] RoleCreate permission)
         {

@@ -1,5 +1,6 @@
 using System;
 using Dapper;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
@@ -150,6 +151,33 @@ public class RoleRepository
         }
     }
 
+    public async Task<List<PermissionWithAssignment>> GetPermissionWithAssignmentStatus(int roleId)
+    {
+
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var query = """
+                    SELECT 
+                        p.Id, 
+                        p.Name,
+                        p.Description,
+                        CASE WHEN rp.RoleId IS NOT NULL THEN 1 ELSE 0 END AS IsAssigned
+                    FROM 
+                        Permissions p
+                    LEFT JOIN 
+                        RolePermission rp ON p.ID = rp.PermissionId AND rp.RoleId = @RoleId
+                """;
+            var queryParam = new { roleId };
+            var result = await connection.QueryAsync<PermissionWithAssignment>(query, queryParam);
+            return result.ToList();
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
     internal async Task<List<Role>> GetAll()
     {
         try
@@ -221,6 +249,67 @@ public class RoleRepository
         catch (Exception ex)
         {
             throw;
+        }
+    }
+
+    public async Task SavePermissionWithAssignmentStatus(int roleId, List<PermissionWithAssignment> permissionWithAssignments)
+    {
+        var existingPermissionWithAssignment = await this.GetPermissionWithAssignmentStatus(roleId);
+
+        using (var connection = this.dbConnectionFactory.GetSqlConnection())
+        {
+            if (connection.State == System.Data.ConnectionState.Closed)
+            {
+                connection.Open();
+            }
+        
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    foreach (var permissionWithAssignment in permissionWithAssignments)
+                    {
+                        var command = string.Empty;
+                        if (permissionWithAssignment.IsAssigned.HasValue 
+                            && permissionWithAssignment.IsAssigned.Value
+                            && existingPermissionWithAssignment.FirstOrDefault(ep => ep.Id == permissionWithAssignment.Id && ep.IsAssigned == permissionWithAssignment.IsAssigned.Value) == null)
+                        {
+                            command = """
+                                INSERT INTO RolePermission (RoleId, PermissionId) 
+                                VALUES (@RoleId, @PermissionId) 
+                            """;
+                        }
+
+                        if (permissionWithAssignment.IsAssigned.HasValue 
+                            && !permissionWithAssignment.IsAssigned.Value
+                            && existingPermissionWithAssignment.FirstOrDefault(ep => ep.Id == permissionWithAssignment.Id && ep.IsAssigned == permissionWithAssignment.IsAssigned.Value) == null)
+                        {
+                            command = """
+                                DELETE FROM RolePermission WHERE RoleId = @RoleId AND PermissionId = @PermissionId;
+                            """;
+                        }
+
+                        if (string.IsNullOrEmpty(command))
+                        {
+                            continue;
+                        }
+
+                        await connection.ExecuteAsync(command, new
+                        {
+                            RoleId = roleId,
+                            PermissionId = permissionWithAssignment.Id
+                        }, transaction: transaction);
+
+                    }
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
         }
     }
 }
