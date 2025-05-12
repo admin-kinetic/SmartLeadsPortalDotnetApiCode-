@@ -21,8 +21,8 @@ public class LeadsPortalService
                 // Prepare JSON payload
                 var jsonPayload = new Dictionary<string, string>
                 {
-                    { "fromDate", "2025-02-21" },
-                    { "toDate", "2025-02-21" }
+                    { "fromDate", fromDate.ToString("yyyy-MM-dd") },
+                    { "toDate", toDate.ToString("yyyy-MM-dd") }
                 };
 
                 // Serialize payload to JSON

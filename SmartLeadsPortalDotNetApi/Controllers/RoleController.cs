@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Entities;
@@ -6,6 +7,7 @@ using SmartLeadsPortalDotNetApi.Repositories;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class RoleController : ControllerBase
@@ -37,6 +39,21 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var permissions = await this.roleRepository.GetAssignedPermissions(roleId);
             return Ok(permissions);
         }
+
+        [HttpGet("{roleId}/permissions-with-assignment")]
+        public async Task<IActionResult> GetPermissionWithAssignmentStatus(int roleId)
+        {
+            var permissions = await this.roleRepository.GetPermissionWithAssignmentStatus(roleId);
+            return Ok(permissions);
+        }
+
+        [HttpPost("{roleId}/permissions-with-assignment")]
+        public async Task<IActionResult> SavePermissionWithAssignmentStatus(int roleId, [FromBody] List<PermissionWithAssignment> request)
+        {
+            await this.roleRepository.SavePermissionWithAssignmentStatus(roleId, request);
+            return Ok();
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] RoleCreate permission)
