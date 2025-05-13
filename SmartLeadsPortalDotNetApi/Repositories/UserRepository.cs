@@ -171,7 +171,7 @@ public class UserRepository
 
                 return list;
             }
-            
+
         }
         catch (Exception e)
         {
@@ -200,61 +200,61 @@ public class UserRepository
     internal async Task AssignRole(int employeeId, int roleId)
     {
         try
-            {
-                using var connection = connectionFactory.GetSqlConnection();
+        {
+            using var connection = connectionFactory.GetSqlConnection();
 
-                var userRoleExistsQuery = """
+            var userRoleExistsQuery = """
                     SELECT COUNT(*) FROM UserRoles WHERE EmployeeId = @EmployeeId
                     """;
-                var userRoleExistsParam = new { employeeId };
-                var userRoleExistsResult =  connection.QueryFirstOrDefault<int>(userRoleExistsQuery, userRoleExistsParam);
-                if (userRoleExistsResult > 0)
-                {
-                    var delete = """
+            var userRoleExistsParam = new { employeeId };
+            var userRoleExistsResult = connection.QueryFirstOrDefault<int>(userRoleExistsQuery, userRoleExistsParam);
+            if (userRoleExistsResult > 0)
+            {
+                var delete = """
                         DELETE FROM UserRoles WHERE EmployeeId = @EmployeeId
                         """;
-                    await connection.ExecuteAsync(delete, new { employeeId });
-                }
+                await connection.ExecuteAsync(delete, new { employeeId });
+            }
 
-                // Insert the new role
-                var insert = """
+            // Insert the new role
+            var insert = """
                     INSERT INTO UserRoles (EmployeeId, RoleId) 
                     VALUES (@EmployeeId, @RoleId) 
                     """;
-                await connection.ExecuteAsync(insert, new { employeeId , roleId});
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            await connection.ExecuteAsync(insert, new { employeeId, roleId });
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
-     public async Task<Role?> GetUserRole(string? employeeId)
+    public async Task<Role?> GetUserRole(string? employeeId)
+    {
+        try
         {
-            try
-            {
-                using var connection = connectionFactory.GetSqlConnection();
-                var query = """
+            using var connection = connectionFactory.GetSqlConnection();
+            var query = """
                     Select cr.* From Users cu
                     Inner Join UserRoles cur ON cur.EmployeeId = cu.EmployeeId
                     Inner Join Roles cr ON cr.Id = cur.RoleId
                     Where cu.EmployeeId = @EmployeeId
                     """;
-                var queryParam = new { EmployeeId = employeeId };
-                return await connection.QueryFirstOrDefaultAsync<Role>(query, queryParam);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            var queryParam = new { EmployeeId = employeeId };
+            return await connection.QueryFirstOrDefaultAsync<Role>(query, queryParam);
         }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
 
     internal async Task<List<Permission>> GetUserPermissions(string? employeeId)
     {
         try
-            {
-                using var connection = connectionFactory.GetSqlConnection();
-                var query = """
+        {
+            using var connection = connectionFactory.GetSqlConnection();
+            var query = """
                     Select cp.* From Users cu
                     Inner Join UserRoles cur ON cur.EmployeeId = cu.EmployeeId
                     Inner Join Roles cr ON cr.Id = cur.RoleId
@@ -263,13 +263,24 @@ public class UserRepository
                     Where cu.EmployeeId = @EmployeeId
                     
                     """;
-                var queryParam = new { EmployeeId = employeeId };
-                var result = await connection.QueryAsync<Permission>(query, queryParam);
-                return result.ToList();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            var queryParam = new { EmployeeId = employeeId };
+            var result = await connection.QueryAsync<Permission>(query, queryParam);
+            return result.ToList();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    internal async Task RemoveRole(int employeeId)
+    {
+        using (var connection = this.connectionFactory.GetSqlConnection())
+        {
+            var delete = """
+                        DELETE FROM UserRoles WHERE EmployeeId = @EmployeeId
+                        """;
+            await connection.ExecuteAsync(delete, new { employeeId });
+        }
     }
 }
