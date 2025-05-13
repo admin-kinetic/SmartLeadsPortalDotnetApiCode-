@@ -17,6 +17,10 @@ CREATE TABLE [dbo].[SmartLeadsExportedContacts] (
     [RemovedFromSmartleads] BIT            NULL,
     [SmartLeadsStatus]      VARCHAR (50)   NULL,
     [SmartLeadsCategory]    VARCHAR (100)  NULL,
+    [Bdr]                   NVARCHAR (150) NULL,
+    [AssignedTo]            NVARCHAR (150) NULL,
+    [AssignedToQA]          NVARCHAR (150) NULL,
+    [SmartleadsCampaign]    NVARCHAR (250) NULL,
     CONSTRAINT [PK__SmartLea__3214EC07AD432290] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 
@@ -29,5 +33,10 @@ CREATE FULLTEXT INDEX ON [dbo].[SmartLeadsExportedContacts]
     ON [SmartLeadsFTCatalog];
 
 
+GO
+
+
+CREATE NONCLUSTERED INDEX [IX_SmartleadsExportedContacts_Exported]
+    ON [dbo].[SmartLeadsExportedContacts]([ExportedDate] ASC);
 GO
 

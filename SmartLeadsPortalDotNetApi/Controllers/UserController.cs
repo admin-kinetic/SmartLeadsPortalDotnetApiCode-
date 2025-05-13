@@ -119,5 +119,12 @@ namespace SmartLeadsPortalDotNetApi.Controllers
 
             return Ok(permisssion);
         }
+
+        [HttpDelete("{employeeId}/remove-role")]
+        public async Task<IActionResult> RemoveRole(int employeeId)
+        {
+            await this.userRepository.RemoveRole(employeeId);
+            return this.Ok();
+        }
     }
 }
