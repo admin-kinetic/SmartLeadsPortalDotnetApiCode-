@@ -14,4 +14,7 @@ public class SmartLeadAllLeads
     public string? PhoneNumber { get; set; }
     public string? CompanyName { get; set; }
     public string? LeadStatus { get; set; }
+    public string? BDR { get; set; }
+    public string? CreatedBy { get; set; }
+    public string? QABy { get; set; }
 }
