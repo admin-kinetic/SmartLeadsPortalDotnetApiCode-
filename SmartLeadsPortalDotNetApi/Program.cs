@@ -183,7 +183,7 @@ builder.Services.AddCors(options =>
             localDevhttps,
             "https://smartleads-export.kis-systems.com",
             "https://smartleadsportal-test.kineticstaff.com",
-            "https://calls.kineticstaff.com")
+            "https://calls-test.kineticstaff.com")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()
