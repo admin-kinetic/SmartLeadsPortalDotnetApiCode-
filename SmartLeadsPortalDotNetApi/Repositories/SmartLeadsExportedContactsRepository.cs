@@ -178,12 +178,29 @@ public class SmartLeadsExportedContactsRepository
                 {
                     await connection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts ON;", transaction: transaction);
 
-                    var insert = """
-                        INSERT INTO SmartLeadsExportedContacts (Id, ExportedDate, Email, ContactSource, Rate)
-                        VALUES (@id, @exportedDate, @email, @contactSource, @rate)
+                    // var insert = """
+                    //     INSERT INTO SmartLeadsExportedContacts (Id, ExportedDate, Email, ContactSource, Rate)
+                    //     VALUES (@id, @exportedDate, @email, @contactSource, @rate)
+                    // """;
+
+                    var upsert = """
+                        MERGE INTO SmartLeadsExportedContacts AS target
+                        USING (SELECT @id AS Id, @exportedDate AS ExportedDate, @email AS Email, 
+                                    @contactSource AS ContactSource, @rate AS Rate) AS source
+                        ON (target.Id = source.Id)
+                        WHEN MATCHED THEN
+                            UPDATE SET 
+                                target.ExportedDate = source.ExportedDate,
+                                target.Email = source.Email,
+                                target.ContactSource = source.ContactSource,
+                                target.Rate = source.Rate
+                        WHEN NOT MATCHED THEN
+                            INSERT (Id, ExportedDate, Email, ContactSource, Rate)
+                            VALUES (source.Id, source.ExportedDate, source.Email, 
+                                    source.ContactSource, source.Rate);
                     """;
 
-                    await connection.ExecuteAsync(insert, exportedContactsPayload, transaction);
+                    await connection.ExecuteAsync(upsert, exportedContactsPayload, transaction);
                     await connection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts OFF;", transaction: transaction);
 
                     transaction.Commit();
