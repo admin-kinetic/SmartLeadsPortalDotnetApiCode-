@@ -1,7 +1,7 @@
 name: Build and deploy ASP.Net Core app to an Azure Web App - Smartleads Portal API
 
 env:
-  AZURE_WEBAPP_NAME: app-smartleadsapi-test-sea
+  AZURE_WEBAPP_NAME: app-callsapi-test
   AZURE_WEBAPP_PACKAGE_PATH: './dist'     
   DOTNET_VERSION: '8.0'                
 
@@ -43,5 +43,5 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_STAGING }}
+          publish-profile: ${{ secrets.APP_CALLSAPI_TEST_PROFILE }}
           package: ${{env.DOTNET_ROOT}}/dist
