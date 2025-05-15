@@ -24,6 +24,9 @@ public class Campaign
 
 public class CustomFields
 {
+    public string BDR { get; set; }
+    public string Created_by { get; set; }
+    public string QA_by { get; set; }
     public string Source { get; set; }
     public string Weekday { get; set; }
     public string Currency { get; set; }
