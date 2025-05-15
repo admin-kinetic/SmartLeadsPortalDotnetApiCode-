@@ -5,6 +5,7 @@ using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using SmartLeadsAllLeadsToPortal.Entities;
 using Common.Services;
 using Common.Database;
+using Microsoft.Extensions.Configuration;
 
 namespace SmartLeadsAllLeadsToPortal;
 
@@ -12,22 +13,26 @@ public class SmartLeadAllLeadsService
 {
     private readonly DbConnectionFactory dbConnectionFactory;
     private readonly SmartLeadHttpService smartLeadHttpService;
+    private readonly IConfigurationRoot configuration;
 
-    public SmartLeadAllLeadsService(DbConnectionFactory dbConnectionFactory, SmartLeadHttpService smartLeadHttpService)
+    public SmartLeadAllLeadsService(DbConnectionFactory dbConnectionFactory, SmartLeadHttpService smartLeadHttpService, IConfigurationRoot configuration)
     {
         this.dbConnectionFactory = dbConnectionFactory;
         this.smartLeadHttpService = smartLeadHttpService;
+        this.configuration = configuration;
     }
 
     public async Task SaveAllLeads()
     {
-        var date = DateTime.Now.AddDays(-1);
+        var daysOffset = int.TryParse(this.configuration["DaysOffset"], out var days) ? days : 1;
+        var date =  DateTime.Now.AddDays(-daysOffset);
         var limit = 100;
         var offset = 100;
         var hasMore = false;
         do
         {
             var allLeads = await this.smartLeadHttpService.FetchAllLeadsFromEntireAccount(date, offset, limit);
+            
             hasMore = allLeads.hasMore;
 
             var smartLeadAllLeads = allLeads.data.Select(lead => new SmartLeadAllLeads
@@ -40,9 +45,12 @@ public class SmartLeadAllLeadsService
                 CreatedAt = lead.created_at,
                 PhoneNumber = lead.phone_number,
                 CompanyName = lead.company_name,
-                LeadStatus = lead.campaigns.First()?.lead_status
+                LeadStatus = lead.campaigns.First()?.lead_status,
+                BDR  = lead.custom_fields.BDR ?? string.Empty,
+                CreatedBy =lead.custom_fields.Created_by ?? string.Empty,
+                QABy = lead.custom_fields.QA_by ?? string.Empty
             });
-
+            Console.WriteLine($"Saving another batch of {smartLeadAllLeads.Count()} leads");
             using (var connection = this.dbConnectionFactory.CreateConnection())
             {
                 connection.Open();
@@ -50,17 +58,53 @@ public class SmartLeadAllLeadsService
                 {
                     try
                     {
-                        var insert = """
-                        INSERT INTO SmartLeadAllLeads (LeadId, Email, CampaignId, FirstName, LastName, CreatedAt, PhoneNumber, CompanyName, LeadStatus)
-                        VALUES (@LeadId, @Email, @CampaignId, @FirstName, @LastName, @CreatedAt, @PhoneNumber, @CompanyName, @LeadStatus)
-                    """;
+                        //var insert = """
+                        //    INSERT INTO SmartLeadAllLeads (LeadId, Email, CampaignId, FirstName, LastName, CreatedAt, PhoneNumber, CompanyName, LeadStatus, BDR, CreatedBy, QABy)
+                        //    VALUES (@LeadId, @Email, @CampaignId, @FirstName, @LastName, @CreatedAt, @PhoneNumber, @CompanyName, @LeadStatus, @BDR, @CreatedBy, @QABy)
+                        //""";
 
-                        await connection.ExecuteAsync(insert, smartLeadAllLeads, transaction);
+                        var upsert = """
+                            MERGE INTO SmartLeadAllLeads AS target
+                            USING (SELECT 
+                                      @LeadId AS LeadId,
+                                      @Email AS Email,
+                                      @CampaignId AS CampaignId,
+                                      @FirstName AS FirstName,
+                                      @LastName AS LastName,
+                                      @CreatedAt AS CreatedAt,
+                                      @PhoneNumber AS PhoneNumber,
+                                      @CompanyName AS CompanyName,
+                                      @LeadStatus AS LeadStatus,
+                                      @BDR AS BDR,
+                                      @CreatedBy AS CreatedBy,
+                                      @QABy AS QABy) AS source
+                            ON (target.LeadId = source.LeadId)
+                            WHEN MATCHED THEN
+                                UPDATE SET
+                                    Email = source.Email,
+                                    CampaignId = source.CampaignId,
+                                    FirstName = source.FirstName,
+                                    LastName = source.LastName,
+                                    CreatedAt = source.CreatedAt,
+                                    PhoneNumber = source.PhoneNumber,
+                                    CompanyName = source.CompanyName,
+                                    LeadStatus = source.LeadStatus,
+                                    BDR = source.BDR,
+                                    CreatedBy = source.CreatedBy,
+                                    QABy = source.QABy
+                            WHEN NOT MATCHED THEN
+                                INSERT (LeadId, Email, CampaignId, FirstName, LastName, CreatedAt, PhoneNumber, CompanyName, LeadStatus, BDR, CreatedBy, QABy)
+                                VALUES (source.LeadId, source.Email, source.CampaignId, source.FirstName, source.LastName, source.CreatedAt, 
+                                        source.PhoneNumber, source.CompanyName, source.LeadStatus, source.BDR, source.CreatedBy, source.QABy);
+                            """;
 
+                        await connection.ExecuteAsync(upsert, smartLeadAllLeads, transaction);
+                        Console.WriteLine($"Inserted/Updated {smartLeadAllLeads.Count()} records into SmartLeadAllLeads table.");
                         transaction.Commit();
                     }
                     catch (System.Exception ex)
                     {
+                        Console.WriteLine("Rollback transaction: " + ex.Message);
                         transaction.Rollback();
                         throw;
                     }

@@ -125,6 +125,7 @@ builder.Services.AddSingleton<MicrosoftGraphAuthProvider>();
 builder.Services.AddScoped<MicrosoftGraphServiceClientFactory>();
 builder.Services.AddScoped<PermissionRepository>();
 builder.Services.AddScoped<RoleRepository>();
+builder.Services.AddScoped<LeadsPortalWebhookRepository>();
 
 builder.Services.AddScoped(provider =>
     {
@@ -181,7 +182,8 @@ builder.Services.AddCors(options =>
             localDev,
             localDevhttps,
             "https://smartleads-export.kis-systems.com",
-            "https://smartleadsportal-test.kineticstaff.com")
+            "https://smartleadsportal-test.kineticstaff.com",
+            "https://calls.kineticstaff.com")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()
