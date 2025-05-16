@@ -73,5 +73,54 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var result = await _dashboardRepository.GetDashboardUrgentTaskList(cancellationToken);
             return Ok(result);
         }
+
+        [HttpPost("get-dashboard-emailcampaign-bdr")]
+        public async Task<IActionResult> GetDashboardEmailCampaignBDR(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardEmailCampaignBDR(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-emailcampaign-createdby")]
+        public async Task<IActionResult> GetDashboardEmailCampaignCreatedBy(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardEmailCampaignCreatedBy(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-emailcampaign-qaby")]
+        public async Task<IActionResult> GetDashboardEmailCampaignQaBy(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardEmailCampaignQaBy(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-job-adchart-emailcampaign")]
+        public async Task<IActionResult> GetDashboardJobAdChartsEmailSequenceLeadgen(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardJobAdChartsEmailSequenceLeadgen(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-job-adchart-emailsequence")]
+        public async Task<IActionResult> GetDashboardJobAdChartsEmailSequenceFullyAutomated(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardJobAdChartsEmailSequenceFullyAutomated(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-job-adchart-exported-leadgen")]
+        public async Task<IActionResult> GetDashboardJobAdChartsExportedLeadgen(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardJobAdChartsExportedLeadgen(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-job-adchart-exported")]
+        public async Task<IActionResult> GetDashboardJobAdChartsExportedFullyAutomated(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardJobAdChartsExportedFullyAutomated(param);
+            return Ok(ret);
+        }
     }
 }
