@@ -262,11 +262,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<IEnumerable<DashboardSmartLeadCampaignsActive>> GetDashboardJobAdChartsEmailSequenceLeadgen(DashboardDateParameter request)
+        public async Task<IEnumerable<DashboardAutomatedCampaignLeadgen>> GetDashboardJobAdChartsEmailSequenceLeadgen(DashboardDateParameter request)
         {
             try
             {
-                IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
+                IEnumerable<DashboardAutomatedCampaignLeadgen> list = new List<DashboardAutomatedCampaignLeadgen>();
 
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
@@ -274,7 +274,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     var param = new DynamicParameters();
                     param.Add("@startDate", request.StartDate);
                     param.Add("@endDate", request.EndDate);
-                    list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, param, commandType: CommandType.StoredProcedure);
+                    list = await connection.QueryAsync<DashboardAutomatedCampaignLeadgen>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return list;
                 }
@@ -284,11 +284,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<IEnumerable<DashboardSmartLeadCampaignsActive>> GetDashboardJobAdChartsEmailSequenceFullyAutomated(DashboardDateParameter request)
+        public async Task<IEnumerable<DashboardAutomatedCampaign>> GetDashboardJobAdChartsEmailSequenceFullyAutomated(DashboardDateParameter request)
         {
             try
             {
-                IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
+                IEnumerable<DashboardAutomatedCampaign> list = new List<DashboardAutomatedCampaign>();
 
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
@@ -296,7 +296,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     var param = new DynamicParameters();
                     param.Add("@startDate", request.StartDate);
                     param.Add("@endDate", request.EndDate);
-                    list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, param, commandType: CommandType.StoredProcedure);
+                    list = await connection.QueryAsync<DashboardAutomatedCampaign>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return list;
                 }
@@ -306,19 +306,19 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<IEnumerable<DashboardSmartLeadCampaignsActive>> GetDashboardJobAdChartsExportedLeadgen(DashboardDateParameter request)
+        public async Task<IEnumerable<DashboardAutomatedCampaignLeadgen>> GetDashboardJobAdChartsExportedLeadgen(DashboardDateParameter request)
         {
             try
             {
-                IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
+                IEnumerable<DashboardAutomatedCampaignLeadgen> list = new List<DashboardAutomatedCampaignLeadgen>();
 
-                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                using (var connection = this.dbConnectionFactory.GetLeadSqlConnection())
                 {
                     string _proc = "sm_spDashboardAutomatedCampaignExportedLeadgen";
                     var param = new DynamicParameters();
                     param.Add("@startDate", request.StartDate);
                     param.Add("@endDate", request.EndDate);
-                    list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, param, commandType: CommandType.StoredProcedure);
+                    list = await connection.QueryAsync<DashboardAutomatedCampaignLeadgen>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return list;
                 }
@@ -328,19 +328,19 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<IEnumerable<DashboardSmartLeadCampaignsActive>> GetDashboardJobAdChartsExportedFullyAutomated(DashboardDateParameter request)
+        public async Task<IEnumerable<DashboardAutomatedCampaign>> GetDashboardJobAdChartsExportedFullyAutomated(DashboardDateParameter request)
         {
             try
             {
-                IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
+                IEnumerable<DashboardAutomatedCampaign> list = new List<DashboardAutomatedCampaign>();
 
-                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                using (var connection = this.dbConnectionFactory.GetLeadSqlConnection())
                 {
                     string _proc = "sm_spDashboardAutomatedCampaignExported";
                     var param = new DynamicParameters();
                     param.Add("@startDate", request.StartDate);
                     param.Add("@endDate", request.EndDate);
-                    list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, param, commandType: CommandType.StoredProcedure);
+                    list = await connection.QueryAsync<DashboardAutomatedCampaign>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return list;
                 }

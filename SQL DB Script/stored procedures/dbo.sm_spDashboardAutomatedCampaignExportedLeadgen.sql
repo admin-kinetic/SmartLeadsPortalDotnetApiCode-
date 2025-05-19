@@ -4,41 +4,47 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spDashboardAutomatedCampaignExportedLeadgen]
 AS  
 BEGIN   
     SET NOCOUNT ON;
+	-- Generate date range
 	WITH Numbers AS (
-		-- Generate a sequence of numbers based on the date range
-		SELECT TOP (DATEDIFF(day, CAST(@startDate AS date), CAST(@endDate AS date)) + 1)
+		SELECT TOP (DATEDIFF(day, @startDate, @endDate) + 1)
 			ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
 		FROM sys.objects
 	),
 	DateRange AS (
-		-- Generate a list of dates between startDate and endDate
-		SELECT DATEADD(day, n, CAST(@startDate AS date)) AS ExportedDate
+		SELECT DATEADD(day, n, @startDate) AS ExportedDate
 		FROM Numbers
 	),
+	-- Main data with LeadGen and totals
 	DailyBreakdown AS (
-		-- Calculate count per day per lead generator
-		SELECT CAST(r.dateExported AS date) AS ExportedDate,
+		SELECT 
+			CAST(r.dateExported AS date) AS ExportedDate,
 			e.firstname + ' ' + e.lastname AS LeadGen,
 			COUNT(r.ID) AS TotalCount
 		FROM [dbo].[Robotcrawledresult] r
 		LEFT JOIN [dbo].[Employee] e ON r.assignedTo = e.ID
-		WHERE r.dateExported BETWEEN CAST(@startDate AS date) AND CAST(@endDate AS date)
+		WHERE r.dateExported BETWEEN @startDate AND @endDate
 			AND r.ExportedTo = 4
 			AND r.reviewStatus = 'Exported'
 			AND r.assignedTo <> 2
-		GROUP BY CAST(r.dateExported AS date),
-			e.firstname + ' ' + e.lastname
+		GROUP BY CAST(r.dateExported AS date), e.firstname, e.lastname
+	),
+	-- List of distinct LeadGens + 'Others'
+	LeadGens AS (
+		SELECT DISTINCT LeadGen FROM DailyBreakdown WHERE LeadGen IS NOT NULL
+		UNION
+		SELECT 'Others'
 	)
-	-- Combine with date range, ensuring all dates and leadgens appear
+	-- Final result: all combinations of Date x LeadGen, filled with 0 when missing
 	SELECT 
-		dr.ExportedDate,
-		COALESCE(db.LeadGen, 'Others') AS LeadGen,
+		CONVERT(VARCHAR(10), dr.ExportedDate, 23) AS ExportedDate,
+		lg.LeadGen,
 		COALESCE(db.TotalCount, 0) AS TotalCount
 	FROM DateRange dr
-	CROSS JOIN (SELECT DISTINCT LeadGen FROM DailyBreakdown WHERE LeadGen IS NOT NULL UNION SELECT 'Others') leadgens
-	LEFT JOIN DailyBreakdown db ON dr.ExportedDate = db.ExportedDate AND leadgens.LeadGen = db.LeadGen
-	ORDER BY dr.ExportedDate,
-		CASE WHEN db.LeadGen IS NULL THEN 0 ELSE 1 END, -- Show Others last
-		db.LeadGen;
+	CROSS JOIN LeadGens lg
+	LEFT JOIN DailyBreakdown db
+		ON dr.ExportedDate = db.ExportedDate AND db.LeadGen = lg.LeadGen
+	ORDER BY dr.ExportedDate, 
+			 CASE WHEN lg.LeadGen = 'Others' THEN 1 ELSE 0 END, 
+			 lg.LeadGen;
 END
 GO

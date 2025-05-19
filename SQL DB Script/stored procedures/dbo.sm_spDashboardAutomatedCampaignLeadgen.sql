@@ -5,40 +5,45 @@ AS
 BEGIN   
     SET NOCOUNT ON;
     WITH Numbers AS (
-        -- Generate a sequence of numbers based on the date range
-        SELECT TOP (DATEDIFF(day, CAST(@startDate AS date), CAST(@endDate AS date)) + 1)
-            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
-        FROM sys.objects
-    ),
-    DateRange AS (
-        -- Generate a list of dates between startDate and endDate
-        SELECT DATEADD(day, n, CAST(@startDate AS date)) AS ExportedDate FROM Numbers
-    ),
-    DailyTotals AS (
-        -- Calculate total count per day
-        SELECT CAST(sla.CreatedAt AS date) AS ExportedDate, COUNT(sla.Id) AS TotalCount
-        FROM [dbo].[SmartLeadAllLeads] sla
+		SELECT TOP (DATEDIFF(day, @startDate, @endDate) + 1)
+			ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
+		FROM sys.objects
+	),
+	DateRange AS (
+		SELECT DATEADD(day, n, @startDate) AS ExportedDate
+		FROM Numbers
+	),
+	DailyBreakdown AS (
+		SELECT 
+			CAST(sla.CreatedAt AS date) AS ExportedDate,
+			ISNULL(NULLIF(sla.CreatedBy, ''), 'Others') AS LeadGen,
+			COUNT(sla.Id) AS TotalCount
+		FROM [dbo].[SmartLeadAllLeads] sla
 		INNER JOIN [dbo].[SmartLeadsEmailStatistics] sle ON sla.Email = sle.LeadEmail
-		WHERE sla.CreatedAt BETWEEN CAST(@startDate AS date) AND CAST(@endDate AS date)
-		AND sle.SequenceNumber = 1
-        GROUP BY CAST(CreatedAt AS date)
-    ),
-    DailyBreakdown AS (
-        -- Calculate count per day per CreatedBy
-        SELECT CAST(sla.CreatedAt AS date) AS ExportedDate, sla.CreatedBy AS LeadGen, COUNT(sla.Id) AS TotalCount
-        FROM [dbo].[SmartLeadAllLeads] sla
-		INNER JOIN [dbo].[SmartLeadsEmailStatistics] sle ON sla.Email = sle.LeadEmail
-		WHERE sla.CreatedAt BETWEEN CAST(@startDate AS date) AND CAST(@endDate AS date)
-		AND sle.SequenceNumber = 1
-        GROUP BY CAST(sla.CreatedAt AS date), CreatedBy
-    )
-    -- Combine totals and breakdown, ensuring all dates appear
-    SELECT dr.ExportedDate,
-        COALESCE(NULLIF(db.LeadGen, ''), 'Others') AS LeadGen,
-        COALESCE(CASE WHEN db.LeadGen IS NULL THEN dt.TotalCount ELSE db.TotalCount END, 0) AS TotalCount
-    FROM DateRange dr
-    LEFT JOIN DailyTotals dt ON dr.ExportedDate = dt.ExportedDate
-    LEFT JOIN DailyBreakdown db ON dr.ExportedDate = db.ExportedDate
-    ORDER BY  dr.ExportedDate, CASE WHEN db.LeadGen IS NULL THEN 0 ELSE 1 END, db.LeadGen;
+		WHERE sla.CreatedAt BETWEEN @startDate AND @endDate
+			AND sle.SequenceNumber = 1
+		GROUP BY CAST(sla.CreatedAt AS date), ISNULL(NULLIF(sla.CreatedBy, ''), 'Others')
+	),
+	DistinctLeadGens AS (
+		SELECT DISTINCT LeadGen FROM DailyBreakdown
+	),
+	-- Combine all dates with all leadgens
+	DateLeadGenGrid AS (
+		SELECT 
+			dr.ExportedDate,
+			lg.LeadGen
+		FROM DateRange dr
+		CROSS JOIN DistinctLeadGens lg
+	)
+	SELECT 
+		CONVERT(VARCHAR(10), dlg.ExportedDate, 23) AS ExportedDate,
+		dlg.LeadGen,
+		ISNULL(db.TotalCount, 0) AS TotalCount
+	FROM DateLeadGenGrid dlg
+	LEFT JOIN DailyBreakdown db
+		ON dlg.ExportedDate = db.ExportedDate AND dlg.LeadGen = db.LeadGen
+	ORDER BY dlg.ExportedDate, 
+			 CASE WHEN dlg.LeadGen = 'Others' THEN 1 ELSE 0 END,
+			 dlg.LeadGen;
 END
 GO
