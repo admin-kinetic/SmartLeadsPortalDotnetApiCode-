@@ -104,14 +104,14 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<FetchCampaignStatisticsByCampaignIdResponse> FetchCampaignStatisticsByCampaignId(int campaignId, string apiKey, int offset = 0, int limit = 500) //, DateTime startDate, DateTime endData, int limit, int offset)
+    public async Task<FetchCampaignStatisticsByCampaignIdResponse> FetchCampaignStatisticsByCampaignId(int campaignId, string apiKey, int offset = 0, int limit = 500, int daysOffset = 7) //, DateTime startDate, DateTime endData, int limit, int offset)
     {
         try
         {
             using (var httpClient = new HttpClient())
             {
 
-                var weekAgo = DateTime.Now.AddDays(-7);
+                var weekAgo = DateTime.Now.AddDays(-daysOffset);
 
                 var queryParams = new Dictionary<string, string>
                 {

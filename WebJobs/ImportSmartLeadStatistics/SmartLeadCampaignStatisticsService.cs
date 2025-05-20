@@ -24,6 +24,7 @@ public class SmartLeadCampaignStatisticsService
     public async Task SaveAllSmartLeadCampaignStatistics()
     {
         var apiKeys = this.configuration.GetSection("ApiKeys").Get<List<string>>() ?? new List<string>();
+        var daysOffset = this.configuration.GetSection("DaysOffset").Get<int?>() ?? 1;
 
         foreach (var apiKey in apiKeys)
         {
@@ -31,7 +32,7 @@ public class SmartLeadCampaignStatisticsService
             {
                 var campaignsConfig = this.configuration.GetSection("Campaigns").Get<List<int>>();
                 var campaigns = await this.smartLeadHttpService.ListAllCampaigns(apiKey);
-                campaigns = campaigns.Where(c => campaignsConfig.Contains(c.id.Value)).ToList();
+                //campaigns = campaigns.Where(c => campaignsConfig.Contains(c.id.Value)).ToList();
                 foreach (var campaign in campaigns.Where(s => s.status == "ACTIVE"))
                 {
                     var hasData = false;
@@ -39,7 +40,7 @@ public class SmartLeadCampaignStatisticsService
                     var limit = 100;
                     do
                     {
-                        var statistics = await this.smartLeadHttpService.FetchCampaignStatisticsByCampaignId(campaign.id.Value, apiKey, offset, limit);
+                        var statistics = await this.smartLeadHttpService.FetchCampaignStatisticsByCampaignId(campaign.id.Value, apiKey, offset, limit, daysOffset);
                         hasData = statistics.data.Count > 0;
                         Console.WriteLine($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
 
@@ -100,7 +101,8 @@ public class SmartLeadCampaignStatisticsService
                                             cs.ClickTime,
                                             cs.ReplyTime,
                                             cs.OpenCount,
-                                            cs.ClickCount
+                                            cs.ClickCount,
+                                            cs.LeadName
                                         }),
                                         transaction);
                                     transaction.Commit();
