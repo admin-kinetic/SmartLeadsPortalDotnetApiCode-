@@ -306,49 +306,5 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<IEnumerable<DashboardAutomatedCampaignLeadgen>> GetDashboardJobAdChartsExportedLeadgen(DashboardDateParameter request)
-        {
-            try
-            {
-                IEnumerable<DashboardAutomatedCampaignLeadgen> list = new List<DashboardAutomatedCampaignLeadgen>();
-
-                using (var connection = this.dbConnectionFactory.GetLeadSqlConnection())
-                {
-                    string _proc = "sm_spDashboardAutomatedCampaignExportedLeadgen";
-                    var param = new DynamicParameters();
-                    param.Add("@startDate", request.StartDate);
-                    param.Add("@endDate", request.EndDate);
-                    list = await connection.QueryAsync<DashboardAutomatedCampaignLeadgen>(_proc, param, commandType: CommandType.StoredProcedure);
-
-                    return list;
-                }
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
-        public async Task<IEnumerable<DashboardAutomatedCampaign>> GetDashboardJobAdChartsExportedFullyAutomated(DashboardDateParameter request)
-        {
-            try
-            {
-                IEnumerable<DashboardAutomatedCampaign> list = new List<DashboardAutomatedCampaign>();
-
-                using (var connection = this.dbConnectionFactory.GetLeadSqlConnection())
-                {
-                    string _proc = "sm_spDashboardAutomatedCampaignExported";
-                    var param = new DynamicParameters();
-                    param.Add("@startDate", request.StartDate);
-                    param.Add("@endDate", request.EndDate);
-                    list = await connection.QueryAsync<DashboardAutomatedCampaign>(_proc, param, commandType: CommandType.StoredProcedure);
-
-                    return list;
-                }
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
     }
 }
