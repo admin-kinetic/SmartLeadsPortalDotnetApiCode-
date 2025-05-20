@@ -44,7 +44,7 @@ public class WebhookService
             throw new ArgumentException("Email not found in leads.");
         }
 
-        await this.leadClicksRepository.UpsertById(lead.Id);
+        await this.leadClicksRepository.UpsertClickCountById(lead.Id);
 
 
         this.logger.LogInformation("Completed handling click webhook");
@@ -99,7 +99,7 @@ public class WebhookService
             throw new ArgumentException("Email not found in leads.");
         }
 
-        // await this.leadClicksRepository.UpsertById(lead.Id);
+        await this.leadClicksRepository.UpsertOpenCountById(lead.Id);
 
         this.logger.LogInformation("Completed handling opwn webhook");
     }

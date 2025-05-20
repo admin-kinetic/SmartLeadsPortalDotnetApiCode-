@@ -46,7 +46,7 @@ public class LeadClicksRepository
         }
     }
 
-    public async Task UpsertById(int leadId)
+    public async Task UpsertClickCountById(int leadId)
     {
         try
         {
@@ -67,6 +67,33 @@ public class LeadClicksRepository
             await connection.ExecuteAsync(insert, new { leadId });
         }
         catch(Exception ex)
+        {
+            this.logger.LogError(ex, "Error upserting lead click.");
+            throw;
+        }
+    }
+
+    public async Task UpsertOpenCountById(int leadId)
+    {
+        try
+        {
+            using var connection = dbConnectionFactory.GetSqlConnection();
+            var insert = """
+                MERGE INTO LeadClicks AS target
+                USING (VALUES (@leadId)) AS source (LeadId)
+                ON target.LeadId = source.LeadId
+                WHEN MATCHED THEN
+                    UPDATE SET 
+                        OpenCount = target.OpenCount + 1, 
+                        LatestClickDateTime = GETDATE()
+                WHEN NOT MATCHED THEN
+                    INSERT (LeadId, OpenCount, LatestClickDateTime)
+                        VALUES (source.LeadId, 1, GETDATE());
+            """;
+
+            await connection.ExecuteAsync(insert, new { leadId });
+        }
+        catch (Exception ex)
         {
             this.logger.LogError(ex, "Error upserting lead click.");
             throw;
