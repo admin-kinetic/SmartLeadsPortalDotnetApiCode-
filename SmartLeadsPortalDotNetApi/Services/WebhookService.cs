@@ -80,7 +80,7 @@ public class WebhookService
         await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
     }
 
-    private async Task HandleOpen(string payload)
+    public async Task HandleOpen(string payload)
     {
         this.logger.LogInformation("Handling open webhook");
 

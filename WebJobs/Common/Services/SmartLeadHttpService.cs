@@ -8,13 +8,21 @@ namespace Common.Services;
 public class SmartLeadHttpService
 {
     private readonly string baseUrl = "https://server.smartlead.ai/api/v1";
-    private readonly string apiKey = "0f47052b-e08b-488b-8ec3-dd949eec520a_umaccv1";
+    //private readonly string apiKey = "0f47052b-e08b-488b-8ec3-dd949eec520a_umaccv1";
+
+    //private readonly string apiKey = "54251016-7093-4899-8111-63cc96e9757c_4dp5h84";
+
+    //private readonly string[] apiKeys = new string[] {
+    //    "0f47052b-e08b-488b-8ec3-dd949eec520a_umaccv1",
+    //    "54251016-7093-4899-8111-63cc96e9757c_4dp5h84"
+    //};
+
     public SmartLeadHttpService()
     {
 
     }
 
-    public async Task<FetchAllLeadsFromEntireAccountResponse> FetchAllLeadsFromEntireAccount(DateTime fromDate, int offset, int limit)
+    public async Task<FetchAllLeadsFromEntireAccountResponse> FetchAllLeadsFromEntireAccount(DateTime fromDate, int offset, int limit, string apiKey)
     {
         try
         {
@@ -56,7 +64,7 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<FetchAllLeadsFromEntireAccountResponse> FetchAllLeadsFromEntireAccountByEmail(string email)
+    public async Task<FetchAllLeadsFromEntireAccountResponse> FetchAllLeadsFromEntireAccountByEmail(string email, string apiKey)
     {
         try
         {
@@ -96,7 +104,7 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<FetchCampaignStatisticsByCampaignIdResponse> FetchCampaignStatisticsByCampaignId(int campaignId, int offset = 0, int limit = 500) //, DateTime startDate, DateTime endData, int limit, int offset)
+    public async Task<FetchCampaignStatisticsByCampaignIdResponse> FetchCampaignStatisticsByCampaignId(int campaignId, string apiKey, int offset = 0, int limit = 500) //, DateTime startDate, DateTime endData, int limit, int offset)
     {
         try
         {
@@ -144,7 +152,7 @@ public class SmartLeadHttpService
         }
     }
 
-     public async Task<List<ListAllCampaignsResponse>> ListAllCampaigns()
+     public async Task<List<ListAllCampaignsResponse>> ListAllCampaigns(string apiKey)
     {
         try
         {
@@ -183,7 +191,7 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<LeadByEmailResponse?> LeadByEmail(string email)
+    public async Task<LeadByEmailResponse?> LeadByEmail(string email, string apiKey)
     {
         try
         {
@@ -237,7 +245,7 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<MessageHistoryByLeadsResponse> MessageHistoryByLead(int? leadCampaignId, string leadId)
+    public async Task<MessageHistoryByLeadsResponse> MessageHistoryByLead(int? leadCampaignId, string leadId, string apiKey)
     {
         try
         {
