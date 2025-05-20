@@ -33,10 +33,10 @@ public class WebhookService
     {
         this.logger.LogInformation("Handling click webhook");
 
-        var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
+        var payloadObject = JsonSerializer.Deserialize<EmailLinkClickedPayload>(payload);
 
-        this.logger.LogInformation($"Handling click webhook for {payloadObject["to_email"]}");
-        var email = payloadObject["to_email"];
+        this.logger.LogInformation($"Handling click webhook for {payloadObject.to_email}");
+        var email = payloadObject.to_email;
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
@@ -48,6 +48,7 @@ public class WebhookService
             throw new ArgumentException("Email not found in leads.");
         }
 
+        await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
         await this.leadClicksRepository.UpsertClickCountById(lead.Id);
 
 
