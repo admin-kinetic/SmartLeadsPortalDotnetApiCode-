@@ -9,11 +9,16 @@ namespace SmartLeadsPortalDotNetApi.Controllers;
 
 [ApiController]
 [Route("api/webhooks")]
-public class WebhooksController: ControllerBase
+public class WebhooksController : ControllerBase
 {
     private readonly WebhooksRepository webhooksRepository;
     private readonly WebhookService webhookService;
     private readonly ILogger<WebhooksController> logger;
+
+    private readonly string[] webhookSecrets = {
+        "0f47052b-e08b-488b-8ec3-dd949eec520a",
+        "54251016-7093-4899-8111-63cc96e9757c"
+        };
 
     public WebhooksController(WebhooksRepository webhooksRepository, WebhookService webhookService, ILogger<WebhooksController> logger)
     {
