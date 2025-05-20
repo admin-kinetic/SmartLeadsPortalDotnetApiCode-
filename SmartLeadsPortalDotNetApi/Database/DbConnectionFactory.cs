@@ -6,12 +6,12 @@ namespace SmartLeadsPortalDotNetApi.Database;
 public class DbConnectionFactory : IDisposable
 {
     private readonly string _sqlConnectionString;
-    private readonly string _leadsqlConnectionString;
-    private readonly string _mysqlConnectionString;
+    //private readonly string _leadsqlConnectionString;
+    //private readonly string _mysqlConnectionString;
     private readonly ILogger<DbConnectionFactory> logger;
     private IDbConnection? _sqlConnection;
-    private IDbConnection? _leadsqlConnection;
-    private IDbConnection? _mySqlConnection;
+    //private IDbConnection? _leadsqlConnection;
+    //private IDbConnection? _mySqlConnection;
 
     public DbConnectionFactory(IConfiguration configuration, ILogger<DbConnectionFactory> logger)
     {
@@ -19,16 +19,14 @@ public class DbConnectionFactory : IDisposable
             ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
             ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
 
-        _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
-            ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
+        //_leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
+        //    ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
 
         // _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
         //     ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
         this.logger = logger;
         this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
         this.logger.LogInformation($"SQL Connection String: {this._sqlConnectionString}");
-        this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SmartLeadsSQLServerDBConnectionString")}");
-        this.logger.LogInformation($"SQL Connection String: {this._leadsqlConnectionString}");
     }
 
     public IDbConnection GetSqlConnection()
@@ -41,24 +39,24 @@ public class DbConnectionFactory : IDisposable
         return _sqlConnection;
     }
 
-    public IDbConnection GetLeadSqlConnection()
-    {
-        if (_leadsqlConnection == null || _leadsqlConnection.State == ConnectionState.Closed)
-        {
-            _leadsqlConnection = CreateConnection(_leadsqlConnectionString, () => new SqlConnection(_leadsqlConnectionString));
-        }
-        return _leadsqlConnection;
-    }
+    //public IDbConnection GetLeadSqlConnection()
+    //{
+    //    if (_leadsqlConnection == null || _leadsqlConnection.State == ConnectionState.Closed)
+    //    {
+    //        _leadsqlConnection = CreateConnection(_leadsqlConnectionString, () => new SqlConnection(_leadsqlConnectionString));
+    //    }
+    //    return _leadsqlConnection;
+    //}
 
-    public IDbConnection GetMySqlConnection()
-    {
-        if (_mySqlConnection == null || _mySqlConnection.State == ConnectionState.Closed)
-        {
-            _mySqlConnection = CreateConnection(_mysqlConnectionString, () => new MySqlConnection(_mysqlConnectionString));
-        }
+    //public IDbConnection GetMySqlConnection()
+    //{
+    //    if (_mySqlConnection == null || _mySqlConnection.State == ConnectionState.Closed)
+    //    {
+    //        _mySqlConnection = CreateConnection(_mysqlConnectionString, () => new MySqlConnection(_mysqlConnectionString));
+    //    }
 
-        return _mySqlConnection;
-    }
+    //    return _mySqlConnection;
+    //}
 
     private IDbConnection CreateConnection(string connectionString, Func<IDbConnection> connectionFactory)
     {
@@ -90,17 +88,17 @@ public class DbConnectionFactory : IDisposable
             this.logger.LogError($"Failed to connect to SQL Server database: {ex.Message}");
         }
 
-        try
-        {
-            using (var leadSqlConnection = GetLeadSqlConnection())
-            {
-                this.logger.LogInformation("Successfully connected to Leads SQL Server database.");
-            }
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError($"Failed to connect to Leads SQL Server database: {ex.Message}");
-        }
+        //try
+        //{
+        //    using (var leadSqlConnection = GetLeadSqlConnection())
+        //    {
+        //        this.logger.LogInformation("Successfully connected to Leads SQL Server database.");
+        //    }
+        //}
+        //catch (Exception ex)
+        //{
+        //    this.logger.LogError($"Failed to connect to Leads SQL Server database: {ex.Message}");
+        //}
 
         // try
         // {
@@ -126,8 +124,8 @@ public class DbConnectionFactory : IDisposable
         if (disposing)
         {
             _sqlConnection?.Dispose();
-            _leadsqlConnection?.Dispose();
-            _mySqlConnection?.Dispose();
+            //_leadsqlConnection?.Dispose();
+            //_mySqlConnection?.Dispose();
         }
     }
 }
