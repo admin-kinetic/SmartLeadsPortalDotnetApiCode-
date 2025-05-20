@@ -3,24 +3,19 @@ using System;
 namespace SmartLeadsPortalDotNetApi.Model.Webhooks;
 
 
-// Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
-public class Metadata
-{
-    public DateTime webhook_created_at { get; set; }
-}
 
-public class EmailOpenPayload
+public class EmailLinkClickedPayload
 {
-    public string sl_email_lead_id { get; set; }
-    public int sl_email_lead_map_id { get; set; }
     public string campaign_status { get; set; }
-    public object client_id { get; set; }
+    public int client_id { get; set; }
     public string stats_id { get; set; }
     public string from_email { get; set; }
     public string to_email { get; set; }
     public string to_name { get; set; }
-    public DateTime time_opened { get; set; }
+    public DateTime time_clicked { get; set; }
     public DateTime event_timestamp { get; set; }
+    public List<string> link_clicked { get; set; }
+    public List<string> link_details { get; set; }
     public string campaign_name { get; set; }
     public int campaign_id { get; set; }
     public int sequence_number { get; set; }
@@ -38,10 +33,11 @@ public class EmailOpenPayload
     public string event_type { get; set; }
 }
 
-// public class SentMessage
-// {
-//     public string message_id { get; set; }
-//     public string html { get; set; }
-//     public string text { get; set; }
-// }
+public class SentMessage
+{
+    public string message_id { get; set; }
+    public string html { get; set; }
+    public string text { get; set; }
+    public DateTime time { get; set; }
+}
 
