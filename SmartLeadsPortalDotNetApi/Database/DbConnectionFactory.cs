@@ -19,8 +19,8 @@ public class DbConnectionFactory : IDisposable
             ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
             ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
 
-        _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
-            ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
+        // _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
+        //     ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
 
         // _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
         //     ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
