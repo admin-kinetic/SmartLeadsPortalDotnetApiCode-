@@ -112,20 +112,6 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(ret);
         }
 
-        [HttpPost("get-dashboard-job-adchart-exported-leadgen")]
-        public async Task<IActionResult> GetDashboardJobAdChartsExportedLeadgen(DashboardDateParameter param)
-        {
-            var ret = await this._dashboardRepository.GetDashboardJobAdChartsExportedLeadgen(param);
-            return Ok(ret);
-        }
-
-        [HttpPost("get-dashboard-job-adchart-exported")]
-        public async Task<IActionResult> GetDashboardJobAdChartsExportedFullyAutomated(DashboardDateParameter param)
-        {
-            var ret = await this._dashboardRepository.GetDashboardJobAdChartsExportedFullyAutomated(param);
-            return Ok(ret);
-        }
-
         [HttpPost("get-dashboard-analytics-daterange")]
         public async Task<IActionResult> GetDashboardAnalyticsByDates(DashboardDateParameter param)
         {
