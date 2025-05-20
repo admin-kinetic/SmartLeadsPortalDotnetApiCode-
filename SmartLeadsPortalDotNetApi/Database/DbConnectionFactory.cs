@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.VisualBasic;
 using MySqlConnector;
 using System.Data;
 
@@ -20,14 +19,16 @@ public class DbConnectionFactory : IDisposable
             ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
             ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
 
-        // _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
-        //     ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
+        _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
+            ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
 
         // _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
         //     ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
         this.logger = logger;
         this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
         this.logger.LogInformation($"SQL Connection String: {this._sqlConnectionString}");
+        this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SmartLeadsSQLServerDBConnectionString")}");
+        this.logger.LogInformation($"SQL Connection String: {this._leadsqlConnectionString}");
     }
 
     public IDbConnection GetSqlConnection()
@@ -89,17 +90,17 @@ public class DbConnectionFactory : IDisposable
             this.logger.LogError($"Failed to connect to SQL Server database: {ex.Message}");
         }
 
-        // try
-        // {
-        //     using (var leadSqlConnection = GetLeadSqlConnection())
-        //     {
-        //         this.logger.LogInformation("Successfully connected to Leads SQL Server database.");
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     this.logger.LogError($"Failed to connect to Leads SQL Server database: {ex.Message}");
-        // }
+        try
+        {
+            using (var leadSqlConnection = GetLeadSqlConnection())
+            {
+                this.logger.LogInformation("Successfully connected to Leads SQL Server database.");
+            }
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError($"Failed to connect to Leads SQL Server database: {ex.Message}");
+        }
 
         // try
         // {

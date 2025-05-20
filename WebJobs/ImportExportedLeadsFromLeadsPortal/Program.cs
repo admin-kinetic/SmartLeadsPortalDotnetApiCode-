@@ -13,8 +13,8 @@ public class Program
         var dbConnectionFactory = new DbConnectionFactory(configuration);
         var leadsPortalService = new LeadsPortalService();
         var smartLeadsExportedContactsService = new SmartLeadsExportedContactsService(dbConnectionFactory, leadsPortalService);
-        var fromDate = DateTime.Now.AddDays(-1);
-        var toDate = DateTime.Now;
+        var fromDate = DateTime.Now.AddDays(-2);
+        var toDate = DateTime.Now.AddDays(-1);
         await smartLeadsExportedContactsService.SaveExportedContacts(fromDate, toDate);
 
         // var appService = new AppService();
