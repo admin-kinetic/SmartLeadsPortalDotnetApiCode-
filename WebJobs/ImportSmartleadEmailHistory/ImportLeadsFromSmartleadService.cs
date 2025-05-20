@@ -1,22 +1,27 @@
 ﻿using Common.Repositories;
 using Common.Services;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImportLeadsFromSmartlead
+namespace ImportSmartleadEmailHistory
 {
     public class ImportLeadsFromSmartleadService
     {
         private readonly SmartLeadHttpService smartLeadHttpService;
         private readonly SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository;
+        private readonly IConfiguration _configuration;
 
-        public ImportLeadsFromSmartleadService(SmartLeadHttpService smartLeadHttpService, SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository)
+        private readonly string botSmartleadApiKey = "0f47052b-e08b-488b-8ec3-dd949eec520a_umaccv1";
+
+        public ImportLeadsFromSmartleadService(SmartLeadHttpService smartLeadHttpService, SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository, IConfiguration configuration)
         {
             this.smartLeadHttpService = smartLeadHttpService;
             this.smartLeadsExportedContactsRepository = smartLeadsExportedContactsRepository;
+            _configuration = configuration;
         }
 
         public async Task Run()
@@ -35,7 +40,7 @@ namespace ImportLeadsFromSmartlead
             foreach (var exportedContact in exportedContacts)
             {
                 await Task.Delay(1000);
-                var lead = await this.smartLeadHttpService.LeadByEmail(exportedContact.Email);
+                var lead = await this.smartLeadHttpService.LeadByEmail(exportedContact.Email, botSmartleadApiKey);
 
                 if(lead == null)
                 {
@@ -52,7 +57,7 @@ namespace ImportLeadsFromSmartlead
                     continue;
                 }
 
-                var messagesByLead = await this.smartLeadHttpService.MessageHistoryByLead(leadCampaignId, lead.id);
+                var messagesByLead = await this.smartLeadHttpService.MessageHistoryByLead(leadCampaignId, lead.id, botSmartleadApiKey);
                 if (!messagesByLead.history.Any())
                 {
                     Console.WriteLine($"Lead with email {exportedContact.Email} has no messages history.");

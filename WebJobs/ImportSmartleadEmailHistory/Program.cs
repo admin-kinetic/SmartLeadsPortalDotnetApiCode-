@@ -3,7 +3,7 @@ using Common.Repositories;
 using Common.Services;
 using Microsoft.Extensions.Configuration;
 
-namespace ImportLeadsFromSmartlead
+namespace ImportSmartleadEmailHistory
 {
     internal class Program
     {
@@ -16,7 +16,7 @@ namespace ImportLeadsFromSmartlead
             var dbConnectionFactory = new DbConnectionFactory(config);
             var smartLeadsExportedContactsRepository = new SmartLeadsExportedContactsRepository(dbConnectionFactory);
             var smartleadHttpService = new SmartLeadHttpService();
-            var service = new ImportLeadsFromSmartleadService(smartleadHttpService, smartLeadsExportedContactsRepository);
+            var service = new ImportLeadsFromSmartleadService(smartleadHttpService, smartLeadsExportedContactsRepository, config);
             await service.Run();
         }
     }
