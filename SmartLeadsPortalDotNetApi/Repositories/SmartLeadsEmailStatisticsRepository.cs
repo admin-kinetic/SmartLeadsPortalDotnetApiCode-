@@ -30,7 +30,7 @@ public class SmartLeadsEmailStatisticsRepository
                 WHEN MATCHED THEN
                     UPDATE SET 
                         OpenCount = target.OpenCount + 1, 
-                        OpenTime = GETDATE()
+                        OpenTime = @openTime
                 WHEN NOT MATCHED THEN
                     INSERT (Guid, LeadEmail, LeadName, SequenceNumber, EmailSubject, OpenCount, OpenTime)
                         VALUES (NewId(), @leadEmail, @leadName, @sequenceNumber, @emailSubject, 1, @openTime);
@@ -45,6 +45,43 @@ public class SmartLeadsEmailStatisticsRepository
                     emailSubject = emailOpenPayload.subject,
                     openTime = emailOpenPayload.time_opened
 
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error upserting open email.");
+            throw;
+        }
+    }
+
+    public async Task UpsertEmailLinkClickedCount(EmailLinkClickedPayload emaiLinkClickedPayload)
+    {
+        try
+        {
+            using var connection = _dbConnectionFactory.GetSqlConnection();
+            var upsert = """
+                MERGE INTO SmartLeadsEmailStatistics AS target
+                USING ( 
+                    VALUES (@leadEmail, @sequenceNumber)
+                ) AS source (LeadEmail, SequenceNumber)
+                ON target.LeadEmail = source.LeadEmail AND target.SequenceNumber = source.SequenceNumber
+                WHEN MATCHED THEN
+                    UPDATE SET 
+                        ClickCount = target.ClickCount + 1, 
+                        ClickTime = @timeClicked
+                WHEN NOT MATCHED THEN
+                    INSERT (Guid, LeadEmail, LeadName, SequenceNumber, EmailSubject, ClickCount, ClickTime)
+                        VALUES (NewId(), @leadEmail, @leadName, @sequenceNumber, @emailSubject, 1, @timeClicked);
+            """;
+
+            await connection.ExecuteAsync(upsert,
+                new
+                {
+                    leadEmail = emaiLinkClickedPayload.to_email,
+                    leadName = emaiLinkClickedPayload.to_name,
+                    sequenceNumber = emaiLinkClickedPayload.sequence_number,
+                    emailSubject = emaiLinkClickedPayload.subject,
+                    timeClicked = emaiLinkClickedPayload.time_clicked,
                 });
         }
         catch (Exception ex)
