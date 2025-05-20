@@ -126,6 +126,7 @@ builder.Services.AddScoped<MicrosoftGraphServiceClientFactory>();
 builder.Services.AddScoped<PermissionRepository>();
 builder.Services.AddScoped<RoleRepository>();
 builder.Services.AddScoped<LeadsPortalWebhookRepository>();
+builder.Services.AddScoped<SmartLeadsEmailStatisticsRepository>();
 
 builder.Services.AddScoped(provider =>
     {

@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using SmartLeadsPortalDotNetApi.Model.Webhooks;
 using SmartLeadsPortalDotNetApi.Repositories;
 
 namespace SmartLeadsPortalDotNetApi.Services;
@@ -10,6 +11,7 @@ public class WebhookService
     private readonly AutomatedLeadsRepository automatedLeadsRepository;
     private readonly WebhooksRepository webhooksRepository;
     private readonly LeadClicksRepository leadClicksRepository;
+    private readonly SmartLeadsEmailStatisticsRepository _smartLeadsEmailStatisticsRepository;
     private readonly ILogger<WebhookService> logger;
 
     public WebhookService(
@@ -17,11 +19,13 @@ public class WebhookService
         WebhooksRepository webhooksRepository,
         LeadClicksRepository leadClicksRepository,
         SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository,
+        SmartLeadsEmailStatisticsRepository smartLeadsEmailStatisticsRepository,
         ILogger<WebhookService> logger)
     {
         this.automatedLeadsRepository = automatedLeadsRepository;
         this.webhooksRepository = webhooksRepository;
         this.leadClicksRepository = leadClicksRepository;
+        _smartLeadsEmailStatisticsRepository = smartLeadsEmailStatisticsRepository;
         this.logger = logger;
     }
 
@@ -29,10 +33,10 @@ public class WebhookService
     {
         this.logger.LogInformation("Handling click webhook");
 
-        var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
+        var payloadObject = JsonSerializer.Deserialize<EmailLinkClickedPayload>(payload);
 
-        this.logger.LogInformation($"Handling click webhook for {payloadObject["to_email"]}");
-        var email = payloadObject["to_email"];
+        this.logger.LogInformation($"Handling click webhook for {payloadObject.to_email}");
+        var email = payloadObject.to_email;
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
@@ -44,6 +48,7 @@ public class WebhookService
             throw new ArgumentException("Email not found in leads.");
         }
 
+        await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
         await this.leadClicksRepository.UpsertClickCountById(lead.Id);
 
 
@@ -84,20 +89,24 @@ public class WebhookService
     {
         this.logger.LogInformation("Handling open webhook");
 
-        var payloadObject = JsonSerializer.Deserialize<dynamic>(payload);
+        var emailOpenPayload = JsonSerializer.Deserialize<EmailOpenPayload>(payload);
 
-        this.logger.LogInformation($"Handling open webhook for {payloadObject["to_email"]}");
-        var email = payloadObject["to_email"];
+        this.logger.LogInformation($"Handling open webhook for {emailOpenPayload.to_email}");
+        var email = emailOpenPayload.to_email;
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
         }
+
+        var sequenceNumber = emailOpenPayload.sequence_number;
 
         var lead = await this.automatedLeadsRepository.GetByEmail(email.ToString());
         if (lead == null)
         {
             throw new ArgumentException("Email not found in leads.");
         }
+
+        await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
 
         await this.leadClicksRepository.UpsertOpenCountById(lead.Id);
 
