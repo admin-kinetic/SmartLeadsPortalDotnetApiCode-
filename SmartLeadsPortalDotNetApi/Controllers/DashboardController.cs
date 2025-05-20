@@ -149,8 +149,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                     var positiveAnalytics = await _smartLeadsApiService.GetAnalyticsByCampaign(campaign.Id);
 
                     // Convert string values to integers
-                    totalLeadsReached += int.TryParse(analytics?.total_count, out var t1) ? t1 : 0;
-                    totalSent += int.TryParse(analytics?.sent_count, out var t2) ? t2 : 0;
+                    totalLeadsReached += int.TryParse(analytics?.sent_count, out var t1) ? t1 : 0;
+                    totalSent += int.TryParse(analytics?.unique_sent_count, out var t2) ? t2 : 0;
                     totalOpened += int.TryParse(analytics?.open_count, out var t3) ? t3 : 0;
                     totalUniqueOpened += int.TryParse(analytics?.unique_open_count, out var t4) ? t4 : 0;
                     totalUniqueReplied += int.TryParse(analytics?.reply_count, out var t5) ? t5 : 0;
@@ -158,7 +158,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                     totalPositiveReplies += positiveAnalytics?.campaign_lead_stats?.interested ?? 0;
                 }
 
-                double positiveRepliesRate = (totalUniqueReplied > 0) ? ((double)totalPositiveReplies / totalUniqueReplied) * 100 : 0;
+                double positiveRepliesRate = (totalLeadsReached > 0) ? ((double)totalPositiveReplies / totalLeadsReached) * 100 : 0;
                 double uniqueRepliesRate = (totalLeadsReached > 0) ? ((double)totalUniqueReplied / totalLeadsReached) * 100 : 0;
                 double uniqueOpenRate = (totalLeadsReached > 0) ? ((double)totalUniqueOpened / totalLeadsReached) * 100 : 0;
                 double uniqueBounceRate = (totalLeadsReached > 0) ? ((double)totalBounced / totalLeadsReached) * 100 : 0;
@@ -179,7 +179,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                     UniqueRepliesRate = Math.Round(uniqueRepliesRate, 2),
                     UniqueOpenRate = Math.Round(uniqueOpenRate, 2),
                     UniqueBounceRate = Math.Round(uniqueBounceRate, 2),
-                    TotalEmailSent = totalEmailSent
+                    TotalEmailSent = totalEmailSent,
+                    TotalEmailed = totalEmailSent + totalBounced
                 };
 
                 return Ok(result);
