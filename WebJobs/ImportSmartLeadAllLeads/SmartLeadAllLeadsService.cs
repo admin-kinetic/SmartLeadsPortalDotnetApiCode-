@@ -64,7 +64,9 @@ public class SmartLeadAllLeadsService
                     LastName = lead.last_name,
                     CreatedAt = lead.created_at,
                     PhoneNumber = lead.phone_number,
-                    CompanyName = lead.company_name,
+                    CompanyName = lead.company_name?.Length > 100
+                        ? lead.company_name.Substring(0, 100)
+                        : lead.company_name,
                     LeadStatus = lead.campaigns.First()?.lead_status,
                     BDR = lead.custom_fields.BDR ?? string.Empty,
                     CreatedBy = lead.custom_fields.Created_by ?? string.Empty,
