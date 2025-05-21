@@ -37,6 +37,7 @@ builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
+builder.Services.Configure<BdrSmartLeadConfig>(builder.Configuration.GetSection("BdrSmartLeadsConfig"));
 builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
 builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
 {

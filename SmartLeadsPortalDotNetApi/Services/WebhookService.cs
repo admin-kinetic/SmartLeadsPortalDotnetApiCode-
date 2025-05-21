@@ -42,13 +42,14 @@ public class WebhookService
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
+        await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
+
         var lead = await this.automatedLeadsRepository.GetByEmail(email.ToString());
         if (lead == null)
         {
             throw new ArgumentException("Email not found in leads.");
         }
 
-        await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
         await this.leadClicksRepository.UpsertClickCountById(lead.Id);
 
 
@@ -100,13 +101,13 @@ public class WebhookService
 
         var sequenceNumber = emailOpenPayload.sequence_number;
 
+        await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
+
         var lead = await this.automatedLeadsRepository.GetByEmail(email.ToString());
         if (lead == null)
         {
             throw new ArgumentException("Email not found in leads.");
         }
-
-        await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
 
         await this.leadClicksRepository.UpsertOpenCountById(lead.Id);
 
