@@ -42,6 +42,12 @@ public class SmartLeadCampaignStatisticsService
                     {
                         var statistics = await this.smartLeadHttpService.FetchCampaignStatisticsByCampaignId(campaign.id.Value, apiKey, offset, limit, daysOffset);
                         hasData = statistics.data.Count > 0;
+
+                        if(hasData == false)
+                        {
+                            continue;
+                        }
+
                         Console.WriteLine($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
 
                         if (statistics.data.Count > 0)
