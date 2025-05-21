@@ -43,7 +43,7 @@ BEGIN
 	CROSS JOIN LeadGens lg
 	LEFT JOIN DailyBreakdown db
 		ON dr.ExportedDate = db.ExportedDate AND db.LeadGen = lg.LeadGen
-	ORDER BY dr.ExportedDate, 
+	ORDER BY dr.ExportedDate DESC, 
 			 CASE WHEN lg.LeadGen = 'Others' THEN 1 ELSE 0 END, 
 			 lg.LeadGen;
 END

@@ -29,6 +29,6 @@ BEGIN
 	SELECT dr.ExportedDate, COALESCE(dt.TotalCount, 0) AS TotalCount
 	FROM DateRange dr
 	LEFT JOIN DailyTotals dt ON dr.ExportedDate = dt.ExportedDate
-	ORDER BY dr.ExportedDate;
+	ORDER BY dr.ExportedDate DESC;
 END
 GO
