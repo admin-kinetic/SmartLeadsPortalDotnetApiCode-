@@ -37,6 +37,7 @@ builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<VoIpConfig>(builder.Configuration.GetSection("VoIpConfig"));
 builder.Services.Configure<SmartLeadConfig>(builder.Configuration.GetSection("SmartLeadsConfig"));
+builder.Services.Configure<BdrSmartLeadConfig>(builder.Configuration.GetSection("BdrSmartLeadsConfig"));
 builder.Services.Configure<KineticLeadsPortalConfig>(builder.Configuration.GetSection("KineticLeadsPortalConfig"));
 builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
 {
@@ -127,6 +128,8 @@ builder.Services.AddScoped<PermissionRepository>();
 builder.Services.AddScoped<RoleRepository>();
 builder.Services.AddScoped<LeadsPortalWebhookRepository>();
 builder.Services.AddScoped<SmartLeadsEmailStatisticsRepository>();
+builder.Services.AddScoped<MessageHistoryRepository>();
+builder.Services.AddScoped<SmartLeadsAllLeadsRepository>();
 
 builder.Services.AddScoped(provider =>
     {

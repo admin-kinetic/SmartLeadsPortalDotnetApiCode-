@@ -33,6 +33,7 @@ public class WebhooksController : ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("EMAIL_SENT", payload);
+        await this.webhookService.HandleEmailSent(payload);
         return Ok();
     }
 
@@ -42,6 +43,7 @@ public class WebhooksController : ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("FIRST_EMAIL_SENT", payload);
+        await this.webhookService.HandleEmailSent(payload);
         return Ok();
     }
 

@@ -75,7 +75,7 @@ public class SmartLeadAllLeadsService
                 {
                     smartLeadAllLeads = smartLeadAllLeads.Select(lead =>
                     {
-                        var bdr = campaignBdrs.FirstOrDefault(c => c.Id == campaignBdrs.First(cb => cb.Id == lead.CampaignId)?.Id).Bdr;
+                        var bdr = campaignBdrs.FirstOrDefault(c => c.Id == campaignBdrs.FirstOrDefault(cb => cb.Id == lead.CampaignId)?.Id)?.Bdr;
                         lead.BDR = bdr;
                         lead.CreatedBy = bdr;
                         lead.QABy = bdr;
