@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
-using SmartLeadsPortalDotNetApi.Model.Webhooks;
+using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Services.Model;
 
 namespace SmartLeadsPortalDotNetApi.Repositories;
@@ -82,6 +82,46 @@ public class SmartLeadsEmailStatisticsRepository
                     sequenceNumber = emaiLinkClickedPayload.sequence_number,
                     emailSubject = emaiLinkClickedPayload.subject,
                     timeClicked = emaiLinkClickedPayload.time_clicked,
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error upserting open email.");
+            throw;
+        }
+    }
+
+    internal async Task UpsertEmailSent(EmailSentPayload emailOpenPayload)
+    {
+        try
+        {
+            using var connection = _dbConnectionFactory.GetSqlConnection();
+            var upsert = """
+                MERGE INTO SmartLeadsEmailStatistics AS target
+                USING ( 
+                    VALUES (@leadEmail, @sequenceNumber)
+                ) AS source (LeadEmail, SequenceNumber)
+                ON target.LeadEmail = source.LeadEmail AND target.SequenceNumber = source.SequenceNumber
+                WHEN MATCHED THEN
+                    UPDATE SET 
+                        LeadId = @leadId,
+                        LeadName = @leadName,
+                        EmailSubject = @emailSubject,
+                        EmailMessage = @emailMessage
+                WHEN NOT MATCHED THEN
+                    INSERT (Guid, LeadId, LeadEmail, LeadName, SequenceNumber, EmailSubject, EmailMessage)
+                        VALUES (NewId(), @leadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, @emailMessage);
+            """;
+
+            await connection.ExecuteAsync(upsert,
+                new
+                {
+                    leadId = emailOpenPayload.sl_email_lead_id,
+                    leadEmail = emailOpenPayload.to_email,
+                    leadName = emailOpenPayload.to_name,
+                    sequenceNumber = emailOpenPayload.sequence_number,
+                    emailSubject = emailOpenPayload.subject,
+                    emailMessage = emailOpenPayload.sent_message_body
                 });
         }
         catch (Exception ex)
