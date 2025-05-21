@@ -42,7 +42,7 @@ BEGIN
 	FROM DateLeadGenGrid dlg
 	LEFT JOIN DailyBreakdown db
 		ON dlg.ExportedDate = db.ExportedDate AND dlg.LeadGen = db.LeadGen
-	ORDER BY dlg.ExportedDate, 
+	ORDER BY dlg.ExportedDate DESC, 
 			 CASE WHEN dlg.LeadGen = 'Others' THEN 1 ELSE 0 END,
 			 dlg.LeadGen;
 END
