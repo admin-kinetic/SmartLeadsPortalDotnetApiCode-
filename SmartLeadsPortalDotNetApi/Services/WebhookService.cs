@@ -1,8 +1,9 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using SmartLeadsPortalDotNetApi.Model.Webhooks;
+using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services.Model;
 
 namespace SmartLeadsPortalDotNetApi.Services;
 
@@ -12,6 +13,8 @@ public class WebhookService
     private readonly WebhooksRepository webhooksRepository;
     private readonly LeadClicksRepository leadClicksRepository;
     private readonly SmartLeadsEmailStatisticsRepository _smartLeadsEmailStatisticsRepository;
+    private readonly MessageHistoryRepository _messageHistoryRepository;
+    private readonly SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository;
     private readonly ILogger<WebhookService> logger;
 
     public WebhookService(
@@ -20,12 +23,16 @@ public class WebhookService
         LeadClicksRepository leadClicksRepository,
         SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository,
         SmartLeadsEmailStatisticsRepository smartLeadsEmailStatisticsRepository,
+        MessageHistoryRepository messageHistoryRepository,
+        SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository,
         ILogger<WebhookService> logger)
     {
         this.automatedLeadsRepository = automatedLeadsRepository;
         this.webhooksRepository = webhooksRepository;
         this.leadClicksRepository = leadClicksRepository;
         _smartLeadsEmailStatisticsRepository = smartLeadsEmailStatisticsRepository;
+        _messageHistoryRepository = messageHistoryRepository;
+        this.smartLeadsAllLeadsRepository = smartLeadsAllLeadsRepository;
         this.logger = logger;
     }
 
@@ -58,17 +65,18 @@ public class WebhookService
 
     public async Task HandleReply(string payload)
     {
-        var payloadObject = JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
-        var email = payloadObject["to_email"];
+        var payloadObject = JsonSerializer.Deserialize<EmailReplyPayload>(payload);
+        var email = payloadObject.to_email;
 
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        var replyAt = payloadObject["event_timestamp"];
+        var replyAt = payloadObject.event_timestamp;
+        await _messageHistoryRepository.UpsertEmailReply(payloadObject);
 
-        await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
+        // await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
     }
 
     public async Task HandleLeadCategoryUpdated(string payload)
@@ -103,15 +111,37 @@ public class WebhookService
 
         await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
 
-        var lead = await this.automatedLeadsRepository.GetByEmail(email.ToString());
-        if (lead == null)
+        // var lead = await this.automatedLeadsRepository.GetByEmail(email.ToString());
+        // if (lead == null)
+        // {
+        //     throw new ArgumentException("Email not found in leads.");
+        // }
+
+        // await this.leadClicksRepository.UpsertOpenCountById(lead.Id);
+
+        // this.logger.LogInformation("Completed handling opwn webhook");
+    }
+
+    internal async Task HandleEmailSent(string payload)
+    {
+        this.logger.LogInformation("Handling open webhook");
+
+        var emailSentPayload = JsonSerializer.Deserialize<EmailSentPayload>(payload);
+
+        this.logger.LogInformation($"Handling open webhook for {emailSentPayload.to_email}");
+        var email = emailSentPayload.to_email;
+        if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
-            throw new ArgumentException("Email not found in leads.");
+            throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        await this.leadClicksRepository.UpsertOpenCountById(lead.Id);
+        var sequenceNumber = emailSentPayload.sequence_number;
 
-        this.logger.LogInformation("Completed handling opwn webhook");
+        await _smartLeadsEmailStatisticsRepository.UpsertEmailSent(emailSentPayload);
+        await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
+        await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload);
+
+
     }
 
     internal async Task HandleEmailBounce(string payload)
@@ -126,4 +156,6 @@ public class WebhookService
 
         await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), "Sender Originated Bounce");
     }
+
+    
 }
