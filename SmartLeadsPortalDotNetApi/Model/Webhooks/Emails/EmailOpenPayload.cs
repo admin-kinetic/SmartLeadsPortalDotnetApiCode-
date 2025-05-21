@@ -1,6 +1,6 @@
 using System;
 
-namespace SmartLeadsPortalDotNetApi.Model.Webhooks;
+namespace SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
