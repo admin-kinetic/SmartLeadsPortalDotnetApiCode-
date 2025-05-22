@@ -24,7 +24,7 @@ public class CallTasksTableRepository
     {
         this.dbConnectionFactory = dbConnectionFactory;
     }
-    public async Task<TableResponse<SmartLeadsCallTasks>> Find(TableRequest request)
+    public async Task<TableResponse<SmartLeadsCallTasks>> Find(TableRequest request, string employeeId)
     {
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
@@ -85,27 +85,23 @@ public class CallTasksTableRepository
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
+                INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
+                INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 OUTER APPLY (
-                SELECT TOP 1 cs.CategoryName
-                FROM CategorySettings cs
-                WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
-                ORDER BY 
-                    CASE 
-                        WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
-                        WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
-                        ELSE cs.ClickCount
-                    END DESC
-                ) cs_applied
-                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
+                    SELECT TOP 1 cs.CategoryName
+                    FROM CategorySettings cs
+                    WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
+                    ORDER BY 
+                        CASE 
+                            WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
+                            WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
+                            ELSE cs.ClickCount
+                        END DESC
+                    ) cs_applied
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
             """;
-
-            var queryParam = new
-            {
-                PageNumber = request.paginator.page,
-                PageSize = request.paginator.pageSize
-            };
 
             var countQuery = """ 
                 SELECT
@@ -113,32 +109,29 @@ public class CallTasksTableRepository
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
+                INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
+                INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 OUTER APPLY (
-                SELECT TOP 1 cs.CategoryName
-                FROM CategorySettings cs
-                WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
-                ORDER BY 
-                    CASE 
-                        WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
-                        WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
-                        ELSE cs.ClickCount
-                    END DESC
+                    SELECT TOP 1 cs.CategoryName
+                    FROM CategorySettings cs
+                    WHERE sle.OpenCount >= cs.OpenCount OR sle.ClickCount >= cs.ClickCount
+                    ORDER BY 
+                        CASE 
+                            WHEN sle.OpenCount >= cs.OpenCount AND sle.ClickCount >= cs.ClickCount THEN cs.OpenCount + cs.ClickCount
+                            WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
+                            ELSE cs.ClickCount
+                        END DESC
                 ) cs_applied
-                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
             """;
-
-            var countQueryParam = new
-            {
-                PageNumber = request.paginator.page,
-                PageSize = request.paginator.pageSize
-            };
 
             // Build WHERE clause if filters exist
             var whereClause = new List<string>();
             var parameters = new DynamicParameters();
             parameters.Add("PageNumber", request.paginator.page);
             parameters.Add("PageSize", request.paginator.pageSize);
+            parameters.Add("EmployeeId", employeeId);
 
             if (request.filters != null && request.filters.Count > 0)
             {
