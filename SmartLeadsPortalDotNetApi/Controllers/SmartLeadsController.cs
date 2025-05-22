@@ -157,13 +157,28 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [EnableCors("CorsApi")]
         public async Task<IActionResult> GetAllSmartLeadsCallTaskList(SmartLeadsCallTasksRequest param)
         {
-            SmartLeadsCallTasksResponseModel<SmartLeadsCallTasks> list = await _smartLeadsRepository.GetAllSmartLeadsCallTaskList(param);
+            var user = this.HttpContext.User;
+            var employeeId = user.FindFirst("id").Value;
+
+            if (string.IsNullOrEmpty(employeeId))
+            {
+                return BadRequest("Invalid user ID");
+            }
+
+            SmartLeadsCallTasksResponseModel<SmartLeadsCallTasks> list = await _smartLeadsRepository.GetAllSmartLeadsCallTaskList(param, employeeId);
             return Ok(list);
         }
 
         [HttpPost("call-tasks/find")]
         public async Task<IActionResult> CallTasksFind(TableRequest request){
-            var result = await this.callTasksTableRepository.Find(request);
+            var user = this.HttpContext.User;
+            var employeeId = user.FindFirst("id").Value;
+
+            if (string.IsNullOrEmpty(employeeId))
+            {
+                return BadRequest("Invalid user ID");
+            }
+            var result = await this.callTasksTableRepository.Find(request, employeeId);
             return Ok(result);
         }
 
