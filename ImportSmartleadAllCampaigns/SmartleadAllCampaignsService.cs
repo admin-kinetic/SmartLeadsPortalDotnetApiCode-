@@ -42,7 +42,10 @@ namespace ImportSmartleadAllCampaigns
                     });
                 using (var connection = _dbConnectionFactory.CreateConnection())
                 {
-                    connection.Open();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                    {
+                        connection.Open();
+                    }
                     using (var transaction = connection.BeginTransaction())
                     {
                         try

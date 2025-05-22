@@ -18,11 +18,18 @@ public class SmartLeadsEmailStatisticsRepository
 
     public async Task UpsertEmailOpenCount(EmailOpenPayload emailOpenPayload)
     {
+
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            connection.Open();
+        }
+
+        using var transaction = connection.BeginTransaction();
         try
         {
-            using var connection = _dbConnectionFactory.GetSqlConnection();
             var upsert = """
-                MERGE INTO SmartLeadsEmailStatistics AS target
+                MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING ( 
                     VALUES (@leadEmail, @sequenceNumber)
                 ) AS source (LeadEmail, SequenceNumber)
@@ -45,22 +52,31 @@ public class SmartLeadsEmailStatisticsRepository
                     emailSubject = emailOpenPayload.subject,
                     openTime = emailOpenPayload.time_opened
 
-                });
+                },
+                transaction);
+            transaction.Commit();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error upserting open email.");
+            transaction.Rollback();
+            _logger.LogError(ex, "Error on UpsertEmailOpenCount");
             throw;
         }
     }
 
     public async Task UpsertEmailLinkClickedCount(EmailLinkClickedPayload emaiLinkClickedPayload)
     {
+
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            connection.Open();
+        }
+        using var transaction = connection.BeginTransaction();
         try
         {
-            using var connection = _dbConnectionFactory.GetSqlConnection();
             var upsert = """
-                MERGE INTO SmartLeadsEmailStatistics AS target
+                MERGE INTO SmartLeadsEmailStatistics  WITH (ROWLOCK) AS target
                 USING ( 
                     VALUES (@leadEmail, @sequenceNumber)
                 ) AS source (LeadEmail, SequenceNumber)
@@ -82,22 +98,32 @@ public class SmartLeadsEmailStatisticsRepository
                     sequenceNumber = emaiLinkClickedPayload.sequence_number,
                     emailSubject = emaiLinkClickedPayload.subject,
                     timeClicked = emaiLinkClickedPayload.time_clicked,
-                });
+                },
+                transaction);
+            transaction.Commit();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error upserting open email.");
+            transaction.Rollback();
+            _logger.LogError(ex, "Error on UpsertEmailLinkClickedCount");
             throw;
         }
     }
 
     internal async Task UpsertEmailSent(EmailSentPayload emailOpenPayload)
     {
+
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            connection.Open();
+        }
+
+        using var transaction = connection.BeginTransaction();
         try
         {
-            using var connection = _dbConnectionFactory.GetSqlConnection();
             var upsert = """
-                MERGE INTO SmartLeadsEmailStatistics AS target
+                MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING ( 
                     VALUES (@leadEmail, @sequenceNumber)
                 ) AS source (LeadEmail, SequenceNumber)
@@ -122,11 +148,14 @@ public class SmartLeadsEmailStatisticsRepository
                     sequenceNumber = emailOpenPayload.sequence_number,
                     emailSubject = emailOpenPayload.subject,
                     emailMessage = emailOpenPayload.sent_message_body
-                });
+                },
+                transaction);
+            transaction.Commit();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error upserting open email.");
+            transaction.Rollback();
+            _logger.LogError(ex, "Error on UpsertEmailSent");
             throw;
         }
     }

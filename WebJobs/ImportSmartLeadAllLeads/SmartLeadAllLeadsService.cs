@@ -50,11 +50,11 @@ public class SmartLeadAllLeadsService
 
                 hasMore = allLeads.hasMore;
 
-                if(allLeads.data.Count == 0)
+                if (allLeads.data.Count == 0)
                 {
                     break;
                 }
-                
+
                 var smartLeadAllLeads = allLeads.data.Select(lead => new SmartLeadAllLeads
                 {
                     LeadId = int.Parse(lead.id),
@@ -88,7 +88,10 @@ public class SmartLeadAllLeadsService
                 Console.WriteLine($"Saving another batch of {smartLeadAllLeads.Count()} leads");
                 using (var connection = this.dbConnectionFactory.CreateConnection())
                 {
-                    connection.Open();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                    {
+                        connection.Open();
+                    }
                     using (var transaction = connection.BeginTransaction())
                     {
                         try
@@ -252,7 +255,10 @@ public class SmartLeadAllLeadsService
 
                 using (var connection = this.dbConnectionFactory.CreateConnection())
                 {
-                    connection.Open();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                    {
+                        connection.Open();
+                    }
                     using (var transaction = connection.BeginTransaction())
                     {
                         try
@@ -275,7 +281,7 @@ public class SmartLeadAllLeadsService
                 }
                 offset += limit;
             } while (hasMore);
-        }  
+        }
     }
 
     private async Task<string?> GetCampaignBdr(int campaignId)

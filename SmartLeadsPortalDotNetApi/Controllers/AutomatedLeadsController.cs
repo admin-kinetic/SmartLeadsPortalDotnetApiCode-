@@ -476,7 +476,10 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             string connectionString = _configuration.GetConnectionString("SQLServerDBConnectionString");
             using (var connection = new SqlConnection(connectionString))
             {
-                connection.Open();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    connection.Open();
+                }
                 using (var bulkCopy = new SqlBulkCopy(connection))
                 {
                     bulkCopy.DestinationTableName = "SmartLeadsExportedContacts";
