@@ -130,6 +130,7 @@ builder.Services.AddScoped<LeadsPortalWebhookRepository>();
 builder.Services.AddScoped<SmartLeadsEmailStatisticsRepository>();
 builder.Services.AddScoped<MessageHistoryRepository>();
 builder.Services.AddScoped<SmartLeadsAllLeadsRepository>();
+builder.Services.AddScoped<SmartleadCampaignRepository>();
 
 builder.Services.AddScoped(provider =>
     {
