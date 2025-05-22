@@ -17,7 +17,7 @@ public class SmartLeadsExportedContactsService
     public async Task SaveExportedContacts(DateTime fromDate, DateTime toDate)
     {
         var exportedContacts = this.leadsPortalService.GetExportedToSmartleadsContacts(fromDate, fromDate).Result;
-        if(exportedContacts == null)
+        if (exportedContacts == null)
         {
             Console.WriteLine("No exported contacts for {fromDate}");
             return;
@@ -27,7 +27,10 @@ public class SmartLeadsExportedContactsService
 
         using (var connection = this.dbConnectionFactory.CreateConnection())
         {
-            connection.Open();
+            if (connection.State != System.Data.ConnectionState.Open)
+            {
+                connection.Open();
+            }
 
             using (var transaction = connection.BeginTransaction())
             {

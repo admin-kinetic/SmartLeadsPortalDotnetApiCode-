@@ -31,12 +31,7 @@ public class DbConnectionFactory : IDisposable
 
     public IDbConnection GetSqlConnection()
     {
-        if (_sqlConnection == null || _sqlConnection.State == ConnectionState.Closed)
-        {
-            _sqlConnection = CreateConnection(_sqlConnectionString, () => new SqlConnection(_sqlConnectionString));
-        }
-
-        return _sqlConnection;
+        return new SqlConnection(_sqlConnectionString);
     }
 
     //public IDbConnection GetLeadSqlConnection()
