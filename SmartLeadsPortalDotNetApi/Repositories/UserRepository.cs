@@ -24,6 +24,7 @@ public class UserRepository
                 SELECT Users.*, r.Name as RoleName From Users
                 LEFT JOIN UserRoles ur ON ur.EmployeeId = Users.EmployeeId
                 LEFT JOIN Roles r ON r.Id = ur.RoleId
+                WHERE Users.IsActive = 1
              """;
             var queryParam = new
             {
@@ -33,6 +34,7 @@ public class UserRepository
 
             var countQuery = """ 
                 SELECT Count(EmployeeId) From Users
+                WHERE IsActive = 1
             """;
 
             var countQueryParam = new
@@ -64,9 +66,9 @@ public class UserRepository
 
             if (whereClause.Count > 0)
             {
-                var whereStatement = " WHERE " + string.Join(" AND ", whereClause);
-                baseQuery += whereStatement;
-                countQuery += whereStatement;
+                var filterClause = " AND " + string.Join(" AND ", whereClause);
+                baseQuery += filterClause;
+                countQuery += filterClause;
             }
 
             baseQuery += """
@@ -125,7 +127,7 @@ public class UserRepository
         using (var connection = this.connectionFactory.GetSqlConnection())
         {
             var query = """
-                SELECT * FROM Users
+                SELECT * FROM Users WHERE IsActive = 1
             """;
 
             var result = await connection.QueryAsync<SmartleadsPortalUser>(query);
@@ -281,6 +283,27 @@ public class UserRepository
                         DELETE FROM UserRoles WHERE EmployeeId = @EmployeeId
                         """;
             await connection.ExecuteAsync(delete, new { employeeId });
+        }
+    }
+    public async Task<int> DeactivateUsers(UsersUpdate request)
+    {
+        try
+        {
+            using (var connection = this.connectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spDeactivateUsers";
+                var param = new DynamicParameters();
+                param.Add("@id", request.Id);
+
+                int ret = await connection.ExecuteAsync(_proc, param);
+
+                return ret;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Database error: " + ex.Message);
         }
     }
 }
