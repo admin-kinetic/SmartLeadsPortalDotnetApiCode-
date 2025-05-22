@@ -126,5 +126,12 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             await this.userRepository.RemoveRole(employeeId);
             return this.Ok();
         }
+
+        [HttpPost("deactivateusers")]
+        public async Task<IActionResult> DeactivateUsers([FromBody] UsersUpdate param)
+        {
+            await this.userRepository.DeactivateUsers(param);
+            return this.Ok();
+        }
     }
 }
