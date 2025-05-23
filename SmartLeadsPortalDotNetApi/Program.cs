@@ -30,6 +30,9 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
+// Initialize the SqlRetryHelper with logger
+DbExecution.Initialize(Log.Logger);
+
 // Add services to the container.
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
