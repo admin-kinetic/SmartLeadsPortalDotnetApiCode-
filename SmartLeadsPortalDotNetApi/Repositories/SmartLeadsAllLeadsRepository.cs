@@ -11,24 +11,29 @@ public class SmartLeadsAllLeadsRepository
 {
     private readonly DbConnectionFactory _dbConnectionFactory;
     private readonly SmartleadCampaignRepository smartleadCampaignRepository;
+    private readonly ILogger<SmartLeadsAllLeadsRepository> logger;
 
-    public SmartLeadsAllLeadsRepository(DbConnectionFactory dbConnectionFactory, SmartleadCampaignRepository smartleadCampaignRepository)
+    public SmartLeadsAllLeadsRepository(DbConnectionFactory dbConnectionFactory, SmartleadCampaignRepository smartleadCampaignRepository, ILogger<SmartLeadsAllLeadsRepository> logger)
     {
         _dbConnectionFactory = dbConnectionFactory;
         this.smartleadCampaignRepository = smartleadCampaignRepository;
+        this.logger = logger;
     }
 
     public async Task UpsertLeadFromEmailSent(EmailSentPayload payload)
     {
+        this.logger.LogInformation("Start UpsertLeadFromEmailSent");
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
         using var connection = _dbConnectionFactory.GetSqlConnection();
         if (connection.State != System.Data.ConnectionState.Open)
         {
-            connection.Open();
+            await connection.OpenAsync();
         }
 
         var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id);
 
-        using var transaction = connection.BeginTransaction();
+        using var transaction = await connection.BeginTransactionAsync();
         try
         {
 
@@ -63,11 +68,13 @@ public class SmartLeadsAllLeadsRepository
             """;
 
             await connection.ExecuteAsync(upsert, lead, transaction);
-            transaction.Commit();
+            await transaction.CommitAsync();
+            this.logger.LogInformation("UpsertLeadFromEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync();
+            this.logger.LogError(ex, "Error on UpsertLeadFromEmailSent");
             throw;
         }
     }
