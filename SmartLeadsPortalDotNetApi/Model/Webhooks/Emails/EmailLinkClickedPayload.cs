@@ -4,6 +4,8 @@ namespace SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 
 public class EmailLinkClickedPayload
 {
+    public string? sl_email_lead_id { get; set; }
+    public int? sl_email_lead_map_id { get; set; }
     public string? campaign_status { get; set; }
     public int? client_id { get; set; }
     public string? stats_id { get; set; }

@@ -11,24 +11,29 @@ public class SmartLeadsAllLeadsRepository
 {
     private readonly DbConnectionFactory _dbConnectionFactory;
     private readonly SmartleadCampaignRepository smartleadCampaignRepository;
+    private readonly ILogger<SmartLeadsAllLeadsRepository> logger;
 
-    public SmartLeadsAllLeadsRepository(DbConnectionFactory dbConnectionFactory, SmartleadCampaignRepository smartleadCampaignRepository)
+    public SmartLeadsAllLeadsRepository(DbConnectionFactory dbConnectionFactory, SmartleadCampaignRepository smartleadCampaignRepository, ILogger<SmartLeadsAllLeadsRepository> logger)
     {
         _dbConnectionFactory = dbConnectionFactory;
         this.smartleadCampaignRepository = smartleadCampaignRepository;
+        this.logger = logger;
     }
 
     public async Task UpsertLeadFromEmailSent(EmailSentPayload payload)
     {
+        this.logger.LogInformation("Start UpsertLeadFromEmailSent");
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
         using var connection = _dbConnectionFactory.GetSqlConnection();
         if (connection.State != System.Data.ConnectionState.Open)
         {
-            connection.Open();
+            await connection.OpenAsync();
         }
 
         var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id);
 
-        using var transaction = connection.BeginTransaction();
+        using var transaction = await connection.BeginTransactionAsync();
         try
         {
 
@@ -63,11 +68,71 @@ public class SmartLeadsAllLeadsRepository
             """;
 
             await connection.ExecuteAsync(upsert, lead, transaction);
-            transaction.Commit();
+            await transaction.CommitAsync();
+            this.logger.LogInformation("UpsertLeadFromEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
-            transaction.Rollback();
+            await transaction.RollbackAsync();
+            this.logger.LogError(ex, "Error on UpsertLeadFromEmailSent");
+            throw;
+        }
+    }
+
+    public async Task UpsertLeadFromEmailLinkClick(EmailLinkClickedPayload payload)
+    {
+        this.logger.LogInformation("Start UpsertLeadFromEmailLinkClick");
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            await connection.OpenAsync();
+        }
+
+        var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id.Value);
+
+        using var transaction = await connection.BeginTransactionAsync();
+        try
+        {
+
+            var (firstName, lastName) = SplitNameByLastSpace(payload.to_name);
+            var lead = new
+            {
+                LeadId = payload.sl_email_lead_id,
+                Email = payload.to_email,
+                CampaignId = payload.campaign_id,
+                FirstName = firstName,
+                LastName = lastName,
+                Bdr = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+                CreatedBy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+                QABy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+            };
+
+            var upsert = """
+                MERGE INTO SmartLeadAllLeads WITH (ROWLOCK) AS target
+                USING (SELECT 
+                            @LeadId AS LeadId,
+                            @Email AS Email,
+                            @CampaignId AS CampaignId) AS source
+                ON (target.LeadId = source.LeadId)
+                WHEN MATCHED THEN
+                    UPDATE SET
+                        Email = source.Email,
+                        CampaignId = source.CampaignId
+                WHEN NOT MATCHED THEN
+                    INSERT (LeadId, Email, CampaignId, CreatedAt, LeadStatus, FirstName, LastName, Bdr, CreatedBy, QABy)
+                    VALUES (source.LeadId, source.Email, source.CampaignId, GETDATE(), 'INPROGRESS', @FirstName, @LastName, @Bdr, @CreatedBy, @QABy);
+            """;
+
+            await connection.ExecuteAsync(upsert, lead, transaction);
+            await transaction.CommitAsync();
+            this.logger.LogInformation("UpsertLeadFromEmailLinkClick took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            this.logger.LogError(ex, "Error on UpsertLeadFromEmailLinkClick");
             throw;
         }
     }

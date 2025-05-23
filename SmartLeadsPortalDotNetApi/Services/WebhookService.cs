@@ -2,6 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Data.SqlClient;
+using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services.Model;
@@ -50,25 +51,17 @@ public class WebhookService
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        int retryCount = 3;
-        while (retryCount > 0)
+        await DbExecution.ExecuteWithRetryAsync(async () =>
         {
-            try
-            {
-                await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
-                break;
-            }
-            catch (SqlException ex) when (ex.Number == 1205) // Deadlock error code
-            {
-                retryCount--;
-                if (retryCount == 0)
-                {
-                    throw; // Re-throw the exception if retries are exhausted
-                }
-                await Task.Delay(100); // Wait before retrying
-            }
-        }
+            await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
+            return true;
+        });
 
+        await DbExecution.ExecuteWithRetryAsync(async () =>
+        {
+            await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject);
+            return true;
+        });
     }
 
     public async Task HandleReply(string payload)
@@ -104,11 +97,11 @@ public class WebhookService
 
     public async Task HandleOpen(string payload)
     {
-        this.logger.LogInformation("Handling open webhook");
+        this.logger.LogInformation("Handling email open webhook");
 
         var emailOpenPayload = JsonSerializer.Deserialize<EmailOpenPayload>(payload);
 
-        this.logger.LogInformation($"Handling open webhook for {emailOpenPayload.to_email}");
+        this.logger.LogInformation($"Handling email open webhook for {emailOpenPayload.to_email}");
         var email = emailOpenPayload.to_email;
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
@@ -117,34 +110,21 @@ public class WebhookService
 
         var sequenceNumber = emailOpenPayload.sequence_number;
 
-        int retryCount = 3;
-        while (retryCount > 0)
+        
+        await DbExecution.ExecuteWithRetryAsync(async () =>
         {
-            try
-            {
-                await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
-
-                break;
-            }
-            catch (SqlException ex) when (ex.Number == 1205) // Deadlock error code
-            {
-                retryCount--;
-                if (retryCount == 0)
-                {
-                    throw; // Re-throw the exception if retries are exhausted
-                }
-                await Task.Delay(100); // Wait before retrying
-            }
-        }
+            await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
+            return true;
+        });
     }
 
     internal async Task HandleEmailSent(string payload)
     {
-        this.logger.LogInformation("Handling open webhook");
+        this.logger.LogInformation("Handling email sent");
 
         var emailSentPayload = JsonSerializer.Deserialize<EmailSentPayload>(payload);
 
-        this.logger.LogInformation($"Handling open webhook for {emailSentPayload.to_email}");
+        this.logger.LogInformation($"Handling email sent webhook for {emailSentPayload.to_email}");
         var email = emailSentPayload.to_email;
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
@@ -153,27 +133,23 @@ public class WebhookService
 
         var sequenceNumber = emailSentPayload.sequence_number;
 
-        int retryCount = 3;
-        while (retryCount > 0)
+        await DbExecution.ExecuteWithRetryAsync(async () =>
         {
-            try
-            {
-                await _smartLeadsEmailStatisticsRepository.UpsertEmailSent(emailSentPayload);
-                await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
-                await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload);
+            await _smartLeadsEmailStatisticsRepository.UpsertEmailSent(emailSentPayload);
+            return true;
+        });
 
-                break;
-            }
-            catch (SqlException ex) when (ex.Number == 1205) // Deadlock error code
-            {
-                retryCount--;
-                if (retryCount == 0)
-                {
-                    throw; // Re-throw the exception if retries are exhausted
-                }
-                await Task.Delay(100); // Wait before retrying
-            }
-        }
+        await DbExecution.ExecuteWithRetryAsync(async () =>
+        {
+            await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
+            return true;
+        });
+
+        await DbExecution.ExecuteWithRetryAsync(async () =>
+        {
+            await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload);
+            return true;
+        });
     }
 
     internal async Task HandleEmailBounce(string payload)
