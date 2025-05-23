@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Services;
 using System.Data;
@@ -7,6 +8,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 {
     public class SmartLeadsRepository: SQLDBService
     {
+        private readonly DbConnectionFactory dbConnectionFactory;
+        public SmartLeadsRepository(DbConnectionFactory dbConnectionFactory)
+        {
+            this.dbConnectionFactory = dbConnectionFactory;
+        }
         public async Task<SmartLeadsCallTasksResponseModel<SmartLeadsCallTasks>> GetAllSmartLeadsCallTaskList(SmartLeadsCallTasksRequest model, string employeeId)
         {
             try
@@ -44,6 +50,25 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             finally
             {
                 con.Dispose();
+            }
+        }
+        public async Task<SmartLeadsProspectDetails?> GetSmartLeadsProspectDetails(ProspectModelParam request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spLeadProspectCallDetails";
+                    var param = new DynamicParameters();
+                    param.Add("@email", request.Email);
+                    SmartLeadsProspectDetails? result = await connection.QuerySingleOrDefaultAsync<SmartLeadsProspectDetails>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
             }
         }
     }

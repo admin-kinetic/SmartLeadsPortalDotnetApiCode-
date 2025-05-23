@@ -127,7 +127,9 @@ public class UserRepository
         using (var connection = this.connectionFactory.GetSqlConnection())
         {
             var query = """
-                SELECT * FROM Users WHERE IsActive = 1
+                SELECT * FROM Users us 
+                INNER JOIN UserRoles ur ON us.EmployeeId = ur.EmployeeId
+                WHERE us.IsActive = 1
             """;
 
             var result = await connection.QueryAsync<SmartleadsPortalUser>(query);
