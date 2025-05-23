@@ -1,8 +1,14 @@
-﻿namespace SmartLeadsPortalDotNetApi.Configs
+﻿namespace SmartLeadsPortalDotNetApi.Configs;
+
+public interface ISmartLeadConfig
 {
-    public class SmartLeadConfig
-    {
-        public string? BaseUrl { get; set; }
-        public string? ApiKey { get; set; }
-    }
+    string? BaseUrl { get; set; }
+    string? ApiKey { get; set; }
 }
+
+public class SmartLeadConfig : ISmartLeadConfig
+{
+    public string? BaseUrl { get; set; }
+    public string? ApiKey { get; set; }
+}
+

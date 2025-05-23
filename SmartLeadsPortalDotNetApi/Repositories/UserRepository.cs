@@ -308,4 +308,17 @@ public class UserRepository
             throw new Exception("Database error: " + ex.Message);
         }
     }
+
+    public async Task<int> GetSmartleadAccountByEmployeeId(string? employeeId)
+    {
+        using var connection = this.connectionFactory.GetSqlConnection();
+
+        var query = """
+                Select Top 1 sla.Id From Users u
+                INNER JOIN SmartleadsAccountUsers slau ON slau.EmployeeId = u.EmployeeId
+                INNER JOIN SmartleadsAccounts sla ON sla.Id = slau.SmartleadsAccountId 
+                Where u.EmployeeId = @EmployeeId
+            """;
+        return await connection.QueryFirstOrDefaultAsync<int>(query, new { employeeId });
+    }
 }

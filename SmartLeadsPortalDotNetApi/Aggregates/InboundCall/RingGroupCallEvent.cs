@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
+using SmartLeadsPortalDotNetApi.Converters;
 
 namespace SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 
@@ -26,6 +27,7 @@ public class RingGroupCallEvent : IInboundCallEvent
     [JsonPropertyName("call_duration")]
     public int? CallDuration { get; set; }
     [JsonPropertyName("conversation_duration")]
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? ConversationDuration { get; set; }
     [JsonPropertyName("ring_group_name")]
     public string? RingGroupName { get; set; }
