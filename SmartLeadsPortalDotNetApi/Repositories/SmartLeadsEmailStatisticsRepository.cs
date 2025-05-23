@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using System.Transactions;
+using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Services.Model;
@@ -18,9 +19,10 @@ public class SmartLeadsEmailStatisticsRepository
 
     public async Task UpsertEmailOpenCount(EmailOpenPayload emailOpenPayload)
     {
+
         _logger.LogInformation("Start UpsertEmailOpenCount");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
+       
         using var connection = _dbConnectionFactory.GetSqlConnection();
         if (connection.State != System.Data.ConnectionState.Open)
         {
@@ -91,14 +93,15 @@ public class SmartLeadsEmailStatisticsRepository
                         ClickCount = target.ClickCount + 1, 
                         ClickTime = @timeClicked
                 WHEN NOT MATCHED THEN
-                    INSERT (Guid, LeadEmail, LeadName, SequenceNumber, EmailSubject, ClickCount, ClickTime)
-                        VALUES (NewId(), @leadEmail, @leadName, @sequenceNumber, @emailSubject, 1, @timeClicked);
+                    INSERT (Guid, LeadId, LeadEmail, LeadName, SequenceNumber, EmailSubject, ClickCount, ClickTime)
+                        VALUES (NewId(), @LeadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, 1, @timeClicked);
             """;
 
             await connection.ExecuteAsync(upsert,
                 new
                 {
                     leadEmail = emaiLinkClickedPayload.to_email,
+                    leadId = emaiLinkClickedPayload.sl_email_lead_id,
                     leadName = emaiLinkClickedPayload.to_name,
                     sequenceNumber = emaiLinkClickedPayload.sequence_number,
                     emailSubject = emaiLinkClickedPayload.subject,

@@ -1,4 +1,3 @@
-using System;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
 
@@ -6,6 +5,15 @@ namespace SmartLeadsPortalDotNetApi.Database;
 
 public static class DbExecution
 {
+
+    private static Serilog.ILogger _logger;
+
+    // Initialize the logger once
+    public static void Initialize(Serilog.ILogger logger)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
     public static async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, int maxRetries = 3)
     {
         int retryCount = 0;
@@ -17,14 +25,17 @@ public static class DbExecution
             }
             catch (SqlException ex) when (ex.Number == 1205) // Deadlock
             {
+                _logger.Warning(ex, "Deadlock detected. Retrying...");
                 if (retryCount++ >= maxRetries)
                     throw;
 
                 var delay = TimeSpan.FromMilliseconds(Math.Pow(2, retryCount) * 100);
+                _logger.Information("Retrying after {Delay} ms", delay.TotalMilliseconds);
                 await Task.Delay(delay);
             }
         }
     }
+
 
     public static async Task<T> ExecuteWithRetryAsync<T>(
     string connectionString,
