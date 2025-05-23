@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
+using SmartLeadsPortalDotNetApi.Converters;
 
 namespace SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 
@@ -24,11 +25,12 @@ public class UserInboundCompletedEvent : IInboundCallEvent
     [JsonPropertyName("call_duration")]
     public int? CallDuration { get; set; }
     [JsonPropertyName("conversation_duration")]
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? ConversationDuration { get; set; }
     [JsonPropertyName("queue_name")]
     public string? QueueName { get; set; }
     [JsonPropertyName("ring_group_name")]
     public string? RingGroupName { get; set; }
     [JsonPropertyName("timestamp")]
-    public DateTime? Timestamp => CallStartAt?.AddSeconds(CallDuration.Value);
+    public DateTime? Timestamp => CallStartAt?.AddSeconds(CallDuration ?? 0);
 }

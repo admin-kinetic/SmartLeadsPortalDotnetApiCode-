@@ -220,7 +220,8 @@
         public string? total_count { get; set; }
         public string? sequence_count { get; set; }
         public string? drafted_count { get; set; }
-        public string? tags { get; set; }
+
+        public List<Tag>? tags { get; set; }
         public string? unique_sent_count { get; set; }
         public string? unique_open_count { get; set; }
         public string? unique_click_count { get; set; }
@@ -234,6 +235,13 @@
         public string? client_name { get; set; }
         public string? client_email { get; set; }
         public string? client_company_name { get; set; }
+    }
+
+    public class Tag
+    {
+        public int? id { get; set; }
+        public string? name { get; set; }
+        public string? color { get; set; }
     }
     
     public class CampaignLeadStatsData

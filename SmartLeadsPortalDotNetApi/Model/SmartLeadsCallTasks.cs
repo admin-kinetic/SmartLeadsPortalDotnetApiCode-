@@ -47,4 +47,15 @@
         public int Page { get; set; }
         public int PageSize { get; set; }
     }
+
+    public class SmartLeadsProspectDetails
+    {
+        public string? UserPhoneNumber { get; set; }
+        public string? ProspectNumber { get; set; }
+        public int? CallPurposeId { get; set; }
+        public int? CallDispositionId { get; set; }
+        public string? Notes { get; set; }
+        public int? CallTagsId { get; set; }
+        public int? CallStateId { get; set; }
+    }
 }
