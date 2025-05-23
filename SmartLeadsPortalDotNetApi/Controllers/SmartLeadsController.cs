@@ -227,5 +227,19 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var ret = await this.callTasksTableRepository.DeleteCallTasks(request);
             return Ok(ret);
         }
+
+        [HttpPost("get-prospect-call-details")]
+        public async Task<IActionResult> GetSmartLeadsProspectDetails(ProspectModelParam param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetSmartLeadsProspectDetails(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 }
