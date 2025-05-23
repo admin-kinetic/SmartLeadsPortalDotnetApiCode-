@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
+using SmartLeadsPortalDotNetApi.Converters;
 
 namespace SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 
@@ -24,6 +25,7 @@ public class UserOutboundCompletedEvent : IOutboundCallEvent
     [JsonPropertyName("call_duration")]
     public int? CallDuration { get; set; }
     [JsonPropertyName("conversation_duration")]
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? ConversationDuration { get; set; }
     [JsonPropertyName("timestamp")]
     public DateTime? Timestamp => CallStartAt?.AddSeconds(CallDuration.Value);
