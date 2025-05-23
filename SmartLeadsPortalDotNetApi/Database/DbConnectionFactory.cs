@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using System.Data;
+using System.Data.Common;
 
 namespace SmartLeadsPortalDotNetApi.Database;
 public class DbConnectionFactory : IDisposable
@@ -9,7 +10,7 @@ public class DbConnectionFactory : IDisposable
     //private readonly string _leadsqlConnectionString;
     //private readonly string _mysqlConnectionString;
     private readonly ILogger<DbConnectionFactory> logger;
-    private IDbConnection? _sqlConnection;
+    private DbConnection? _sqlConnection;
     //private IDbConnection? _leadsqlConnection;
     //private IDbConnection? _mySqlConnection;
 
@@ -29,7 +30,7 @@ public class DbConnectionFactory : IDisposable
         this.logger.LogInformation($"SQL Connection String: {this._sqlConnectionString}");
     }
 
-    public IDbConnection GetSqlConnection()
+    public DbConnection GetSqlConnection()
     {
         return new SqlConnection(_sqlConnectionString);
     }

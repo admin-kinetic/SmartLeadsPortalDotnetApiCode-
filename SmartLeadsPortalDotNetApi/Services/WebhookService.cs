@@ -2,6 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Data.SqlClient;
+using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services.Model;
@@ -68,7 +69,6 @@ public class WebhookService
                 await Task.Delay(100); // Wait before retrying
             }
         }
-
     }
 
     public async Task HandleReply(string payload)
@@ -104,11 +104,11 @@ public class WebhookService
 
     public async Task HandleOpen(string payload)
     {
-        this.logger.LogInformation("Handling open webhook");
+        this.logger.LogInformation("Handling email open webhook");
 
         var emailOpenPayload = JsonSerializer.Deserialize<EmailOpenPayload>(payload);
 
-        this.logger.LogInformation($"Handling open webhook for {emailOpenPayload.to_email}");
+        this.logger.LogInformation($"Handling email open webhook for {emailOpenPayload.to_email}");
         var email = emailOpenPayload.to_email;
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
@@ -140,11 +140,11 @@ public class WebhookService
 
     internal async Task HandleEmailSent(string payload)
     {
-        this.logger.LogInformation("Handling open webhook");
+        this.logger.LogInformation("Handling email sent");
 
         var emailSentPayload = JsonSerializer.Deserialize<EmailSentPayload>(payload);
 
-        this.logger.LogInformation($"Handling open webhook for {emailSentPayload.to_email}");
+        this.logger.LogInformation($"Handling email sent webhook for {emailSentPayload.to_email}");
         var email = emailSentPayload.to_email;
         if (email == null || string.IsNullOrWhiteSpace(email.ToString()))
         {
