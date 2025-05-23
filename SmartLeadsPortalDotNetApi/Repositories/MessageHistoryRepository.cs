@@ -19,9 +19,9 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
             if (connection.State != System.Data.ConnectionState.Open)
             {
-                connection.Open();
+                await connection.OpenAsync();
             }
-            using var transaction = connection.BeginTransaction();
+            using var transaction = await connection.BeginTransactionAsync();
 
             try
             {
@@ -69,11 +69,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
              """;
 
                 await connection.ExecuteAsync(upsert, email, transaction);
-                transaction.Commit();
+                await transaction.CommitAsync();
             }
             catch (System.Exception)
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync();
                 throw;
             }
         }
