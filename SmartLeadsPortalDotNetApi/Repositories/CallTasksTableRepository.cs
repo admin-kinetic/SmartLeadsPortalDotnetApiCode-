@@ -37,34 +37,30 @@ public class CallTasksTableRepository
                     slal.FirstName + ' ' + slal.LastName AS FullName, 
                     sle.SequenceNumber,
                     CASE 
-                        WHEN slc.Name = 'Dondi (US/CA) Bot - Job Ads (manual)' 
-                            OR  slc.Name = '(US/CA) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name LIKE '%US/CA%' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
-                        WHEN slc.Name = 'Dondi (AUS) Bot - Job Ads (manual)' 
-                            OR  slc.Name = '(AUS) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name LIKE '%AUS%' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                        WHEN slc.Name = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
+                        WHEN slc.Name LIKE '%UK%' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                        WHEN slc.Name = '(NZ) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name LIKE '%NZ%' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
-                        WHEN slc.Name = '(EU) Bot - Job Ads (full auto)' THEN 
+                        WHEN slc.Name LIKE '%EU%' THEN 
                             SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
                     END AS LocalTime,
                     ABS(
                         DATEDIFF(
                             MINUTE, 
                             CAST(CASE 
-                                    WHEN slc.Name = 'Dondi (US/CA) Bot - Job Ads (manual)' 
-                                        OR slc.Name = '(US/CA) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name LIKE '%US/CA%' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
-                                    WHEN slc.Name = 'Dondi (AUS) Bot - Job Ads (manual)' 
-                                        OR slc.Name = '(AUS) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name LIKE '%AUS%' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                                    WHEN slc.Name = 'Dondi (UK) Bot - Job Ads (manual)' THEN 
+                                    WHEN slc.Name LIKE '%UK%' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                                    WHEN slc.Name = '(NZ) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name LIKE '%NZ%' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
-                                    WHEN slc.Name = '(EU) Bot - Job Ads (full auto)' THEN 
+                                    WHEN slc.Name LIKE '%EU%' THEN 
                                         SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
                                 END AS TIME),
                             CAST('09:00:00' AS TIME)
@@ -81,7 +77,13 @@ public class CallTasksTableRepository
                     sle.Notes,
                     sle.Due,
                     sle.IsDeleted,
-                    ISNULL(cs_applied.CategoryName, 'Low') AS Category
+                    ISNULL(cs_applied.CategoryName, 'Low') AS Category,
+                    CASE 
+                        WHEN ISNULL(cs_applied.CategoryName, 'Low') = 'Low' THEN 1
+                        WHEN cs_applied.CategoryName = 'High' THEN 2
+                        WHEN cs_applied.CategoryName = 'Urgent' THEN 3
+                        ELSE 1
+                    END AS SortOrder
                 FROM SmartLeadsEmailStatistics sle
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
@@ -199,13 +201,13 @@ public class CallTasksTableRepository
                         baseQuery += $" ORDER BY sle.Due {(request.sorting.direction == "asc" ? "ASC" : "DESC")} ";
                         break;
                     case "priority":
-                        baseQuery += $" ORDER BY sle.OpenCount {(request.sorting.direction == "asc" ? "ASC" : "DESC")} ";
+                        baseQuery += $" ORDER BY SortOrder {(request.sorting.direction == "asc" ? "ASC" : "DESC")} ";
                         break;
                     case "sequence":
                         baseQuery += $" ORDER BY TimeDifferenceInMinutes {(request.sorting.direction == "asc" ? "ASC" : "DESC")} , sle.SequenceNumber DESC   ";
                         break;
                     default:
-                        baseQuery += $" ORDER BY sle.OpenCount DESC";
+                        baseQuery += $" ORDER BY SortOrder DESC";
                         break;
                 }
             }
