@@ -117,20 +117,20 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             try
             {
-                string _proc = "sm_spGetLeadProspectPhoneNumber";
-                var param = new DynamicParameters();
-                param.Add("@email", email);
-                CallLogLeadNo? list = await SqlMapper.QuerySingleOrDefaultAsync<CallLogLeadNo>(leadcon, _proc, param, commandType: CommandType.StoredProcedure);
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetLeadProspectPhoneNumber";
+                    var param = new DynamicParameters();
+                    param.Add("@email", email);
 
-                return list;
+                    var result = await connection.QuerySingleOrDefaultAsync<CallLogLeadNo>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result ?? new CallLogLeadNo { phone = null };
+                }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw new Exception(e.Message);
-            }
-            finally
-            {
-                leadcon.Dispose();
+                return new CallLogLeadNo { phone = null };
             }
         }
         public async Task<int> UpdateCallLogs(CallsUpdate request)

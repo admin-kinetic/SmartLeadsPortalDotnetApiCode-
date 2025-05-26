@@ -27,7 +27,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [EnableCors("CorsApi")]
         public async Task<IActionResult> GetleadContactNoByEmail(string email)
         {
-            var list = await this.leadsPortalHttpService.GetContactDetailsByEmail(email);
+            //var list = await this.leadsPortalHttpService.GetContactDetailsByEmail(email);
+            var list = await _callLogsRepository.GetleadContactNoByEmail(email);
             return Ok(list);
         }
 
