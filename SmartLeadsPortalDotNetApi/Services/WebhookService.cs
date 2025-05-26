@@ -17,6 +17,7 @@ public class WebhookService
     private readonly SmartLeadsEmailStatisticsRepository _smartLeadsEmailStatisticsRepository;
     private readonly MessageHistoryRepository _messageHistoryRepository;
     private readonly SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository;
+    private readonly DbExecution dbExecution;
     private readonly ILogger<WebhookService> logger;
 
     public WebhookService(
@@ -27,6 +28,7 @@ public class WebhookService
         SmartLeadsEmailStatisticsRepository smartLeadsEmailStatisticsRepository,
         MessageHistoryRepository messageHistoryRepository,
         SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository,
+        DbExecution dbExecution,
         ILogger<WebhookService> logger)
     {
         this.automatedLeadsRepository = automatedLeadsRepository;
@@ -35,6 +37,7 @@ public class WebhookService
         _smartLeadsEmailStatisticsRepository = smartLeadsEmailStatisticsRepository;
         _messageHistoryRepository = messageHistoryRepository;
         this.smartLeadsAllLeadsRepository = smartLeadsAllLeadsRepository;
+        this.dbExecution = dbExecution;
         this.logger = logger;
     }
 
@@ -51,13 +54,13 @@ public class WebhookService
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        await DbExecution.ExecuteWithRetryAsync(async () =>
+        await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
             return true;
         });
 
-        await DbExecution.ExecuteWithRetryAsync(async () =>
+        await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject);
             return true;
@@ -111,7 +114,7 @@ public class WebhookService
         var sequenceNumber = emailOpenPayload.sequence_number;
 
         
-        await DbExecution.ExecuteWithRetryAsync(async () =>
+        await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
             return true;
@@ -133,19 +136,24 @@ public class WebhookService
 
         var sequenceNumber = emailSentPayload.sequence_number;
 
-        await DbExecution.ExecuteWithRetryAsync(async () =>
+        // dbExecution.ExecuteInsideBackgroundTaskAsync(async () =>
+        // {
+        //     await _smartLeadsEmailStatisticsRepository.UpsertEmailSent(emailSentPayload);
+        // });
+
+        await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartLeadsEmailStatisticsRepository.UpsertEmailSent(emailSentPayload);
             return true;
         });
 
-        await DbExecution.ExecuteWithRetryAsync(async () =>
+        await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
             return true;
         });
 
-        await DbExecution.ExecuteWithRetryAsync(async () =>
+        await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload);
             return true;
