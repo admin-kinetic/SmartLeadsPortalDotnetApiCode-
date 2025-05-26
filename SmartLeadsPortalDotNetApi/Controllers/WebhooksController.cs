@@ -1,6 +1,4 @@
-using System;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services;
@@ -18,7 +16,7 @@ public class WebhooksController : ControllerBase
     private readonly string[] webhookSecrets = {
         "0f47052b-e08b-488b-8ec3-dd949eec520a",
         "54251016-7093-4899-8111-63cc96e9757c"
-        };
+    };
 
     public WebhooksController(WebhooksRepository webhooksRepository, WebhookService webhookService, ILogger<WebhooksController> logger)
     {
@@ -32,6 +30,14 @@ public class WebhooksController : ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
+
+        using var jsonDoc = JsonDocument.Parse(payload);
+        (bool flowControl, IActionResult value) = ValidateSecretKey(jsonDoc);
+        if (!flowControl)
+        {
+            return value;
+        }
+
         await this.webhooksRepository.InsertWebhook("EMAIL_SENT", payload);
         await this.webhookService.HandleEmailSent(payload);
         return Ok();
@@ -42,6 +48,14 @@ public class WebhooksController : ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
+
+        using var jsonDoc = JsonDocument.Parse(payload);
+        (bool flowControl, IActionResult value) = ValidateSecretKey(jsonDoc);
+        if (!flowControl)
+        {
+            return value;
+        }
+
         await this.webhooksRepository.InsertWebhook("FIRST_EMAIL_SENT", payload);
         await this.webhookService.HandleEmailSent(payload);
         return Ok();
@@ -52,6 +66,14 @@ public class WebhooksController : ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
+
+        using var jsonDoc = JsonDocument.Parse(payload);
+        (bool flowControl, IActionResult value) = ValidateSecretKey(jsonDoc);
+        if (!flowControl)
+        {
+            return value;
+        }
+
         await this.webhooksRepository.InsertWebhook("EMAIL_OPEN", payload);
         await this.webhookService.HandleOpen(payload);
         return Ok();
@@ -71,6 +93,14 @@ public class WebhooksController : ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
+
+        using var jsonDoc = JsonDocument.Parse(payload);
+        (bool flowControl, IActionResult value) = ValidateSecretKey(jsonDoc);
+        if (!flowControl)
+        {
+            return value;
+        }
+
         await this.webhooksRepository.InsertWebhook("EMAIL_LINK_CLICK", payload);
         await webhookService.HandleClick(payload);
         return Ok();
@@ -96,7 +126,7 @@ public class WebhooksController : ControllerBase
         return Ok();
     }
 
-    
+
     [HttpPost("lead-category-updated-prospect")]
     public async Task<IActionResult> LeadCategoryUpdatedProspect()
     {
@@ -228,7 +258,7 @@ public class WebhooksController : ControllerBase
         return Ok();
     }
 
-     [HttpPost("process-email-bounce/{webhookId}")]
+    [HttpPost("process-email-bounce/{webhookId}")]
     public async Task<IActionResult> ProcessEmailBounceByWebhookId(int webhookId)
     {
         var emailReplyWebhooks = await this.webhooksRepository.GetLeadCategoryUpdatedByWebhookId(webhookId);
@@ -246,5 +276,26 @@ public class WebhooksController : ControllerBase
             }
         }
         return Ok();
+    }
+
+    private (bool flowControl, IActionResult value) ValidateSecretKey(JsonDocument jsonDoc)
+    {
+        // local test logs 0ms
+        // this.logger.LogInformation("Validating secret key in webhook payload.");
+        // var timer = System.Diagnostics.Stopwatch.StartNew();
+
+        if (!jsonDoc.RootElement.TryGetProperty("secret_key", out JsonElement secretKeyElement))
+        {
+            return (flowControl: false, value: BadRequest("Missing secret_key in payload."));
+        }
+        string secretKey = secretKeyElement.GetString();
+        if (string.IsNullOrEmpty(secretKey) || !webhookSecrets.Contains(secretKey))
+        {
+            this.logger.LogWarning("Invalid secret key provided in webhook payload.");
+            return (flowControl: false, value: Unauthorized("Invalid secret key."));
+        }
+
+        // this.logger.LogInformation("Secret key validated successfully. It took {ElapsedMilliseconds} ms", timer.ElapsedMilliseconds);
+        return (flowControl: true, value: null);
     }
 }

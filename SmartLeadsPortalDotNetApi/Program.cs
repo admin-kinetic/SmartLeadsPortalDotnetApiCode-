@@ -10,6 +10,7 @@ using RestSharp;
 using Serilog;
 using SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
+using SmartLeadsPortalDotNetApi.BackgroundTasks;
 using SmartLeadsPortalDotNetApi.Configs;
 using SmartLeadsPortalDotNetApi.Conventions;
 using SmartLeadsPortalDotNetApi.Database;
@@ -29,9 +30,6 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/smartleadsportal.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 builder.Host.UseSerilog();
-
-// Initialize the SqlRetryHelper with logger
-DbExecution.Initialize(Log.Logger);
 
 // Add services to the container.
 builder.Services.AddHttpClient();
@@ -63,6 +61,10 @@ builder.Services.Configure<StorageConfig>(storageConfig =>
         storageConfig.AccountKey = accountKey;
     }
 });
+
+
+builder.Services.AddHostedService<WebhookBackgroundService>();
+builder.Services.AddSingleton<WebhookBackgroundTaskQueue>();
 
 builder.Services.AddScoped<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
@@ -134,6 +136,7 @@ builder.Services.AddScoped<SmartLeadsEmailStatisticsRepository>();
 builder.Services.AddScoped<MessageHistoryRepository>();
 builder.Services.AddScoped<SmartLeadsAllLeadsRepository>();
 builder.Services.AddScoped<SmartleadCampaignRepository>();
+builder.Services.AddScoped<DbExecution>();
 
 builder.Services.AddScoped(provider =>
     {
@@ -223,8 +226,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-
 var app = builder.Build();
+
 
 // Trigger database connection validation on startup
 using (var scope = app.Services.CreateScope())
