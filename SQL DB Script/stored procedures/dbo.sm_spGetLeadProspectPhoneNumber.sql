@@ -2,6 +2,6 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spGetLeadProspectPhoneNumber] @email VARCHAR
 AS  
 BEGIN   
 	SET NOCOUNT ON;
-	SELECT phone FROM Robotcrawledcontacts WHERE email=@email
+	SELECT PhoneNumber AS phone FROM [dbo].[SmartLeadAllLeads] WHERE Email=@email
 END
 GO
