@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using SmartLeadsPortalDotNetApi.Converters;
+
 namespace SmartLeadsPortalDotNetApi.Model;
 public class TableRequest
 {
@@ -13,6 +16,7 @@ public class Filter
 {
     public string? Column { get; set; }
     public string? Operator { get; set; }
+    [JsonConverter(typeof(StringFromStringOrNumberConverter))]
     public string? Value { get; set; }
 }
 
