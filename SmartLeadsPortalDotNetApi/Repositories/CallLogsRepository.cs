@@ -79,13 +79,15 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new InvalidOperationException("Failed to retrieve outbound call information.");
             }
 
+            CallLogFullName? callername = await GetProspectNameByPhone(keyword.UserPhoneNumber);
+
             try
             {
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     string _proc = "sm_spInsertCallLogsInbound";
                     var param = new DynamicParameters();
-                    param.Add("@usercaller", keyword.UserCaller);
+                    param.Add("@usercaller", string.IsNullOrEmpty(keyword.UserCaller) ? callername?.FullName : keyword.UserCaller);
                     param.Add("@userphonenumber", callLogsOutbound.CallerId);
                     param.Add("@leademail", keyword.LeadEmail);
                     param.Add("@prospectname", keyword.ProspectName);
@@ -230,6 +232,45 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             catch (Exception ex)
             {
                 throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<CallLogFullName?> GetEmployeeNameByPhonenumber(CallLogLeadNo request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetEmployeeNameByPhonenumber";
+                    var param = new DynamicParameters();
+                    param.Add("@phoneNumber", request.phone);
+
+                    var result = await connection.QuerySingleOrDefaultAsync<CallLogFullName>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result ?? new CallLogFullName { FullName = null };
+                }
+            }
+            catch (Exception)
+            {
+                return new CallLogFullName { FullName = null };
+            }
+        }
+        public async Task<CallLogFullName?> GetProspectNameByPhone(string phonenumber)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetProspectNameByPhoneNumber";
+                    var param = new DynamicParameters();
+                    param.Add("@phone", phonenumber);
+                    var result = await connection.QuerySingleOrDefaultAsync<CallLogFullName>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result ?? new CallLogFullName { FullName = null };
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
             }
         }
 
