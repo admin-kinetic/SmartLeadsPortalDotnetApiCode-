@@ -114,6 +114,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
+                LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 OUTER APPLY (
                     SELECT TOP 1 cs.CategoryName
                     FROM CategorySettings cs
@@ -124,7 +125,7 @@ public class CallTasksTableRepository
                             WHEN sle.OpenCount >= cs.OpenCount THEN cs.OpenCount
                             ELSE cs.ClickCount
                         END DESC
-                ) cs_applied
+                    ) cs_applied
                 WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
             """;
 
@@ -147,12 +148,16 @@ public class CallTasksTableRepository
                             parameters.Add("Email", $"%{filter.Value}%");
                             break;
                         case "fullname":
-                            whereClause.Add("slal.FirstName + ' ' + slal.LastName) LIKE @FullName");
+                            whereClause.Add("slal.FirstName + ' ' + slal.LastName) = @FullName");
                             parameters.Add("FullName", $"%{filter.Value}%");
                             break;
+                        case "assignedto":
+                            whereClause.Add("us.FullName = @AssignedTo");
+                            parameters.Add("AssignedTo", $"{filter.Value}");
+                            break;
                         case "campaignname":
-                            whereClause.Add("slc.Name LIKE @CampaignName");
-                            parameters.Add("CampaignName", $"%{filter.Value}%");
+                            whereClause.Add("slc.Name = @CampaignName");
+                            parameters.Add("CampaignName", $"{filter.Value}");
                             break;
                         case "subjectname":
                             whereClause.Add("sle.EmailSubject LIKE @SubjectName");
@@ -171,8 +176,16 @@ public class CallTasksTableRepository
                             parameters.Add("ClickCount", filter.Value);
                             break;
                         case "priority":
-                            whereClause.Add("cs_applied.CategoryName LIKE @Priority");
-                            parameters.Add("Priority", $"%{filter.Value}%");
+                            whereClause.Add("cs_applied.CategoryName = @Priority");
+                            parameters.Add("Priority", $"{filter.Value}");
+                            break;
+                        case "sequencenumber":
+                            whereClause.Add("sle.SequenceNumber = @SequenceNumber");
+                            parameters.Add("SequenceNumber", $"{filter.Value}");
+                            break;
+                        case "due":
+                            whereClause.Add($"CONVERT(DATE, sle.Due){this.operatorsMap[filter.Operator]} @Due");
+                            parameters.Add("Due", $"{filter.Value}");
                             break;
                         // Add more cases for other filterable columns
                         default:

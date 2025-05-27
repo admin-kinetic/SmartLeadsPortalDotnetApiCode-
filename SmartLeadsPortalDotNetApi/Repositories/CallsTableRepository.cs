@@ -114,31 +114,31 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                                 parameters.Add("ProspectNumber", $"%{filter.Value}%");
                                 break;
                             case "callstate":
-                                whereClause.Add("cs.StateName LIKE @CallState");
-                                parameters.Add("CallState", $"%{filter.Value}%");
+                                whereClause.Add("cs.StateName = @CallState");
+                                parameters.Add("CallState", $"{filter.Value}");
                                 break;
                             case "callpurpose":
-                                whereClause.Add("cp.CallPurposeName LIKE @CallPurpose");
-                                parameters.Add("CallPurpose", $"%{filter.Value}%");
+                                whereClause.Add("cp.CallPurposeName = @CallPurpose");
+                                parameters.Add("CallPurpose", $"{filter.Value}");
                                 break;
                             case "calldisposition":
-                                whereClause.Add("cd.CallDispositionName LIKE @CallDisposition");
-                                parameters.Add("CallDisposition", $"%{filter.Value}%");
+                                whereClause.Add("cd.CallDispositionName = @CallDisposition");
+                                parameters.Add("CallDisposition", $"{filter.Value}");
                                 break;
                             case "calltags":
-                                whereClause.Add("ct.TagName LIKE @CallTags");
-                                parameters.Add("CallTags", $"%{filter.Value}%");
+                                whereClause.Add("ct.TagName = @CallTags");
+                                parameters.Add("CallTags", $"{filter.Value}");
                                 break;
                             case "notes":
                                 whereClause.Add("cl.Notes LIKE @Notes");
                                 parameters.Add("Notes", $"%{filter.Value}%");
                                 break;
                             case "addedby":
-                                whereClause.Add("cl.AddedBy LIKE @AddedBy");
-                                parameters.Add("AddedBy", $"%{filter.Value}%");
+                                whereClause.Add("cl.AddedBy = @AddedBy");
+                                parameters.Add("AddedBy", $"{filter.Value}");
                                 break;
                             case "calleddate":
-                                whereClause.Add($"cl.CalledDate {this.operatorsMap[filter.Operator]} @CalledDate");
+                                whereClause.Add($"CONVERT(DATE, cl.CalledDate) {this.operatorsMap[filter.Operator]} @CalledDate");
                                 parameters.Add("CalledDate", filter.Value);
                                 break;
                             case "duration":
