@@ -64,5 +64,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(ret);
         }
 
+        [HttpPost("get-user-by-phoneno")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetEmployeeNameByPhonenumber(CallLogLeadNo param)
+        {
+            var list = await _callLogsRepository.GetEmployeeNameByPhonenumber(param);
+            return Ok(list);
+        }
+
     }
 }
