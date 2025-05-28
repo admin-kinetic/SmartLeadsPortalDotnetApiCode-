@@ -6,7 +6,7 @@ public class SmartLeadAllLeads
 {
     public int Id { get; set; }
     public string? Email { get; set; }
-    public int LeadId { get; set; }
+    public double LeadId { get; set; }
     public int? CampaignId { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
