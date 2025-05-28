@@ -6,7 +6,7 @@ public class SmartLeadsEmailStatistics
 {
     public int Id { get; set; }
     public Guid GuId { get; set; }
-    public int LeadId { get; set; }
+    public double LeadId { get; set; }
     public string? LeadEmail { get; set; }
     public string? LeadName { get; set; }
     public int? SequenceNumber { get; set; }
