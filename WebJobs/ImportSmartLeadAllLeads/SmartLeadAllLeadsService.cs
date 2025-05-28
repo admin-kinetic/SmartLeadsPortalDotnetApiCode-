@@ -57,7 +57,7 @@ public class SmartLeadAllLeadsService
 
                 var smartLeadAllLeads = allLeads.data.Select(lead => new SmartLeadAllLeads
                 {
-                    LeadId = int.Parse(lead.id),
+                    LeadId = double.Parse(lead.id),
                     Email = lead.email,
                     CampaignId = lead.campaigns.First()?.campaign_id,
                     FirstName = lead.first_name,
