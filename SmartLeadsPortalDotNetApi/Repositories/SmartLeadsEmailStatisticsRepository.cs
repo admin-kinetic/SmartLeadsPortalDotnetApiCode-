@@ -145,10 +145,11 @@ public class SmartLeadsEmailStatisticsRepository
                         LeadId = @leadId,
                         LeadName = @leadName,
                         EmailSubject = @emailSubject,
-                        EmailMessage = @emailMessage
+                        EmailMessage = @emailMessage,
+                        SentTime = @sentTime
                 WHEN NOT MATCHED THEN
-                    INSERT (Guid, LeadId, LeadEmail, LeadName, SequenceNumber, EmailSubject, EmailMessage)
-                        VALUES (NewId(), @leadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, @emailMessage);
+                    INSERT (Guid, LeadId, LeadEmail, LeadName, SequenceNumber, EmailSubject, EmailMessage, SentTime)
+                        VALUES (NewId(), @leadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, @emailMessage, @sentTime);
             """;
 
             await connection.ExecuteAsync(upsert,
@@ -159,7 +160,8 @@ public class SmartLeadsEmailStatisticsRepository
                     leadName = emailOpenPayload.to_name,
                     sequenceNumber = emailOpenPayload.sequence_number,
                     emailSubject = emailOpenPayload.subject,
-                    emailMessage = emailOpenPayload.sent_message_body
+                    emailMessage = emailOpenPayload.sent_message_body,
+                    sentTime = emailOpenPayload.time_sent
                 },
                 transaction);
             await transaction.CommitAsync();
