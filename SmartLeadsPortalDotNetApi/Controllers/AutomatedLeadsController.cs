@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -6,23 +7,43 @@ using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services;
 using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AutomatedLeadsController : ControllerBase
     {
+        private readonly SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository;
         AutomatedLeadsRepository _automatedLeadsRepository;
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
 
-        public AutomatedLeadsController(AutomatedLeadsRepository automatedLeadsRepository, HttpClient httpClient, IConfiguration configuration)
+        public AutomatedLeadsController(
+            SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository,
+            AutomatedLeadsRepository automatedLeadsRepository,
+            HttpClient httpClient,
+            IConfiguration configuration)
         {
+            this.smartLeadsExportedContactsRepository = smartLeadsExportedContactsRepository;
             _automatedLeadsRepository = automatedLeadsRepository;
             _httpClient = httpClient;
             _configuration = configuration;
+        }
+
+        [HttpPost("find")]
+        public async Task<IActionResult> Find([FromBody] TableRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            var result = await smartLeadsExportedContactsRepository.Find(request);
+            return Ok(result);
         }
 
         //MSSQL API
@@ -175,25 +196,25 @@ namespace SmartLeadsPortalDotNetApi.Controllers
 
         [HttpGet("gethasreplycount")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetHasReplyCount()
+        public async Task<IActionResult> GetHasReplyCount(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetHasReplyCount();
+            var result = await _automatedLeadsRepository.GetHasReplyCount(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("gettotalresponsetoday")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetNumberOfResponseToday()
+        public async Task<IActionResult> GetNumberOfResponseToday(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetNumberOfResponseToday();
+            var result = await _automatedLeadsRepository.GetNumberOfResponseToday(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getnumberofvalidresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetNumberOfValidResponse()
+        public async Task<IActionResult> GetNumberOfValidResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetNumberOfValidResponse();
+            var result = await _automatedLeadsRepository.GetNumberOfValidResponse(cancellationToken);
             return Ok(result);
         }
 
@@ -207,33 +228,33 @@ namespace SmartLeadsPortalDotNetApi.Controllers
 
         [HttpGet("getnumberofleadsent")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetNumberOfLeadsSent()
+        public async Task<IActionResult> GetNumberOfLeadsSent(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetNumberOfLeadsSent();
+            var result = await _automatedLeadsRepository.GetNumberOfLeadsSent(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getemailerrorresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetEmailErrorResponse()
+        public async Task<IActionResult> GetEmailErrorResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetEmailErrorResponse();
+            var result = await _automatedLeadsRepository.GetEmailErrorResponse(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getoutofofficeresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetOutOfOfficeResponse()
+        public async Task<IActionResult> GetOutOfOfficeResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetOutOfOfficeResponse();
+            var result = await _automatedLeadsRepository.GetOutOfOfficeResponse(cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("getincorrectcontactresponse")]
         [EnableCors("CorsApi")]
-        public async Task<IActionResult> GetIncorrectContactsResponse()
+        public async Task<IActionResult> GetIncorrectContactsResponse(CancellationToken cancellationToken)
         {
-            var result = await _automatedLeadsRepository.GetIncorrectContactsResponse();
+            var result = await _automatedLeadsRepository.GetIncorrectContactsResponse(cancellationToken);
             return Ok(result);
         }
 
@@ -268,7 +289,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         //Test only for mysql connection
-        [HttpGet("gettestusersmysql")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetTestSelectAllUser()
         {
             var result = await _automatedLeadsRepository.TestSelectAllUser();
@@ -455,7 +476,10 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             string connectionString = _configuration.GetConnectionString("SQLServerDBConnectionString");
             using (var connection = new SqlConnection(connectionString))
             {
-                connection.Open();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    connection.Open();
+                }
                 using (var bulkCopy = new SqlBulkCopy(connection))
                 {
                     bulkCopy.DestinationTableName = "SmartLeadsExportedContacts";

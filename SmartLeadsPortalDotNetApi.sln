@@ -1,8 +1,29 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.35821.62
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLeadsPortalDotNetApi", "SmartLeadsPortalDotNetApi\SmartLeadsPortalDotNetApi.csproj", "{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebJobs", "WebJobs", "{66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportExportedLeadsFromLeadsPortal", "WebJobs\ImportExportedLeadsFromLeadsPortal\ImportExportedLeadsFromLeadsPortal.csproj", "{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportSmartLeadAllLeads", "WebJobs\ImportSmartLeadAllLeads\ImportSmartLeadAllLeads.csproj", "{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLeadMySQLDataTransfer", "WebJobs\SmartLeadMySQLDataTransfer\SmartLeadMySQLDataTransfer.csproj", "{79A74B73-96E3-4337-ADB3-57507FACC781}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DatabaseProject", "DatabaseProject", "{F1468883-F317-4351-849F-1EA436D79D4F}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "DatabaseProjectSmartLeadsPortal", "DatabaseProjects\DatabaseProjectSmartLeadsPortal\DatabaseProjectSmartLeadsPortal.sqlproj", "{41BA400D-D66F-47D2-8D00-CAC31AB5D40E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportSmartLeadStatistics", "WebJobs\ImportSmartLeadStatistics\ImportSmartLeadStatistics.csproj", "{41A59EAE-B4C6-4820-813F-568E67FB4CA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "WebJobs\Common\Common.csproj", "{B45B25C8-05DB-49AF-B53F-4DD0E057C294}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportSmartleadAllCampaigns", "ImportSmartleadAllCampaigns\ImportSmartleadAllCampaigns.csproj", "{B589B582-397A-4709-8960-734728BB7EBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportSmartleadEmailHistory", "WebJobs\ImportSmartleadEmailHistory\ImportSmartleadEmailHistory.csproj", "{03BC268A-E4D9-1BBA-043D-FB782E2006C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,9 +35,53 @@ Global
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2A8264B-EDEE-4EF8-B12A-0618C1C6EC62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79A74B73-96E3-4337-ADB3-57507FACC781}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41BA400D-D66F-47D2-8D00-CAC31AB5D40E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41BA400D-D66F-47D2-8D00-CAC31AB5D40E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41BA400D-D66F-47D2-8D00-CAC31AB5D40E}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{41BA400D-D66F-47D2-8D00-CAC31AB5D40E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41BA400D-D66F-47D2-8D00-CAC31AB5D40E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41BA400D-D66F-47D2-8D00-CAC31AB5D40E}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{41A59EAE-B4C6-4820-813F-568E67FB4CA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41A59EAE-B4C6-4820-813F-568E67FB4CA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41A59EAE-B4C6-4820-813F-568E67FB4CA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41A59EAE-B4C6-4820-813F-568E67FB4CA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B45B25C8-05DB-49AF-B53F-4DD0E057C294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B45B25C8-05DB-49AF-B53F-4DD0E057C294}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B45B25C8-05DB-49AF-B53F-4DD0E057C294}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B45B25C8-05DB-49AF-B53F-4DD0E057C294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B589B582-397A-4709-8960-734728BB7EBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B589B582-397A-4709-8960-734728BB7EBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B589B582-397A-4709-8960-734728BB7EBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B589B582-397A-4709-8960-734728BB7EBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03BC268A-E4D9-1BBA-043D-FB782E2006C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03BC268A-E4D9-1BBA-043D-FB782E2006C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03BC268A-E4D9-1BBA-043D-FB782E2006C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03BC268A-E4D9-1BBA-043D-FB782E2006C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B8D6DAF8-7AFD-4C06-A522-FE40ADB1B9E2} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{1A47BE63-4E4F-4A5B-BC28-0D09E31FFF26} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{79A74B73-96E3-4337-ADB3-57507FACC781} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{41BA400D-D66F-47D2-8D00-CAC31AB5D40E} = {F1468883-F317-4351-849F-1EA436D79D4F}
+		{41A59EAE-B4C6-4820-813F-568E67FB4CA6} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{B45B25C8-05DB-49AF-B53F-4DD0E057C294} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{B589B582-397A-4709-8960-734728BB7EBC} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{03BC268A-E4D9-1BBA-043D-FB782E2006C0} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EF9ABDCB-4807-4550-85D8-F879B2DDCBCB}

@@ -7,12 +7,17 @@ namespace SmartLeadsPortalDotNetApi.Services
     public class SQLDBService : IDisposable
     {
         protected IDbConnection con;
+        protected IDbConnection leadcon;
         protected IDbConnection mysqlcon;
         private static IConfiguration configuration;
 
         public IDbConnection getConnection()
         {
             return con;
+        }
+        public IDbConnection getLeadConnection()
+        {
+            return leadcon;
         }
 
         public IDbConnection getMysqlConnection()
@@ -27,8 +32,14 @@ namespace SmartLeadsPortalDotNetApi.Services
                 .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
-            con = new SqlConnection(configuration.GetConnectionString("SQLServerDBConnectionString"));
-            mysqlcon = new MySqlConnection(configuration.GetConnectionString("MySQLDBConnectionString"));
+            
+            var connectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
+               ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
+               ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
+            con = new SqlConnection(connectionString);
+            
+            // leadcon = new SqlConnection(configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString"));
+            // mysqlcon = new MySqlConnection(configuration.GetConnectionString("MySQLDBConnectionString"));
         }
         public void CheckIfOpen()
         {
@@ -37,6 +48,10 @@ namespace SmartLeadsPortalDotNetApi.Services
                 if (con.State == ConnectionState.Closed)
                 {
                     con.Open();
+                }
+                if (leadcon.State == ConnectionState.Closed)
+                {
+                    leadcon.Open();
                 }
 
                 if (mysqlcon.State == ConnectionState.Closed)
@@ -54,6 +69,11 @@ namespace SmartLeadsPortalDotNetApi.Services
                 if (con == null)
                 {
                     con.Open();
+                }
+
+                if (leadcon == null)
+                {
+                    leadcon.Open();
                 }
 
                 if (mysqlcon == null)
@@ -76,10 +96,15 @@ namespace SmartLeadsPortalDotNetApi.Services
                     con.Close();
                 }
 
-                if (mysqlcon.State == ConnectionState.Open)
-                {
-                    mysqlcon.Close();
-                }
+                // if (leadcon.State == ConnectionState.Open)
+                // {
+                //     leadcon.Close();
+                // }
+
+                // if (mysqlcon.State == ConnectionState.Open)
+                // {
+                //     mysqlcon.Close();
+                // }
 
             }
             catch (Exception ex)
@@ -93,10 +118,15 @@ namespace SmartLeadsPortalDotNetApi.Services
                     con.Dispose();
                 }
 
-                if (mysqlcon != null)
-                {
-                    mysqlcon.Dispose();
-                }
+                // if (leadcon != null)
+                // {
+                //     leadcon.Dispose();
+                // }
+
+                // if (mysqlcon != null)
+                // {
+                //     mysqlcon.Dispose();
+                // }
             }
 
             //throw new NotImplementedException(); 
