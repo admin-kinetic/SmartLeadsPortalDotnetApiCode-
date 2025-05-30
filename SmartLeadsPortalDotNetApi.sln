@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportSmartleadAllCampaigns
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportSmartleadEmailHistory", "WebJobs\ImportSmartleadEmailHistory\ImportSmartleadEmailHistory.csproj", "{03BC268A-E4D9-1BBA-043D-FB782E2006C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReprocessEmailSentWebhook", "WebJobs\ReprocessEmailSentWebhook\ReprocessEmailSentWebhook.csproj", "{253A79C8-13C2-496A-B88E-2F79DEC50BA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{03BC268A-E4D9-1BBA-043D-FB782E2006C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03BC268A-E4D9-1BBA-043D-FB782E2006C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03BC268A-E4D9-1BBA-043D-FB782E2006C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{253A79C8-13C2-496A-B88E-2F79DEC50BA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{253A79C8-13C2-496A-B88E-2F79DEC50BA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{253A79C8-13C2-496A-B88E-2F79DEC50BA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{253A79C8-13C2-496A-B88E-2F79DEC50BA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +88,7 @@ Global
 		{B45B25C8-05DB-49AF-B53F-4DD0E057C294} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 		{B589B582-397A-4709-8960-734728BB7EBC} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 		{03BC268A-E4D9-1BBA-043D-FB782E2006C0} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{253A79C8-13C2-496A-B88E-2F79DEC50BA3} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EF9ABDCB-4807-4550-85D8-F879B2DDCBCB}
