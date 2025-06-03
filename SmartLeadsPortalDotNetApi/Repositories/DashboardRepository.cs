@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Newtonsoft.Json;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
 using System.Data;
@@ -306,5 +307,32 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+        public async Task<DashboardEmailStatistics?> GetDashboardEmailStatisticsTotalSent(DashboardDateParameter request)
+        {
+            try
+            {
+                var campaignList = await GetDashboardSmartLeadCampaignsActive();
+                var campaignIdsJson = JsonConvert.SerializeObject(campaignList.Select(c => c.Id));
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetSmartLeadsEmailStatisticsSent";
+
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", request.StartDate);
+                    param.Add("@endDate", request.EndDate);
+                    param.Add("@campaignIds", campaignIdsJson);
+
+                    DashboardEmailStatistics? list = await connection.QuerySingleOrDefaultAsync<DashboardEmailStatistics?>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
     }
 }

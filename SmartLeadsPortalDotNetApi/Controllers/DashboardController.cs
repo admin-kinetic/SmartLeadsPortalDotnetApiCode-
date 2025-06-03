@@ -176,5 +176,12 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPost("get-dashboard-email-statistics-totalsent")]
+        public async Task<IActionResult> GetDashboardEmailStatisticsTotalSent(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardEmailStatisticsTotalSent(param);
+            return Ok(ret);
+        }
     }
 }
