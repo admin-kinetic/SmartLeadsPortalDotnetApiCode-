@@ -100,7 +100,11 @@
     {
         public string? phone { get; set; }
     }
-    
+    public class CallLogFullName
+    {
+        public string? FullName { get; set; }
+    }
+
     public class CallLogsOutbound
     {
         public string? UniqueCallId { get; set; }

@@ -93,4 +93,22 @@ namespace SmartLeadsPortalDotNetApi.Model
     {
         public int TotalIncorrectContactResponse { get; set; }
     }
+    public class SmartLeadsExportedContactLeadGen
+    {
+        public int Id { get; set; }
+        public DateTime? ExportedDate { get; set; }
+        public string? Email { get; set; }
+        public string? ContactSource { get; set; }
+        public int? SequenceNumber { get; set; }
+        public bool? HasReply { get; set; }
+        public bool? HasReviewed { get; set; }
+        public string? MessageHistory { get; set; }
+        public DateTime? SentTime { get; set; }
+        public DateTime? ReplyDate { get; set; }
+        public DateTime? RepliedAt { get; set; }
+    }
+    public class SmartLeadsExportedContactLeadGenCount
+    {
+        public int? TotalCount { get; set; }
+    }
 }

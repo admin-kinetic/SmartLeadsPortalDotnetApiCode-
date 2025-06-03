@@ -27,7 +27,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [EnableCors("CorsApi")]
         public async Task<IActionResult> GetleadContactNoByEmail(string email)
         {
-            var list = await this.leadsPortalHttpService.GetContactDetailsByEmail(email);
+            //var list = await this.leadsPortalHttpService.GetContactDetailsByEmail(email);
+            var list = await _callLogsRepository.GetleadContactNoByEmail(email);
             return Ok(list);
         }
 
@@ -61,6 +62,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             var ret = await _callLogsRepository.DeleteCallLogs(request);
             return Ok(ret);
+        }
+
+        [HttpPost("get-user-by-phoneno")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetEmployeeNameByPhonenumber(CallLogLeadNo param)
+        {
+            var list = await _callLogsRepository.GetEmployeeNameByPhonenumber(param);
+            return Ok(list);
         }
 
     }
