@@ -44,4 +44,9 @@
         public int? TotalCount { get; set; }
 
     }
+    public class DashboardEmailStatistics
+    {
+        public int? TotalCount { get; set; }
+
+    }
 }
