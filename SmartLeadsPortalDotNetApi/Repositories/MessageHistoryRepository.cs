@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
@@ -11,6 +12,24 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         public MessageHistoryRepository(DbConnectionFactory dbConnectionFactory)
         {
             _dbConnectionFactory = dbConnectionFactory;
+        }
+
+        public async Task<List<MessageHistory>> GetByEmail(string email)
+        {
+            using var connection = _dbConnectionFactory.GetSqlConnection();
+            if (connection.State != System.Data.ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+            }
+
+            var query = """
+                SELECT * FROM MessageHistory 
+                Where LeadEmail = @email
+                ORDER BY Time DESC  
+            """;
+
+            var queryResult = await connection.QueryAsync<MessageHistory>(query, new { email });
+            return queryResult.ToList();
         }
 
         internal async Task UpsertEmailSent(EmailSentPayload emailOpenPayload)
