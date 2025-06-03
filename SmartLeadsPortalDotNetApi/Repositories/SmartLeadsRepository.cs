@@ -71,5 +71,69 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+
+        public async Task<IEnumerable<SmartLeadsExportedContactLeadGen>> GetAllLeadGenExportedLeads(SmartLeadRequest request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var param = new DynamicParameters();
+                    IEnumerable<SmartLeadsExportedContactLeadGen> list = new List<SmartLeadsExportedContactLeadGen>();
+
+                    if (request.EmailAddress == null || request.EmailAddress == "" || request.EmailAddress == "null")
+                    {
+                        request.EmailAddress = "";
+                    }
+
+                    string _proc = "sm_spGetLeadGenExportedLeadsPaginated";
+                    param.Add("@Page", request.Page);
+                    param.Add("@PageSize", request.PageSize);
+                    param.Add("@email", request.EmailAddress);
+                    param.Add("@hasReply", request.HasReply);
+                    param.Add("@isValid", request.HasReview);
+                    param.Add("@startDate", request.ExportedDateFrom);
+                    param.Add("@endDate", request.ExportedDateTo);
+
+                    list = await connection.QueryAsync<SmartLeadsExportedContactLeadGen>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<int?> GetAllLeadGenExportedLeadsCount(SmartLeadRequest request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var param = new DynamicParameters();
+
+                    if (string.IsNullOrEmpty(request.EmailAddress) || request.EmailAddress == "null")
+                    {
+                        request.EmailAddress = "";
+                    }
+
+                    string _proc = "sm_spGetLeadGenExportedLeadsPaginatedCount";
+                    param.Add("@email", request.EmailAddress);
+                    param.Add("@hasReply", request.HasReply);
+                    param.Add("@isValid", request.HasReview);
+                    param.Add("@startDate", request.ExportedDateFrom);
+                    param.Add("@endDate", request.ExportedDateTo);
+
+                    var countResult = await connection.QueryFirstOrDefaultAsync<SmartLeadsExportedContactLeadGenCount?>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return countResult?.TotalCount;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
     }
 }
