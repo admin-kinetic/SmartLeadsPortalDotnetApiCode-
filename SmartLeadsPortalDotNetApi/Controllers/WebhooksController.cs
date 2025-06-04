@@ -133,7 +133,7 @@ public class WebhooksController : ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("LEAD_CATEGORY_UPDATED", payload);
-        // await webhookService.HandleReply(payload);
+        await webhookService.HandleLeadCategoryUpdated(payload);
         return Ok();
     }
 

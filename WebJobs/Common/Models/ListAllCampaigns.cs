@@ -1,4 +1,6 @@
+using Common.Converters;
 using System;
+using System.Text.Json.Serialization;
 
 namespace Common.Models;
 
@@ -6,7 +8,9 @@ public class ListAllCampaignsResponse
 {
     public int? id { get; set; }
     public int? user_id { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? created_at { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? updated_at { get; set; }
     public string? status { get; set; }
     public string? name { get; set; }

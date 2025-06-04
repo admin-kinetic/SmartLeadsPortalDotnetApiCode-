@@ -121,7 +121,6 @@ public class SmartLeadsEmailStatisticsRepository
 
     internal async Task UpsertEmailSent(EmailSentPayload emailOpenPayload)
     {
-
         _logger.LogInformation("Start UpsertEmailSent");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -173,5 +172,24 @@ public class SmartLeadsEmailStatisticsRepository
             _logger.LogError(ex, "Error on UpsertEmailSent");
             throw;
         }
+    }
+
+    internal async Task UpdateEmailReply(EmailReplyPayload payloadObject)
+    {
+        _logger.LogInformation($"Start Update email reply for {payloadObject.to_email} in statistics");
+        using var connection = this._dbConnectionFactory.GetSqlConnection();
+        var update = """
+            UPDATE SmartLeadsEmailStatistics
+            SET ReplyTime = @replyTime
+            WHERE LeadEmail = @leadEmail AND SequenceNumber = @sequenceNumber
+        """;
+        var updateParam = new
+        {
+            leadEmail = payloadObject.to_email,
+            sequenceNumber = payloadObject.sequence_number,
+            replyTime = payloadObject.event_timestamp
+        };
+        await connection.ExecuteAsync(update, updateParam);
+        _logger.LogInformation($"Succesfuly updated email reply for {payloadObject.to_email} in statistics");
     }
 }

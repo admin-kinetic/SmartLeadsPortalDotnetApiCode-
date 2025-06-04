@@ -7,10 +7,11 @@ namespace SmartLeadsPortalDotNetApi.Model
     public class SmartLeadsExportedContact
     {
         public int Id { get; set; }
-        public DateTime? ExportedDate { get; set; }
         public string? Email { get; set; }
         public string? ContactSource { get; set; }
+        public DateTime? ExportedDate { get; set; }
         public int Rate { get; set; }
+        public DateTime? SentAt { get; set; }
         public bool? HasReply { get; set; }
         public DateTime? ModifiedAt { get; set; }
         public string? Category { get; set; }
