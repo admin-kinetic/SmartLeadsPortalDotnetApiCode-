@@ -100,9 +100,8 @@ namespace SmartLeadsPortalDotNetApi.Model
         public string? Email { get; set; }
         public string? ContactSource { get; set; }
         public int? SequenceNumber { get; set; }
-        public bool? HasReply { get; set; }
+        public DateTime? ReplyTime { get; set; }
         public bool? HasReviewed { get; set; }
-        public string? MessageHistory { get; set; }
         public DateTime? SentTime { get; set; }
         public DateTime? ReplyDate { get; set; }
         public DateTime? RepliedAt { get; set; }
