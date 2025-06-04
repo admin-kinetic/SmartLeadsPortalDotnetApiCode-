@@ -1,4 +1,6 @@
+using SmartLeadsPortalDotNetApi.Converters;
 using System;
+using System.Text.Json.Serialization;
 
 namespace SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 
@@ -6,12 +8,14 @@ namespace SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
 public class Metadata
 {
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime webhook_created_at { get; set; }
 }
 
 public class EmailOpenPayload
 {
     public string? sl_email_lead_id { get; set; }
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? sl_email_lead_map_id { get; set; }
     public string? campaign_status { get; set; }
     public object client_id { get; set; }
@@ -19,10 +23,14 @@ public class EmailOpenPayload
     public string? from_email { get; set; }
     public string? to_email { get; set; }
     public string? to_name { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? time_opened { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? event_timestamp { get; set; }
     public string? campaign_name { get; set; }
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? campaign_id { get; set; }
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? sequence_number { get; set; }
     public string? subject { get; set; }
     public string? sent_message_body { get; set; }
@@ -33,6 +41,7 @@ public class EmailOpenPayload
     public string? description { get; set; }
     public Metadata? metadata { get; set; }
     public string? webhook_url { get; set; }
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? webhook_id { get; set; }
     public string? webhook_name { get; set; }
     public string? event_type { get; set; }
