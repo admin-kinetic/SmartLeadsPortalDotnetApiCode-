@@ -78,9 +78,25 @@ public class WebhookService
         }
 
         var replyAt = payloadObject.event_timestamp;
-        await _messageHistoryRepository.UpsertEmailReply(payloadObject);
+       
+      
+        await dbExecution.ExecuteWithRetryAsync(async () =>
+        {
+            await _messageHistoryRepository.UpsertEmailReply(payloadObject);
+            return true;
+        });
 
-        // await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
+        await dbExecution.ExecuteWithRetryAsync(async () =>
+        {
+            await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
+            return true;
+        });
+
+        // await dbExecution.ExecuteWithRetryAsync(async () =>
+        // {
+        //     await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
+        //     return true;
+        // });
     }
 
     public async Task HandleLeadCategoryUpdated(string payload)
