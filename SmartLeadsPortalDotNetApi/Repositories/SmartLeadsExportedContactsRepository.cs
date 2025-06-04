@@ -42,7 +42,9 @@ public class SmartLeadsExportedContactsRepository
                         ELSE 0
                     END [HasReply],
                     sles.ReplyTime [RepliedAt],
-                    slec.HasReviewed
+                    slec.HasReviewed,
+                    slec.SmartLeadsStatus,
+                    slec.SmartLeadsCategory
                 From SmartLeadsExportedContacts slec
                 LEFT JOIN SmartLeadsEmailStatistics sles ON 
                     sles.LeadEmail = slec.Email AND sles.SequenceNumber = 1
