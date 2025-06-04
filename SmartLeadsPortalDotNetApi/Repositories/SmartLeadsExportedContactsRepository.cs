@@ -31,26 +31,29 @@ public class SmartLeadsExportedContactsRepository
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
             var baseQuery = """ 
-                SELECT *
-                FROM SmartLeadsExportedContacts slec
+                Select
+                    slec.Id,
+                    slec.Email,
+                    slec.ContactSource,
+                    slec.ExportedDate,
+                    sles.SentTime [SentAt],
+                    CASE 
+                        WHEN sles.ReplyTime IS NOT NULL THEN 1
+                        ELSE 0
+                    END [HasReply],
+                    sles.ReplyTime [RepliedAt],
+                    slec.HasReviewed
+                From SmartLeadsExportedContacts slec
+                LEFT JOIN SmartLeadsEmailStatistics sles ON 
+                    sles.LeadEmail = slec.Email AND sles.SequenceNumber = 1
             """;
-
-            var queryParam = new
-            {
-                PageNumber = request.paginator.page,
-                PageSize = request.paginator.pageSize
-            };
 
             var countQuery = """ 
                 SELECT COUNT(slec.Id) AS TotalCount
                 FROM SmartLeadsExportedContacts slec
+                LEFT JOIN SmartLeadsEmailStatistics sles ON 
+                    sles.LeadEmail = slec.Email AND sles.SequenceNumber = 1
             """;
-
-            var countQueryParam = new
-            {
-                PageNumber = request.paginator.page,
-                PageSize = request.paginator.pageSize
-            };
 
             // Build WHERE clause if filters exist
             var whereClause = new List<string>();
@@ -70,8 +73,7 @@ public class SmartLeadsExportedContactsRepository
                             parameters.Add("Email", $"%{filter.Value}%");
                             break;
                         case "hasreply":
-                            whereClause.Add("slec.HasReply = @HasReply");
-                            parameters.Add("HasReply", filter.Value);
+                            whereClause.Add("(sles.ReplyTime IS NOT NULL OR sles.ReplyTime = '')");
                             break;
                         case "hasreviewed":
                             whereClause.Add("slec.hHasReview = @HasRevew");

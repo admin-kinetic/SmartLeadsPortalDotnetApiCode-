@@ -159,12 +159,12 @@ public class SmartLeadHttpService
             using (var httpClient = new HttpClient())
             {
 
-                var weekAgo = DateTime.Now.AddDays(-daysOffset);
+                var offsetDate = DateTime.Now.AddDays(-daysOffset);
 
                 var queryParams = new Dictionary<string, string>
                 {
                     { "api_key", apiKey },
-                    { "event_time_gt", weekAgo.ToString("yyyy-MM-dd") },
+                    { "event_time_gt", offsetDate.ToString("yyyy-MM-dd") },
                     { "limit", limit.ToString() },
                     { "offset", offset.ToString() }
                 };
