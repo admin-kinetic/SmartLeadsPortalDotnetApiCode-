@@ -1,4 +1,7 @@
-﻿namespace SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
+﻿using SmartLeadsPortalDotNetApi.Converters;
+using System.Text.Json.Serialization;
+
+namespace SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 
 
 public class LeadCorrespondence
@@ -13,6 +16,7 @@ public class ReplyMessage
     public  string? message_id { get; set; }
     public  string? html { get; set; }
     public  string? text { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? time { get; set; }
 }
 
@@ -21,6 +25,7 @@ public class EmailReplyPayload
     public  string? campaign_status { get; set; }
     public  string? stats_id { get; set; }
     public  string? sl_email_lead_id { get; set; }
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? sl_email_lead_map_id { get; set; }
     public  string? sl_lead_email { get; set; }
     public  string? from_email { get; set; }
@@ -37,6 +42,7 @@ public class EmailReplyPayload
     public  string? message_id { get; set; }
     public  string? preview_text { get; set; }
     public  string? campaign_name { get; set; }
+    [JsonConverter(typeof(IntFromStringOrNumberConverter))]
     public int? campaign_id { get; set; }
     public object? client_id { get; set; }
     public int? sequence_number { get; set; }

@@ -14,6 +14,8 @@ var smartLeadHttpService = new SmartLeadHttpService();
 // var statistics = await smartLeadHttpService.GetCampaignStatistics(DateTime.Now.AddDays(-1), 0, 100);
 
 var smartLeadCampaignStatisticsService = new SmartLeadCampaignStatisticsService(dbConnectionFactory, smartLeadHttpService, configuration);
-await smartLeadCampaignStatisticsService.SaveAllSmartLeadCampaignStatistics();
+
+//await smartLeadCampaignStatisticsService.SaveAllCampaignStatisticsByCampaignId();
+await smartLeadCampaignStatisticsService.SaveAllCampaignLeadStatistics();
 
 Console.WriteLine("Done SmartLead Statistics Import.");

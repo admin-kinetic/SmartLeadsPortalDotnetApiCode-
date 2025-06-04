@@ -10,7 +10,7 @@ public class SmartLeadAllLeads
     public int? CampaignId { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public string? PhoneNumber { get; set; }
     public string? CompanyName { get; set; }
     public string? LeadStatus { get; set; }

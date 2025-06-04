@@ -38,6 +38,11 @@ public class WebhooksController : ControllerBase
             return value;
         }
 
+        var eventType = jsonDoc.RootElement.GetProperty("event_type");
+        if (eventType.ToString() != "EMAIL_SENT" ) {
+            return BadRequest("incompatible event type");
+        }
+
         await this.webhooksRepository.InsertWebhook("EMAIL_SENT", payload);
         await this.webhookService.HandleEmailSent(payload);
         return Ok();
@@ -56,6 +61,11 @@ public class WebhooksController : ControllerBase
             return value;
         }
 
+        var eventType = jsonDoc.RootElement.GetProperty("event_type");
+        // if (eventType.ToString() != "EMAIL_SENT" ) {
+        //     return BadRequest("incompatible event type");
+        // }
+
         await this.webhooksRepository.InsertWebhook("FIRST_EMAIL_SENT", payload);
         await this.webhookService.HandleEmailSent(payload);
         return Ok();
@@ -72,6 +82,11 @@ public class WebhooksController : ControllerBase
         if (!flowControl)
         {
             return value;
+        }
+
+        var eventType = jsonDoc.RootElement.GetProperty("event_type");
+        if (eventType.ToString() != "EMAIL_OPEN" ) {
+            return BadRequest("incompatible event type");
         }
 
         await this.webhooksRepository.InsertWebhook("EMAIL_OPEN", payload);
@@ -100,6 +115,11 @@ public class WebhooksController : ControllerBase
         {
             return value;
         }
+        
+         var eventType = jsonDoc.RootElement.GetProperty("event_type");
+        if (eventType.ToString() != "EMAIL_LINK_CLICK" ) {
+            return BadRequest("incompatible event type");
+        }
 
         await this.webhooksRepository.InsertWebhook("EMAIL_LINK_CLICK", payload);
         await webhookService.HandleClick(payload);
@@ -111,6 +131,19 @@ public class WebhooksController : ControllerBase
     {
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
+
+        using var jsonDoc = JsonDocument.Parse(payload);
+        (bool flowControl, IActionResult value) = ValidateSecretKey(jsonDoc);
+        if (!flowControl)
+        {
+            return value;
+        }
+        
+         var eventType = jsonDoc.RootElement.GetProperty("event_type");
+        if (eventType.ToString() != "EMAIL_REPLY" ) {
+            return BadRequest("incompatible event type");
+        }
+
         await this.webhooksRepository.InsertWebhook("EMAIL_REPLY", payload);
         await webhookService.HandleReply(payload);
         return Ok();
@@ -133,7 +166,7 @@ public class WebhooksController : ControllerBase
         using var reader = new StreamReader(Request.Body);
         string payload = await reader.ReadToEndAsync();
         await this.webhooksRepository.InsertWebhook("LEAD_CATEGORY_UPDATED", payload);
-        // await webhookService.HandleReply(payload);
+        await webhookService.HandleLeadCategoryUpdated(payload);
         return Ok();
     }
 
