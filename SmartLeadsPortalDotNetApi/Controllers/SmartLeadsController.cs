@@ -241,5 +241,33 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPost("get-exportedleads-leadgen")]
+        public async Task<IActionResult> GetAllLeadGenExportedLeads(SmartLeadRequest param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetAllLeadGenExportedLeads(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("get-exportedleads-leadgen-count")]
+        public async Task<IActionResult> GetAllLeadGenExportedLeadsCount(SmartLeadRequest param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetAllLeadGenExportedLeadsCount(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 }

@@ -1,4 +1,6 @@
+using Common.Converters;
 using System;
+using System.Text.Json.Serialization;
 
 namespace Common.Models;
 
@@ -14,9 +16,13 @@ public class FetchCampaignStatisticsByCampaignIdDatum
     public int? seq_variant_id { get; set; }
     public string? email_subject { get; set; }
     public string? email_message { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? sent_time { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? open_time { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? click_time { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? reply_time { get; set; }
     public int? open_count { get; set; }
     public int? click_count { get; set; }

@@ -83,6 +83,7 @@ builder.Services.AddScoped<SmartLeadsApiService>();
 builder.Services.AddScoped<LeadsPortalHttpService>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<SmartLeadsExportedContactsRepository>();
+builder.Services.AddScoped<MessageHistoryRepository>();
 
 builder.Services.AddScoped<RestClient>(provider =>
 {
