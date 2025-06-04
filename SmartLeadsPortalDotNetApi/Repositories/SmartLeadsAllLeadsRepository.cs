@@ -31,7 +31,7 @@ public class SmartLeadsAllLeadsRepository
             await connection.OpenAsync();
         }
 
-        var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id);
+        var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id.Value);
 
         using var transaction = await connection.BeginTransactionAsync();
         try
