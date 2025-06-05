@@ -56,24 +56,29 @@ BEGIN
 		@uniquecallid)
 	END
 
-	-- Use GETDATE() if @due is NULL
-	DECLARE @finalDue DATETIME = ISNULL(@due, GETDATE());
-
+	
+	-- Conditionally update statistics if @statisticid is NOT NULL
+	IF @statisticid IS NOT NULL
 	BEGIN
-		BEGIN TRANSACTION; -- Start a transaction
+		-- Use GETDATE() if @due is NULL
+		DECLARE @finalDue DATETIME = ISNULL(@due, GETDATE());
 
-		BEGIN TRY
-			UPDATE SmartLeadsEmailStatistics 
-			SET CallStateId = @callstateid,
-				AssignedTo = @userid,
-				Due = @finalDue
-			WHERE Id=@statisticid
-			COMMIT;
-		END TRY
-		BEGIN CATCH
-			ROLLBACK; -- Rollback the transaction in case of an error
-		END CATCH
+		BEGIN
+			BEGIN TRANSACTION; -- Start a transaction
 
+			BEGIN TRY
+				UPDATE SmartLeadsEmailStatistics 
+				SET CallStateId = @callstateid,
+					AssignedTo = @userid,
+					Due = @finalDue
+				WHERE Id=@statisticid
+				COMMIT;
+			END TRY
+			BEGIN CATCH
+				ROLLBACK; -- Rollback the transaction in case of an error
+			END CATCH
+
+		END
 	END
 END
 GO

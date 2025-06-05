@@ -69,7 +69,7 @@ public class AllLeadsFromEntireAccountDatum
     public string website { get; set; }
     public object company_url { get; set; }
     public string phone_number { get; set; }
-    public object location { get; set; }
+    public string? location { get; set; }
     public CustomFields custom_fields { get; set; }
     public object linkedin_profile { get; set; }
     [JsonConverter(typeof(DateTimeFromStringConverter))]

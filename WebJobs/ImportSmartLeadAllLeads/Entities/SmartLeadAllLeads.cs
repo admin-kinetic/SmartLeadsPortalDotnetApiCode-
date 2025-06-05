@@ -17,4 +17,5 @@ public class SmartLeadAllLeads
     public string? BDR { get; set; }
     public string? CreatedBy { get; set; }
     public string? QABy { get; set; }
+    public string? Location { get; set; }
 }
