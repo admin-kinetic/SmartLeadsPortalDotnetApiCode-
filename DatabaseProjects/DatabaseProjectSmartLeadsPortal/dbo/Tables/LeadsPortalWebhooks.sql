@@ -1,0 +1,9 @@
+CREATE TABLE [dbo].[LeadsPortalWebhooks] (
+ [Id] INT IDENTITY (1, 1) NOT NULL,
+ [Request] NVARCHAR (MAX) NULL,
+ [CreatedAt] DATETIME NOT NULL,
+ [Type] NVARCHAR (250) NULL,
+ PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+GO
+

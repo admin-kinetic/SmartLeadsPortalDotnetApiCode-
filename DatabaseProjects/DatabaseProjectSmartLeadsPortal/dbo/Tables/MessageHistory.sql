@@ -14,3 +14,13 @@ CREATE TABLE [dbo].[MessageHistory] (
 );
 GO
 
+
+CREATE NONCLUSTERED INDEX [idx_leademail]
+    ON [dbo].[MessageHistory]([LeadEmail] ASC);
+GO
+
+
+CREATE NONCLUSTERED INDEX [idx_statsid]
+    ON [dbo].[MessageHistory]([StatsId] ASC);
+GO
+

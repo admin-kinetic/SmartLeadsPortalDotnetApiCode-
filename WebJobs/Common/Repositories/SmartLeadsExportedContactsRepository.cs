@@ -14,6 +14,43 @@ namespace Common.Repositories
             this.dbConnectionFactory = dbConnectionFactory;
         }
 
+        public async Task UpdateLeadCategory(string email, string category)
+        {
+            try
+            {
+                using var connection = dbConnectionFactory.CreateConnection();
+                var update = """
+                    UPDATE SmartLeadsExportedContacts 
+                    SET SmartLeadsCategory = @category
+                    WHERE Email = @email
+                """;
+                await connection.ExecuteAsync(update, new { email, category });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error eccoured updating lead category", ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<SmartLeadsExportedContactsBase?> GetLeadByEmail(string email)
+        {
+            try
+            {
+                using var connection = dbConnectionFactory.CreateConnection();
+                var query = """
+                    Select * From SmartLeadsExportedContacts 
+                    WHERE Email = @email
+                """;
+                return await connection.QueryFirstOrDefaultAsync<SmartLeadsExportedContactsBase>(query, new { email });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error occured getting lead entry", ex.Message);
+                throw;
+            }
+        }
+
         public async Task<List<SmartLeadsExportedContactsBase>> GetExportedContacts()
         {
             using var connection = this.dbConnectionFactory.CreateConnection();

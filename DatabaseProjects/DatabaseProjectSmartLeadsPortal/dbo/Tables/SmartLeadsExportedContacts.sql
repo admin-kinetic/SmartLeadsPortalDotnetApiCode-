@@ -40,3 +40,23 @@ CREATE NONCLUSTERED INDEX [IX_SmartleadsExportedContacts_Exported]
     ON [dbo].[SmartLeadsExportedContacts]([ExportedDate] ASC);
 GO
 
+
+CREATE NONCLUSTERED INDEX [IX_SmartleadsExportedContacts_AssignedTo]
+    ON [dbo].[SmartLeadsExportedContacts]([AssignedTo] ASC);
+GO
+
+
+CREATE NONCLUSTERED INDEX [IX_SmartleadsExportedContacts_AssignedToQA]
+    ON [dbo].[SmartLeadsExportedContacts]([AssignedToQA] ASC);
+GO
+
+
+CREATE NONCLUSTERED INDEX [IX_SmartleadsExportedContacts_Bdr]
+    ON [dbo].[SmartLeadsExportedContacts]([Bdr] ASC);
+GO
+
+
+CREATE NONCLUSTERED INDEX [IX_SmartleadsExportedContacts_Email]
+    ON [dbo].[SmartLeadsExportedContacts]([Email] ASC);
+GO
+
