@@ -2,6 +2,7 @@
 using Common.Repositories;
 using Common.Services;
 using Dapper;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +14,18 @@ namespace ReprocessLeadCategoryUpdated;
 
 public class ReprocessLeadCategoryUpdatedService
 {
+    private readonly IConfiguration _configuration;
     private readonly DbConnectionFactory _dbConnectionFactory;
     private readonly SmartLeadsExportedContactsRepository _smartLeadsExportedContactsRepository;
     private readonly SmartLeadHttpService _smartLeadHttpService;
 
     public ReprocessLeadCategoryUpdatedService(
+        IConfiguration configuration,
         DbConnectionFactory dbConnectionFactory, 
         SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository,
         SmartLeadHttpService smartLeadHttpService)
     {
+        _configuration = configuration;
         _dbConnectionFactory = dbConnectionFactory;
         _smartLeadsExportedContactsRepository = smartLeadsExportedContactsRepository;
         _smartLeadHttpService = smartLeadHttpService;
@@ -32,14 +36,16 @@ public class ReprocessLeadCategoryUpdatedService
         using var connection = _dbConnectionFactory.CreateConnection();
         await connection.OpenAsync();
 
+        var dayOffset = _configuration.GetSection("DaysOffset").Get<int>();
+
         var webhookQuery = """
                 Select Request
                 From Webhooks 
-                Where (EventType = 'LEAD_CATEGORY_UPDATED') AND CONVERT(date, CreatedAt) >= '2025-05-15'
+                Where (EventType = 'LEAD_CATEGORY_UPDATED') AND CONVERT(date, CreatedAt) >= CONVERT(DATE, DATEADD(DAY, -@dayOffset, GETDATE()))
                 Order By CreatedAt ASC
             """;
 
-        var webhooks = await connection.QueryAsync<string>(webhookQuery);
+        var webhooks = await connection.QueryAsync<string>(webhookQuery, new { dayOffset });
         foreach (var payloadObject in webhooks.Select(w => JsonSerializer.Deserialize<JsonElement>(w)))
         {
             var email = payloadObject.GetProperty("lead_email");

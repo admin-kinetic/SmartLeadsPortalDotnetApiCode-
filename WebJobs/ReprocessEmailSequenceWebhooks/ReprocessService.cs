@@ -85,9 +85,9 @@ namespace ReprocessEmailSequenceWebhooks
             var query = """
                     Select Request
                     From Webhooks 
-                    Where (EventType = 'EMAIL_REPLY') AND CONVERT(DATE, CreatedAt) >= '2025-05-14' 
+                    Where (EventType = 'EMAIL_REPLY') AND CONVERT(DATE, CreatedAt) >= CONVERT(DATE, DATEADD(DAY, -@daysOffset, GETDATE()))
                 """;
-            var queryResult =await connection.QueryAsync<string>(query);
+            var queryResult =await connection.QueryAsync<string>(query, new { daysOffset });
             return queryResult.ToList();
         }
 
