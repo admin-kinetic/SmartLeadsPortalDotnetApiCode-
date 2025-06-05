@@ -70,7 +70,8 @@ public class SmartLeadAllLeadsService
                     LeadStatus = lead.campaigns.First()?.lead_status,
                     BDR = lead.custom_fields.BDR ?? string.Empty,
                     CreatedBy = lead.custom_fields.Created_by ?? string.Empty,
-                    QABy = lead.custom_fields.QA_by ?? string.Empty
+                    QABy = lead.custom_fields.QA_by ?? string.Empty,
+                    Location = lead.location
                 });
 
                 if (isBdrSmartLeads)
@@ -102,7 +103,7 @@ public class SmartLeadAllLeadsService
                             //""";
 
                             var upsert = """
-                                MERGE INTO SmartLeadAllLeads AS target
+                                MERGE INTO SmartLeadAllLeads WITH (ROWLOCK) sAS target
                                 USING (SELECT 
                                           @LeadId AS LeadId,
                                           @Email AS Email,
@@ -115,7 +116,8 @@ public class SmartLeadAllLeadsService
                                           @LeadStatus AS LeadStatus,
                                           @BDR AS BDR,
                                           @CreatedBy AS CreatedBy,
-                                          @QABy AS QABy) AS source
+                                          @QABy AS QABy,
+                                          @Location AS Location) AS source
                                 ON (target.LeadId = source.LeadId)
                                 WHEN MATCHED THEN
                                     UPDATE SET
@@ -129,11 +131,12 @@ public class SmartLeadAllLeadsService
                                         LeadStatus = source.LeadStatus,
                                         BDR = source.BDR,
                                         CreatedBy = source.CreatedBy,
-                                        QABy = source.QABy
+                                        QABy = source.QABy,
+                                        Location = source.Location
                                 WHEN NOT MATCHED THEN
-                                    INSERT (LeadId, Email, CampaignId, FirstName, LastName, CreatedAt, PhoneNumber, CompanyName, LeadStatus, BDR, CreatedBy, QABy)
+                                    INSERT (LeadId, Email, CampaignId, FirstName, LastName, CreatedAt, PhoneNumber, CompanyName, LeadStatus, BDR, CreatedBy, QABy, Location)
                                     VALUES (source.LeadId, source.Email, source.CampaignId, source.FirstName, source.LastName, source.CreatedAt, 
-                                            source.PhoneNumber, source.CompanyName, source.LeadStatus, source.BDR, source.CreatedBy, source.QABy);
+                                            source.PhoneNumber, source.CompanyName, source.LeadStatus, source.BDR, source.CreatedBy, source.QABy, source.Location);
                             """;
 
                             await connection.ExecuteAsync(upsert, smartLeadAllLeads, transaction);
