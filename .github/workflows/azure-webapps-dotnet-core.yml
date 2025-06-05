@@ -43,5 +43,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot: 'master'
           publish-profile: ${{ secrets.APP_CALLSAPI_PROD_PROFILE }}
           package: ${{env.DOTNET_ROOT}}/dist
