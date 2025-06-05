@@ -27,6 +27,7 @@ public class Campaign
 
 public class CustomFields
 {
+    public string Location { get; set; }
     public string BDR { get; set; }
     public string Created_by { get; set; }
     public string QA_by { get; set; }
@@ -72,7 +73,7 @@ public class AllLeadsFromEntireAccountDatum
     public CustomFields custom_fields { get; set; }
     public object linkedin_profile { get; set; }
     [JsonConverter(typeof(DateTimeFromStringConverter))]
-    public DateTime? created_at { get; set; }
+    public DateTime created_at { get; set; }
     public int user_id { get; set; }
     public List<Campaign> campaigns { get; set; }
 }
