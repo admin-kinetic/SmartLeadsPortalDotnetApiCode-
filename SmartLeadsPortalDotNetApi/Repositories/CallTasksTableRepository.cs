@@ -187,6 +187,10 @@ public class CallTasksTableRepository
                             whereClause.Add($"CONVERT(DATE, sle.Due){this.operatorsMap[filter.Operator]} @Due");
                             parameters.Add("Due", $"{filter.Value}");
                             break;
+                        case "bdr":
+                            whereClause.Add($"slal.Bdr = @Bdr");
+                            parameters.Add("Bdr", $"{filter.Value}");
+                            break;
                         // Add more cases for other filterable columns
                         default:
                             // For numeric fields or exact matches

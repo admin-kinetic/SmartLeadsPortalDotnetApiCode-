@@ -163,7 +163,12 @@ public class SmartLeadCampaignStatisticsService
                     do
                     {
                         Console.WriteLine($"Fetching for Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Day Offset: {daysOffset}");
-                        var statistics = await this.smartLeadHttpService.FetchCampaignLeadStatistics(campaign.id.Value, apiKey, offset, limit, daysOffset);
+
+                        var statistics = await DbExecution.ExecuteWithRetryAsync(async () =>
+                        {
+                            return await this.smartLeadHttpService.FetchCampaignLeadStatistics(campaign.id.Value, apiKey, offset, limit, daysOffset);
+                        });
+                       
                         hasMore = statistics.hasMore;
 
                         if (!hasMore)
