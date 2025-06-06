@@ -196,5 +196,28 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+
+        public async Task<int> UpdateLeadsEmailDetails(SmartLeadsEmailedDetailsRequest request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spUpdateLeadsEmailedDetails";
+                    var param = new DynamicParameters();
+                    param.Add("@email", request.Email);
+                    param.Add("@phone", request.PhoneNumber);
+                    param.Add("@country", request.Country);
+
+                    int ret = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return ret;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
     }
 }

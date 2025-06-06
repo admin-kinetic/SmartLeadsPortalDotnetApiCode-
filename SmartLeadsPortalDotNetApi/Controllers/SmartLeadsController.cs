@@ -297,5 +297,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPost("update-leadsemailed-details")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpdateLeadsEmailDetails([FromBody] SmartLeadsEmailedDetailsRequest request)
+        {
+            var ret = await this._smartLeadsRepository.UpdateLeadsEmailDetails(request);
+            return Ok(ret);
+        }
     }
 }
