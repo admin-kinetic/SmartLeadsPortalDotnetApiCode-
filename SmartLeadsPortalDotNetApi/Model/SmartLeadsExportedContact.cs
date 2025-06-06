@@ -110,4 +110,22 @@ namespace SmartLeadsPortalDotNetApi.Model
     {
         public int? TotalCount { get; set; }
     }
+    public class SmartLeadsExportedLeadsEmailed
+    {
+        public string? FullName { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public DateTime? ExportedDate { get; set; }
+        public int? SequenceNumber { get; set; }
+        public DateTime? ReplyTime { get; set; }
+        public DateTime? SentTime { get; set; }
+        public string? Country { get; set; }
+    }
+    public class SmartLeadsEmailedDetailsRequest
+    {
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Country { get; set; }
+    }
 }
