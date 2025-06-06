@@ -22,6 +22,7 @@ BEGIN
 		INNER JOIN [dbo].[SmartLeadsEmailStatistics] sle ON sla.Email = sle.LeadEmail
 		WHERE sla.CreatedAt BETWEEN CAST(@startDate AS date) AND CAST(@endDate AS date)
 		AND sle.SequenceNumber = 1
+		AND sla.BDR = 'Steph'
 		GROUP BY CAST(sla.CreatedAt AS date)
 	)
 	-- Combine totals with date range, ensuring all dates appear
