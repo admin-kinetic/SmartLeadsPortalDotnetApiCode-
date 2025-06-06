@@ -15,7 +15,9 @@ BEGIN
 	AND sal.CreatedBy <> 'Bots'
 	--AND ses.SequenceNumber = 1
 	AND (@email = '' OR sec.Email =@email)
-	AND (@hasReply = 0 OR @hasReply is null OR sec.HasReply = @hasReply)
+	AND (@hasReply IS NULL 
+		OR (@hasReply = 1 AND (ses.ReplyTime IS NOT NULL AND LTRIM(RTRIM(CAST(ses.ReplyTime AS NVARCHAR))) <> ''))
+		OR (@hasReply = 0 AND (ses.ReplyTime IS NULL OR LTRIM(RTRIM(CAST(ses.ReplyTime AS NVARCHAR))) = '')))
 	AND (@isValid = 0 OR @isValid is null OR sec.HasReviewed = @isValid)
 	AND ((@startDate IS NULL OR @endDate IS NULL) 
 		OR (sec.ExportedDate >= CONVERT(DATE, @startDate) 

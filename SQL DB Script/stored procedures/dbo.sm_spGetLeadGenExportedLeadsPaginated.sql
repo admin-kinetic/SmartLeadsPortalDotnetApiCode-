@@ -9,7 +9,7 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spGetLeadGenExportedLeadsPaginated]
 AS
 BEGIN
     SET NOCOUNT ON;
-	SELECT sec.Id, sec.ExportedDate, sec.Email, sec.ContactSource, ses.SequenceNumber, sec.HasReply, sec.HasReviewed, sec.MessageHistory, ses.SentTime 
+	SELECT sec.Id, sal.CreatedAt AS ExportedDate, sec.Email, sec.ContactSource, ses.SequenceNumber, ses.ReplyTime, sec.HasReviewed, ses.SentTime
 	FROM [dbo].[SmartLeadsExportedContacts] sec
 	LEFT JOIN [dbo].[SmartLeadAllLeads] sal ON sec.Email = sal.Email
 	LEFT JOIN [dbo].[SmartLeadsEmailStatistics] ses ON sec.Email = ses.LeadEmail
@@ -17,13 +17,15 @@ BEGIN
 	AND sal.CreatedBy <> 'Bots'
 	--AND ses.SequenceNumber = 1
 	AND (@email = '' OR sec.Email =@email)
-	AND (@hasReply = 0 OR @hasReply is null OR sec.HasReply = @hasReply)
+	AND (@hasReply IS NULL 
+		OR (@hasReply = 1 AND (ses.ReplyTime IS NOT NULL AND LTRIM(RTRIM(CAST(ses.ReplyTime AS NVARCHAR))) <> ''))
+		OR (@hasReply = 0 AND (ses.ReplyTime IS NULL OR LTRIM(RTRIM(CAST(ses.ReplyTime AS NVARCHAR))) = '')))
 	AND (@isValid = 0 OR @isValid is null OR sec.HasReviewed = @isValid)
 	AND ((@startDate IS NULL OR @endDate IS NULL) 
-		OR (sec.ExportedDate >= CONVERT(DATE, @startDate) 
-		AND sec.ExportedDate <= CONVERT(DATE, @endDate)
+		OR (sal.CreatedAt >= CONVERT(DATE, @startDate) 
+		AND sal.CreatedAt <= CONVERT(DATE, @endDate)
 		))
-	ORDER BY sec.ExportedDate DESC
+	ORDER BY sal.CreatedAt DESC
 	OFFSET (@Page - 1) * @PageSize ROWS
 	FETCH NEXT @PageSize ROWS ONLY
 	OPTION (RECOMPILE);

@@ -1,0 +1,20 @@
+CREATE OR ALTER PROCEDURE [dbo].[sm_spUpdateLeadsEmailedDetails]
+@email VARCHAR(500),
+@phone VARCHAR(200),
+@country VARCHAR(200)
+AS
+BEGIN
+	BEGIN TRANSACTION; -- Start a transaction
+
+		BEGIN TRY
+			UPDATE [dbo].[SmartLeadAllLeads]
+			SET PhoneNumber= @phone,
+			[Location] = @country
+			WHERE Email = @email
+			COMMIT;
+		END TRY
+		BEGIN CATCH
+			ROLLBACK; -- Rollback the transaction in case of an error
+		END CATCH
+END
+GO
