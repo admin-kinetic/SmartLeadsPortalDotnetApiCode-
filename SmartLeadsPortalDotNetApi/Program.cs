@@ -138,6 +138,7 @@ builder.Services.AddScoped<MessageHistoryRepository>();
 builder.Services.AddScoped<SmartLeadsAllLeadsRepository>();
 builder.Services.AddScoped<SmartleadCampaignRepository>();
 builder.Services.AddScoped<DbExecution>();
+builder.Services.AddScoped<SmartleadsEmailStatisticsService>();
 
 builder.Services.AddScoped(provider =>
     {

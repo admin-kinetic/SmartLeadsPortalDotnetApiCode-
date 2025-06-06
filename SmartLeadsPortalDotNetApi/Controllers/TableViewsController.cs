@@ -32,18 +32,41 @@ public class TableViewsController : ControllerBase
     public async Task<IActionResult> SaveTableView([FromBody] TableViewRequest tableName)
     {
         var user = this.HttpContext.User;
-        
-        var saveTableView = new SavedTableView{
-                TableName = tableName.TableName,
-                ViewName = tableName.ViewName,
-                ViewFilters = JsonSerializer.Serialize(tableName.Filters, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
-                OwnerId = int.Parse(user.FindFirst("id").Value),
-                Sharing = 1,
-                CreatedBy = int.Parse(user.FindFirst("id").Value),
-                ModifiedBy = int.Parse(user.FindFirst("id").Value)
-            };
+
+        var saveTableView = new SavedTableView
+        {
+            TableName = tableName.TableName,
+            ViewName = tableName.ViewName,
+            ViewFilters = JsonSerializer.Serialize(tableName.Filters, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+            OwnerId = int.Parse(user.FindFirst("employeeId").Value),
+            Sharing = 1,
+            CreatedBy = int.Parse(user.FindFirst("employeeId").Value),
+            ModifiedBy = int.Parse(user.FindFirst("employeeId").Value),
+            IsDefault = tableName.IsDefault
+        };
 
         await this.savedTableViewsRepository.SaveTableView(saveTableView);
+        return this.Ok();
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateTableView([FromBody] TableViewRequest tableName, int id)
+    {
+        var user = this.HttpContext.User;
+
+        var saveTableView = new SavedTableView
+        {
+            Id = id,
+            TableName = tableName.TableName,
+            ViewName = tableName.ViewName,
+            ViewFilters = JsonSerializer.Serialize(tableName.Filters, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+            OwnerId = int.Parse(user.FindFirst("employeeId").Value),
+            Sharing = 1,
+            ModifiedBy = int.Parse(user.FindFirst("employeeId").Value),
+            IsDefault = tableName.IsDefault
+        };
+
+        await this.savedTableViewsRepository.UpdateTableView(saveTableView);
         return this.Ok();
     }
 }

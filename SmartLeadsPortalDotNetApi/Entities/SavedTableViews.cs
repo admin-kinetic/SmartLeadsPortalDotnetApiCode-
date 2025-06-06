@@ -11,7 +11,7 @@ public class SavedTableView
     public string? ViewFilters { get; set; }
     public int OwnerId { get; set; }
     public int Sharing { get; set; }
-    public bool IsDefault { get; set; }
+    public bool? IsDefault { get; set; }
     public DateTime CreatedAt { get; set; }
     public int CreatedBy { get; set; }
     public DateTime ModifiedAt { get; set; }
