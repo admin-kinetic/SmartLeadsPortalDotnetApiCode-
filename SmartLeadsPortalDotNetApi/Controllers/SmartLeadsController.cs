@@ -158,7 +158,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         public async Task<IActionResult> GetAllSmartLeadsCallTaskList(SmartLeadsCallTasksRequest param)
         {
             var user = this.HttpContext.User;
-            var employeeId = user.FindFirst("id").Value;
+            var employeeId = user.FindFirst("employeeId").Value;
 
             if (string.IsNullOrEmpty(employeeId))
             {
@@ -172,7 +172,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [HttpPost("call-tasks/find")]
         public async Task<IActionResult> CallTasksFind(TableRequest request){
             var user = this.HttpContext.User;
-            var employeeId = user.FindFirst("id").Value;
+            var employeeId = user.FindFirst("employeeId").Value;
 
             if (string.IsNullOrEmpty(employeeId))
             {

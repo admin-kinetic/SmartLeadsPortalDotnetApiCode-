@@ -25,4 +25,18 @@ public class SmartleadCampaignRepository
             return result;
         }
     }
+
+    public async Task<List<string>?> GetBdrs()
+    {
+        using (var connection = this.dbConnectionFactory.GetSqlConnection())
+        {
+            var query = """
+                    Select Distinct Bdr 
+                    From SmartleadCampaigns
+                    Where (Bdr IS NOT NULL AND BDR != '')
+                """;
+            var queryResult = await connection.QueryAsync<string>(query);
+            return queryResult.ToList();
+        }
+    }
 }

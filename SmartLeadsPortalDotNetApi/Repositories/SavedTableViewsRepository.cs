@@ -36,46 +36,88 @@ public class SavedTableViewsRepository
         using (var connection = this.dbConnectionFactory.GetSqlConnection())
         {
             var viewNameExistsQuery = """
-                SELECT COUNT(*) FROM SavedTableViews WHERE OwnerId = @OwnerId AND TableName = @TableName AND ViewName = @ViewName
+                SELECT COUNT(*) 
+                FROM SavedTableViews 
+                WHERE OwnerId = @OwnerId 
+                    AND TableName = @TableName 
+                    AND ViewName = @ViewName
             """;
-            var viewNameExistsParam = new
-            {
-                OwnerId = savedTableView.OwnerId,
-                TableName = savedTableView.TableName,
-                ViewName = savedTableView.ViewName
-            };
-            var viewNameExists = await connection.ExecuteScalarAsync<int>(viewNameExistsQuery, viewNameExistsParam);    
+            var viewNameExists = await connection.ExecuteScalarAsync<int>(viewNameExistsQuery, savedTableView);
 
             if (viewNameExists > 0)
             {
                 var update = """
                     UPDATE SavedTableViews 
-                    SET ViewFilters = @ViewFilters, ModifiedAt = GETDATE(), ModifiedBy = @ModifiedBy 
-                    WHERE OwnerId = @OwnerId AND TableName = @TableName AND ViewName = @ViewName
+                    SET ViewFilters = @ViewFilters, 
+                        ModifiedAt = GETDATE(), 
+                        ModifiedBy = @ModifiedBy 
+                    WHERE OwnerId = @OwnerId 
+                        AND TableName = @TableName 
+                        AND ViewName = @ViewName
                 """;
-                var updateParam = new
-                {
-                    ViewFilters = savedTableView.ViewFilters,
-                    ModifiedBy = savedTableView.ModifiedBy,
-                    OwnerId = savedTableView.OwnerId,
-                    TableName = savedTableView.TableName,
-                    ViewName = savedTableView.ViewName
-                };
-                await connection.ExecuteAsync(update, updateParam);
+                await connection.ExecuteAsync(update, savedTableView);
                 return;
             }
 
             var insert = """
                 INSERT INTO SavedTableViews 
-                    (GuId, TableName, ViewName, ViewFilters, OwnerId, Sharing, CreatedAt, CreatedBy, ModifiedAt, ModifiedBy) 
+                    (GuId, TableName, ViewName, ViewFilters, OwnerId, Sharing, CreatedAt, CreatedBy, ModifiedAt, ModifiedBy, IsDefault) 
                     VALUES 
-                    (NEWID(), @TableName, @ViewName, @ViewFilters, @OwnerId, @Sharing, GETDATE(), @CreatedBy, GETDATE(), @ModifiedBy)
+                    (NEWID(), @TableName, @ViewName, @ViewFilters, @OwnerId, @Sharing, GETDATE(), @CreatedBy, GETDATE(), @ModifiedBy, @IsDefault)
             """;
-            var insertParam = new
-            {
-
-            };
             await connection.ExecuteAsync(insert, savedTableView);
         }
     }
+
+    public async Task UpdateTableView(SavedTableView savedTableView)
+    {
+        using (var connection = this.dbConnectionFactory.GetSqlConnection())
+        {
+            if (connection.State == System.Data.ConnectionState.Closed)
+            {
+                await connection.OpenAsync();
+            }
+
+            using (var transaction = await connection.BeginTransactionAsync())
+            {
+                try
+                {
+                    if (savedTableView.IsDefault == true)
+                    {
+                        var updatePreviousDefault = """
+                            UPDATE SavedTableViews 
+                            SET IsDefault = 0
+                            WHERE OwnerId = @OwnerId 
+                                AND TableName = @TableName 
+                                AND IsDefault = 1
+                                AND Id != @Id
+                        """;
+                        await connection.ExecuteAsync(updatePreviousDefault, savedTableView, transaction);
+                    }
+
+                    var update = """
+                        UPDATE SavedTableViews 
+                        SET 
+                            ViewName = @ViewName, 
+                            ViewFilters = @ViewFilters, 
+                            ModifiedAt = GETDATE(), 
+                            ModifiedBy = @ModifiedBy,
+                            IsDefault = @IsDefault
+                        WHERE OwnerId = @OwnerId 
+                            AND TableName = @TableName 
+                            AND Id = @Id
+                    """;
+                    await connection.ExecuteAsync(update, savedTableView, transaction);
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+
+            }
+        }
+    }
 }
+
