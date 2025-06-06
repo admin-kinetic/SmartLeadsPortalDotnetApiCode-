@@ -2,6 +2,8 @@ using System;
 using System.Linq.Expressions;
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Entities;
+using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Services.Model;
 
@@ -137,6 +139,41 @@ public class SmartLeadsAllLeadsRepository
         }
     }
 
+    public async Task<SmartLeadAllLeads> GetByEmail(string email){
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        var query = """
+                SELECT * FROM SmartLeadAllLeads WHERE Email = @email
+            """;
+
+        return await connection.QueryFirstOrDefaultAsync<SmartLeadAllLeads>(query, new { email });
+    }
+
+    public async Task InsertLeadFromSmartleads(SmartLeadsByEmailResponse leadFromSmartLeads)
+    {
+        var newLead = new SmartLeadAllLeads
+        {
+            LeadId = double.Parse(leadFromSmartLeads.id),
+            CampaignId = leadFromSmartLeads.lead_campaign_data.FirstOrDefault().campaign_id,
+            FirstName = leadFromSmartLeads.first_name,
+            LastName = leadFromSmartLeads.last_name,
+            CreatedAt = leadFromSmartLeads.created_at,
+            PhoneNumber = leadFromSmartLeads.phone_number,
+            CompanyName = leadFromSmartLeads.company_name,
+            LeadStatus = "INPROGRESS",
+            Email = leadFromSmartLeads.email,
+            BDR = leadFromSmartLeads.custom_fields.BDR,
+            CreatedBy = leadFromSmartLeads.custom_fields.Created_by,
+            QABy = leadFromSmartLeads.custom_fields.QA_by,
+            Location = leadFromSmartLeads.location
+        };
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        var insert = """
+                INSERT INTO SmartLeadAllLeads (LeadId, Email, CampaignId, CreatedAt, FirstName, LastName, PhoneNumber, CompanyName, LeadStatus, Location, Bdr, CreatedBy, QABy)
+                VALUES (@LeadId, @Email, @CampaignId, @CreatedAt, @FirstName, @LastName, @PhoneNumber, @CompanyName, @LeadStatus, @Location, @BDR, @CreatedBy, @QABy)
+            """;
+        await connection.ExecuteAsync(insert, newLead);
+    }
+
     private (string firstName, string lastName) SplitNameByLastSpace(string fullName)
     {
         // Trim the input to remove leading/trailing spaces
@@ -163,4 +200,6 @@ public class SmartLeadsAllLeadsRepository
 
         return (firstName, lastName);
     }
+
+    
 }
