@@ -103,7 +103,7 @@ public class SmartLeadAllLeadsService
                             //""";
 
                             var upsert = """
-                                MERGE INTO SmartLeadAllLeads WITH (ROWLOCK) sAS target
+                                MERGE INTO SmartLeadAllLeads WITH (ROWLOCK) AS target
                                 USING (SELECT 
                                           @LeadId AS LeadId,
                                           @Email AS Email,

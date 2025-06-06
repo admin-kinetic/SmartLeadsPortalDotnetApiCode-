@@ -22,7 +22,7 @@ namespace ReprocessEmailSequenceWebhooks
         private readonly SmartLeadsEmailStatisticsRepository _smartLeadsEmailStatisticsRepository;
 
         public ReprocessService(
-            IConfiguration configuration, 
+            IConfiguration configuration,
             ILogger<ReprocessService> logger,
             DbConnectionFactory dbConnectionFactory,
             MessageHistoryRepository messageHistoryRepository,
@@ -37,7 +37,20 @@ namespace ReprocessEmailSequenceWebhooks
 
         public async Task Run()
         {
-            var emailReplyWebhooks = await GetEmailReplyWebhooks();
+            var emailReplyWebhooks = new List<string>();
+
+            var byEmails = _configuration.GetSection("Emails").Get<List<string>>();
+
+            if (byEmails != null && byEmails.Any())
+            {
+                emailReplyWebhooks = await GetEmailReplyWebhooksByEmails(byEmails);
+            }
+            else
+            {
+                emailReplyWebhooks = await GetEmailReplyWebhooks();
+            }
+
+
             foreach (var emailReplyWebhook in emailReplyWebhooks)
             {
                 var emailReplyWebhookObject = default(EmailReplyPayload);
@@ -48,15 +61,15 @@ namespace ReprocessEmailSequenceWebhooks
                 catch
                 {
                     _logger.LogInformation($"Failed to deserialize webhook {emailReplyWebhook}");
-                    continue; 
+                    continue;
                 }
 
                 _logger.LogInformation($"Processing emails for {emailReplyWebhookObject.to_email}, sequence number {emailReplyWebhookObject.sequence_number}");
                 var emailSentWebhook = await GetFirstEmailSentWebhookByEmail(emailReplyWebhookObject.to_email, emailReplyWebhookObject.sequence_number.Value);
-                if(string.IsNullOrEmpty(emailSentWebhook))
+                if (string.IsNullOrEmpty(emailSentWebhook))
                 {
                     emailSentWebhook = await GetEmailSentWebhookByEmail(emailReplyWebhookObject.to_email, emailReplyWebhookObject.sequence_number.Value);
-                    if(string.IsNullOrEmpty(emailSentWebhook))
+                    if (string.IsNullOrEmpty(emailSentWebhook))
                     {
                         _logger.LogInformation($"No email sent for {emailReplyWebhookObject.to_email}, sequence number {emailReplyWebhookObject.sequence_number}");
                         continue;
@@ -87,7 +100,22 @@ namespace ReprocessEmailSequenceWebhooks
                     From Webhooks 
                     Where (EventType = 'EMAIL_REPLY') AND CONVERT(DATE, CreatedAt) >= CONVERT(DATE, DATEADD(DAY, -@daysOffset, GETDATE()))
                 """;
-            var queryResult =await connection.QueryAsync<string>(query, new { daysOffset });
+            var queryResult = await connection.QueryAsync<string>(query, new { daysOffset });
+            return queryResult.ToList();
+        }
+
+        private async Task<List<string>> GetEmailReplyWebhooksByEmails(List<string> emails)
+        {
+            var daysOffset = _configuration.GetSection("DaysOffset").Get<int>();
+            using var connection = _dbConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            var query = """
+                    Select Request
+                    From Webhooks 
+                    Where (EventType = 'EMAIL_REPLY') 
+                        AND JSON_VALUE(Request, '$.to_email') IN @emails
+                """;
+            var queryResult = await connection.QueryAsync<string>(query, new { emails });
             return queryResult.ToList();
         }
 
