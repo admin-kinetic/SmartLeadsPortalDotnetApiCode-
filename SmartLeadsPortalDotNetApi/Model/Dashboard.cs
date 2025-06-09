@@ -49,4 +49,12 @@
         public int? TotalCount { get; set; }
 
     }
+
+    public class DashboardDropdownList
+    {
+        public int Id { get; set; }
+        public Guid GuId { get; set; }
+        public string? ValueName { get; set; }
+        public bool? IsActive { get; set; }
+    }
 }

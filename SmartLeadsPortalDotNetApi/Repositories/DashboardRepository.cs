@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
 using System.Data;
+using System.Threading;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
@@ -333,6 +334,85 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardBDRList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
 
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardBDRList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardCampaignsList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardCampaignsList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardLeadgenList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardLeadgenList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardQaList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardQaList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
     }
 }

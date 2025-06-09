@@ -183,5 +183,37 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var ret = await this._dashboardRepository.GetDashboardEmailStatisticsTotalSent(param);
             return Ok(ret);
         }
+
+        [HttpGet("get-bdr-list")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetDashboardBDRList(CancellationToken cancellationToken)
+        {
+            var result = await _dashboardRepository.GetDashboardBDRList(cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-campaign-list")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetDashboardCampaignsList(CancellationToken cancellationToken)
+        {
+            var result = await _dashboardRepository.GetDashboardCampaignsList(cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-leadgen-list")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetDashboardLeadgenList(CancellationToken cancellationToken)
+        {
+            var result = await _dashboardRepository.GetDashboardLeadgenList(cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-qa-list")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> GetDashboardQaList(CancellationToken cancellationToken)
+        {
+            var result = await _dashboardRepository.GetDashboardQaList(cancellationToken);
+            return Ok(result);
+        }
     }
 }
