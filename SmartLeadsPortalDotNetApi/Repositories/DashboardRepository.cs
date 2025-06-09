@@ -246,23 +246,17 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         }
         public async Task<IEnumerable<DashboardSmartLeadCampaignsActive>> GetDashboardSmartLeadCampaignsActive()
         {
-            try
-            {
-                IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
+            IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
 
-                using (var connection = this.dbConnectionFactory.GetSqlConnection())
-                {
-                    string _proc = "sm_spSmartLeadCampaignsActive";
-                    list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, commandType: CommandType.StoredProcedure);
-
-                    return list;
-                }
-            }
-            catch (Exception e)
+            using (var connection = this.dbConnectionFactory.GetSqlConnection())
             {
-                throw new Exception(e.Message);
+                string _proc = "sm_spSmartLeadCampaignsActive";
+                list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, commandType: CommandType.StoredProcedure);
+
+                return list;
             }
         }
+        
         public async Task<IEnumerable<DashboardAutomatedCampaignLeadgen>> GetDashboardJobAdChartsEmailSequenceLeadgen(DashboardDateParameter request)
         {
             try
