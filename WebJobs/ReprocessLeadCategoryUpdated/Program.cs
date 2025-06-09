@@ -15,7 +15,7 @@ internal class Program
         var dbConnectionFactory = new DbConnectionFactory(configuration);
         var smartLeadsExportedContactsRepository = new SmartLeadsExportedContactsRepository(dbConnectionFactory);
         var smartLeadsHttpService = new SmartLeadHttpService();
-        var reprocessLeadCategoryUpdatedService = new ReprocessLeadCategoryUpdatedService(dbConnectionFactory, smartLeadsExportedContactsRepository, smartLeadsHttpService);
+        var reprocessLeadCategoryUpdatedService = new ReprocessLeadCategoryUpdatedService(configuration, dbConnectionFactory, smartLeadsExportedContactsRepository, smartLeadsHttpService);
         await reprocessLeadCategoryUpdatedService.Run();
         Console.WriteLine("Done reprocessing lead category updated webhook");
     }
