@@ -217,6 +217,6 @@ public class WebhookService
         }
 
         await this.smartLeadsAllLeadsRepository.UpdateLeadCategory(email.ToString(), "Bounced");
-        await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), "Bounced");
+        // await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), "Bounced");
     }
 }
