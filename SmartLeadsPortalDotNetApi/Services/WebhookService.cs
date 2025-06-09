@@ -92,7 +92,7 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             //await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
-            await _smartleadsEmailStatisticsService.UpdateReply(payloadObject);
+            await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject);
             return true;
         });
 
@@ -169,7 +169,7 @@ public class WebhookService
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
-            await _smartleadsEmailStatisticsService.UpdateSent(emailSentPayload);
+            await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload);
             return true;
         });
 
