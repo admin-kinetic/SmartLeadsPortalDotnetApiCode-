@@ -18,6 +18,7 @@ public class WebhookService
     private readonly MessageHistoryRepository _messageHistoryRepository;
     private readonly SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository;
     private readonly DbExecution dbExecution;
+    private readonly SmartleadsEmailStatisticsService _smartleadsEmailStatisticsService;
     private readonly ILogger<WebhookService> logger;
 
     public WebhookService(
@@ -29,6 +30,7 @@ public class WebhookService
         MessageHistoryRepository messageHistoryRepository,
         SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository,
         DbExecution dbExecution,
+        SmartleadsEmailStatisticsService smartleadsEmailStatisticsService,
         ILogger<WebhookService> logger)
     {
         this.automatedLeadsRepository = automatedLeadsRepository;
@@ -38,6 +40,7 @@ public class WebhookService
         _messageHistoryRepository = messageHistoryRepository;
         this.smartLeadsAllLeadsRepository = smartLeadsAllLeadsRepository;
         this.dbExecution = dbExecution;
+        _smartleadsEmailStatisticsService = smartleadsEmailStatisticsService;
         this.logger = logger;
     }
 
@@ -88,7 +91,8 @@ public class WebhookService
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
-            await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
+            //await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
+            await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject);
             return true;
         });
 
@@ -159,21 +163,21 @@ public class WebhookService
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
-            await _smartLeadsEmailStatisticsRepository.UpsertEmailSent(emailSentPayload);
-            return true;
-        });
-
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
             await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
             return true;
         });
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
-            await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload);
+            await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload);
             return true;
         });
+
+        // await dbExecution.ExecuteWithRetryAsync(async () =>
+        // {
+        //     await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload);
+        //     return true;
+        // });
     }
 
     internal async Task HandleEmailBounce(string payload)
@@ -188,6 +192,4 @@ public class WebhookService
 
         await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), "Sender Originated Bounce");
     }
-
-    
 }

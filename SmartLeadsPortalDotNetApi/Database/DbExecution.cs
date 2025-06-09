@@ -34,14 +34,14 @@ public class DbExecution
                 logger.LogInformation("Retrying after {Delay} ms", delay.TotalMilliseconds);
                 await Task.Delay(delay);
             }
-            catch (SqlException ex) when (ex.Number == 10928) // request limit exceeded
+            catch (SqlException ex) when (ex.Number == 10928 || ex.Number == -2) // request limit exceeded or timeout
             {
                 logger.LogWarning(ex, "Request limit exceeded. Adding to background task queue for retry.");
                 this.webhookBackgroundTaskQueue.QueueBackgroundWorkItem(async cancellationToken =>
                 {
                     await operation();
                 }, Guid.NewGuid());
-                
+
                 return default(T); // Return default value if operation is queued
             }
         }
