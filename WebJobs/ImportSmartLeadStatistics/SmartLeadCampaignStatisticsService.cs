@@ -5,6 +5,7 @@ using ImportSmartLeadStatistics.Entities;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Common.Database;
+using Microsoft.Extensions.Logging;
 
 namespace ImportSmartLeadStatistics;
 
@@ -13,12 +14,18 @@ public class SmartLeadCampaignStatisticsService
     private readonly DbConnectionFactory connectionFactory;
     private readonly SmartLeadHttpService smartLeadHttpService;
     private readonly IConfiguration configuration;
+    private readonly ILogger<SmartLeadCampaignStatisticsService> logger;
 
-    public SmartLeadCampaignStatisticsService(DbConnectionFactory connectionFactory, SmartLeadHttpService smartLeadHttpService, IConfiguration configuration)
+    public SmartLeadCampaignStatisticsService(
+        DbConnectionFactory connectionFactory,
+        SmartLeadHttpService smartLeadHttpService,
+        IConfiguration configuration,
+        ILogger<SmartLeadCampaignStatisticsService> logger)
     {
         this.connectionFactory = connectionFactory;
         this.smartLeadHttpService = smartLeadHttpService;
         this.configuration = configuration;
+        this.logger = logger;
     }
 
     public async Task SaveAllCampaignStatisticsByCampaignId()
@@ -166,6 +173,7 @@ public class SmartLeadCampaignStatisticsService
 
                         var statistics = await DbExecution.ExecuteWithRetryAsync(async () =>
                         {
+                            logger.LogInformation("retrying...");
                             return await this.smartLeadHttpService.FetchCampaignLeadStatistics(campaign.id.Value, apiKey, offset, limit, daysOffset);
                         });
                        
