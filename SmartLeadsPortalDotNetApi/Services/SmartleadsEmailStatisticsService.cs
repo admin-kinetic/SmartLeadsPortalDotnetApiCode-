@@ -27,7 +27,7 @@ public class SmartleadsEmailStatisticsService
         this.smartleadCampaignRepository = smartleadCampaignRepository;
     }
 
-    public async Task UpdateReply(EmailReplyPayload payloadObject)
+    public async Task UpdateEmailReply(EmailReplyPayload payloadObject)
     {
         var lead = await _smartLeadsAllLeadsRepository.GetByEmail(payloadObject.to_email);
         if (lead == null)
@@ -52,7 +52,7 @@ public class SmartleadsEmailStatisticsService
         await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
     }
 
-    public async Task UpdateSent(EmailSentPayload payloadObject)
+    public async Task UpdateEmailSent(EmailSentPayload payloadObject)
     {
         var lead = await _smartLeadsAllLeadsRepository.GetByEmail(payloadObject.to_email);
         if (lead == null)

@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public Guid Guid { get; set; }
-        public int LeadId { get; set; }
+        public double LeadId { get; set; }
         public string? Email { get; set; }
         public string? FullName { get; set; }
         public int? SequenceNumber { get; set; }

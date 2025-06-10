@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Data.SqlClient;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Helper;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services.Model;
@@ -19,6 +20,8 @@ public class WebhookService
     private readonly SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository;
     private readonly DbExecution dbExecution;
     private readonly SmartleadsEmailStatisticsService _smartleadsEmailStatisticsService;
+    private readonly SmartLeadsApiService smartLeadsApiService;
+    private readonly SmartleadCampaignRepository smartleadCampaignRepository;
     private readonly ILogger<WebhookService> logger;
 
     public WebhookService(
@@ -31,6 +34,8 @@ public class WebhookService
         SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository,
         DbExecution dbExecution,
         SmartleadsEmailStatisticsService smartleadsEmailStatisticsService,
+        SmartLeadsApiService smartLeadsApiService,
+        SmartleadCampaignRepository smartleadCampaignRepository,
         ILogger<WebhookService> logger)
     {
         this.automatedLeadsRepository = automatedLeadsRepository;
@@ -41,6 +46,8 @@ public class WebhookService
         this.smartLeadsAllLeadsRepository = smartLeadsAllLeadsRepository;
         this.dbExecution = dbExecution;
         _smartleadsEmailStatisticsService = smartleadsEmailStatisticsService;
+        this.smartLeadsApiService = smartLeadsApiService;
+        this.smartleadCampaignRepository = smartleadCampaignRepository;
         this.logger = logger;
     }
 
@@ -81,8 +88,8 @@ public class WebhookService
         }
 
         var replyAt = payloadObject.event_timestamp;
-       
-      
+
+
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _messageHistoryRepository.UpsertEmailReply(payloadObject);
@@ -92,7 +99,7 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             //await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
-            await _smartleadsEmailStatisticsService.UpdateReply(payloadObject);
+            await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject);
             return true;
         });
 
@@ -133,7 +140,7 @@ public class WebhookService
 
         var sequenceNumber = emailOpenPayload.sequence_number;
 
-        
+
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
@@ -169,7 +176,7 @@ public class WebhookService
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
-            await _smartleadsEmailStatisticsService.UpdateSent(emailSentPayload);
+            await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload);
             return true;
         });
 
@@ -182,14 +189,34 @@ public class WebhookService
 
     internal async Task HandleEmailBounce(string payload)
     {
-        var payloadObject = JsonSerializer.Deserialize<JsonElement>(payload);
-        var email = payloadObject.GetProperty("to_email");
+        var payloadObject = JsonSerializer.Deserialize<EmailBouncePayload>(payload);
+        var email = payloadObject.to_email;
 
         if (string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), "Sender Originated Bounce");
+        var lead = await this.smartLeadsAllLeadsRepository.GetByEmail(email.ToString());
+        if (lead == null)
+        {
+            var campaignId = payloadObject.campaign_id;
+            var account = await this.smartleadCampaignRepository.GetAccountByCampaignId(campaignId);
+
+            var leadFromSmartLeads = await RetryHelper.ExecuteWithRetryAsync(async () =>
+            {
+                return await this.smartLeadsApiService.GetLeadByEmail(payloadObject.to_email, account.Id);
+            });
+
+            if (leadFromSmartLeads == null)
+            {
+                throw new ArgumentException("Email not found in both in our database or smartleads.");
+            }
+
+            await this.smartLeadsAllLeadsRepository.InsertLeadFromSmartleads(leadFromSmartLeads);
+        }
+
+        await this.smartLeadsAllLeadsRepository.UpdateLeadCategory(email.ToString(), "Bounced");
+        // await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), "Bounced");
     }
 }

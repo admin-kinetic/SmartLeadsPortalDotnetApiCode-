@@ -139,7 +139,8 @@ public class SmartLeadsAllLeadsRepository
         }
     }
 
-    public async Task<SmartLeadAllLeads> GetByEmail(string email){
+    public async Task<SmartLeadAllLeads> GetByEmail(string email)
+    {
         using var connection = _dbConnectionFactory.GetSqlConnection();
         var query = """
                 SELECT * FROM SmartLeadAllLeads WHERE Email = @email
@@ -201,5 +202,28 @@ public class SmartLeadsAllLeadsRepository
         return (firstName, lastName);
     }
 
-    
+    public async Task UpdateLeadCategory(string email, string category)
+    {
+        try
+        {
+            var lead = await this.GetByEmail(email);
+            if (lead == null)
+            {
+                throw new ArgumentException("Email not found in leads.");
+            }
+
+            using var connection = _dbConnectionFactory.GetSqlConnection();
+            var update = """
+                    UPDATE SmartLeadAllLeads 
+                    SET SmartLeadCategory = @category
+                    WHERE Email = @email
+                """;
+            await connection.ExecuteAsync(update, new { email, category });
+        }
+        catch (System.Exception ex)
+        {
+            this.logger.LogError("Database error: {0}", ex.Message);
+            throw;
+        }
+    }
 }
