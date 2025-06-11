@@ -1,6 +1,8 @@
 ﻿using Dapper;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Newtonsoft.Json;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
 using System.Data;
 
@@ -200,6 +202,34 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+
+        public async Task<List<SmartLeadAllLeads>> GetDashboardEmailCampaignBdrForCsv(DashboardDateParameter request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string query = """
+                        SELECT *
+                        FROM 
+                            [dbo].[SmartLeadAllLeads]
+                        WHERE BDR IS NOT NULL
+                            AND CreatedAt >= @startDate 
+                            AND CreatedAt < DATEADD(DAY, 1, @endDate)
+                    """;
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", request.StartDate);
+                    param.Add("@endDate", request.EndDate);
+                    var queryResult = await connection.QueryAsync<SmartLeadAllLeads>(query, param);
+                    return queryResult.ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
         public async Task<IEnumerable<DashboardEmailCampaignModel>> GetDashboardEmailCampaignCreatedBy(DashboardDateParameter request)
         {
             try

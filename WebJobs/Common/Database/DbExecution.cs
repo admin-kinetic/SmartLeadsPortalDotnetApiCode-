@@ -70,7 +70,7 @@ public class DbExecution
             {
                 return await operation();
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
                 exceptions.Add(ex);
             }
