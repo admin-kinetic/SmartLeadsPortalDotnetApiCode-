@@ -84,6 +84,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(ret);
         }
 
+        [HttpPost("get-dashboard-emailcampaign-bdr-for-csv")]
+        public async Task<IActionResult> GetDashboardEmailCampaignBdrForCsv(DashboardDateParameter param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardEmailCampaignBdrForCsv(param);
+            return Ok(ret);
+        }
+
         [HttpPost("get-dashboard-emailcampaign-createdby")]
         public async Task<IActionResult> GetDashboardEmailCampaignCreatedBy(DashboardDateParameter param)
         {
