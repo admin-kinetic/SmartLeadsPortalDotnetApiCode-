@@ -5,6 +5,7 @@ using ImportSmartLeadStatistics.Entities;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Common.Database;
+using Microsoft.Extensions.Logging;
 
 namespace ImportSmartLeadStatistics;
 
@@ -13,12 +14,18 @@ public class SmartLeadCampaignStatisticsService
     private readonly DbConnectionFactory connectionFactory;
     private readonly SmartLeadHttpService smartLeadHttpService;
     private readonly IConfiguration configuration;
+    private readonly ILogger<SmartLeadCampaignStatisticsService> logger;
 
-    public SmartLeadCampaignStatisticsService(DbConnectionFactory connectionFactory, SmartLeadHttpService smartLeadHttpService, IConfiguration configuration)
+    public SmartLeadCampaignStatisticsService(
+        DbConnectionFactory connectionFactory,
+        SmartLeadHttpService smartLeadHttpService,
+        IConfiguration configuration,
+        ILogger<SmartLeadCampaignStatisticsService> logger)
     {
         this.connectionFactory = connectionFactory;
         this.smartLeadHttpService = smartLeadHttpService;
         this.configuration = configuration;
+        this.logger = logger;
     }
 
     public async Task SaveAllCampaignStatisticsByCampaignId()
@@ -48,7 +55,7 @@ public class SmartLeadCampaignStatisticsService
                             continue;
                         }
 
-                        Console.WriteLine($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
+                        this.logger.LogInformation($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasData}");
 
                         if (statistics.data.Count > 0)
                         {
@@ -113,11 +120,11 @@ public class SmartLeadCampaignStatisticsService
                                         transaction);
                                     transaction.Commit();
 
-                                    Console.WriteLine("Successfully saved campaign statistics.");
+                                    this.logger.LogInformation("Successfully saved campaign statistics.");
                                 }
                                 catch (System.Exception ex)
                                 {
-                                    Console.WriteLine(ex.Message);
+                                    this.logger.LogInformation(ex.Message);
                                     transaction.Rollback();
                                     throw;
                                 }
@@ -162,10 +169,11 @@ public class SmartLeadCampaignStatisticsService
                     var limit = 100;
                     do
                     {
-                        Console.WriteLine($"Fetching for Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Day Offset: {daysOffset}");
+                        this.logger.LogInformation($"Fetching for Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Day Offset: {daysOffset}");
 
                         var statistics = await DbExecution.ExecuteWithRetryAsync(async () =>
                         {
+                            logger.LogInformation("retrying...");
                             return await this.smartLeadHttpService.FetchCampaignLeadStatistics(campaign.id.Value, apiKey, offset, limit, daysOffset);
                         });
                        
@@ -173,11 +181,11 @@ public class SmartLeadCampaignStatisticsService
 
                         if (!hasMore)
                         {
-                            Console.WriteLine($"End for Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasMore}");
+                            this.logger.LogInformation($"End for Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasMore}");
                             break;
                         }
 
-                        Console.WriteLine($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasMore}");
+                        this.logger.LogInformation($"Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasMore}");
 
                         if (statistics.data.Count > 0)
                         {
@@ -305,11 +313,11 @@ public class SmartLeadCampaignStatisticsService
 
                                     transaction.Commit();
 
-                                    Console.WriteLine("Successfully saved campaign statistics.");
+                                    this.logger.LogInformation("Successfully saved campaign statistics.");
                                 }
                                 catch (System.Exception ex)
                                 {
-                                    Console.WriteLine(ex.Message);
+                                    this.logger.LogInformation(ex.Message);
                                     transaction.Rollback();
                                     throw;
                                 }
