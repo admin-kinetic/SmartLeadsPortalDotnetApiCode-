@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 
 namespace SmartLeadsAllLeadsToPortal.Entities;
 
@@ -18,4 +19,5 @@ public class SmartLeadAllLeads
     public string? CreatedBy { get; set; }
     public string? QABy { get; set; }
     public string? Location { get; set; }
+    public string? SmartleadCategory { get; set; }
 }

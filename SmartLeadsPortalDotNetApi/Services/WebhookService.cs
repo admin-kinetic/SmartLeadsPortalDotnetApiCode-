@@ -112,17 +112,37 @@ public class WebhookService
 
     public async Task HandleLeadCategoryUpdated(string payload)
     {
-        var payloadObject = JsonSerializer.Deserialize<JsonElement>(payload);
-        var email = payloadObject.GetProperty("lead_email");
+        var payloadObject = JsonSerializer.Deserialize<LeadCategoryUpdatedPayload>(payload);
+        var email = payloadObject.lead_email;
 
         if (string.IsNullOrWhiteSpace(email.ToString()))
         {
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        var leadCategoryName = payloadObject.GetProperty("lead_category").GetProperty("new_name");
+        var lead = await this.smartLeadsAllLeadsRepository.GetByEmail(email.ToString());
+        if (lead == null)
+        {
+            var campaignId = payloadObject.campaign_id;
+            var account = await this.smartleadCampaignRepository.GetAccountByCampaignId(campaignId);
 
-        await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
+            var leadFromSmartLeads = await RetryHelper.ExecuteWithRetryAsync(async () =>
+            {
+                return await this.smartLeadsApiService.GetLeadByEmail(payloadObject.to_email, account.Id);
+            });
+
+            if (leadFromSmartLeads == null)
+            {
+                throw new ArgumentException("Email not found in both in our database or smartleads.");
+            }
+
+            await this.smartLeadsAllLeadsRepository.InsertLeadFromSmartleads(leadFromSmartLeads);
+        }
+
+        var leadCategoryName = payloadObject.lead_category.new_name;
+
+        await this.smartLeadsAllLeadsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
+        // await this.automatedLeadsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
     }
 
     public async Task HandleOpen(string payload)

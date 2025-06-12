@@ -1,4 +1,5 @@
 ﻿using Common.Database;
+using Common.Models.Webhooks;
 using Common.Repositories;
 using Common.Services;
 using Dapper;
@@ -17,17 +18,23 @@ public class ReprocessLeadCategoryUpdatedService
     private readonly IConfiguration _configuration;
     private readonly DbConnectionFactory _dbConnectionFactory;
     private readonly SmartLeadsExportedContactsRepository _smartLeadsExportedContactsRepository;
+    private readonly SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository;
+    private readonly SmartleadCampaignRepository smartleadCampaignRepository;
     private readonly SmartLeadHttpService _smartLeadHttpService;
 
     public ReprocessLeadCategoryUpdatedService(
         IConfiguration configuration,
         DbConnectionFactory dbConnectionFactory, 
         SmartLeadsExportedContactsRepository smartLeadsExportedContactsRepository,
+        SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository,
+        SmartleadCampaignRepository smartleadCampaignRepository,
         SmartLeadHttpService smartLeadHttpService)
     {
         _configuration = configuration;
         _dbConnectionFactory = dbConnectionFactory;
         _smartLeadsExportedContactsRepository = smartLeadsExportedContactsRepository;
+        this.smartLeadsAllLeadsRepository = smartLeadsAllLeadsRepository;
+        this.smartleadCampaignRepository = smartleadCampaignRepository;
         _smartLeadHttpService = smartLeadHttpService;
     }
 
@@ -36,39 +43,70 @@ public class ReprocessLeadCategoryUpdatedService
         using var connection = _dbConnectionFactory.CreateConnection();
         await connection.OpenAsync();
 
-        var dayOffset = _configuration.GetSection("DaysOffset").Get<int>();
+        var dayOffset = _configuration.GetSection("DaysOffset").Get<int?>();
+        var dateFrom = _configuration.GetSection("DateFrom").Get<DateTime?>();
+        var dateTo = _configuration.GetSection("DateTo").Get<DateTime?>();
 
-        var webhookQuery = """
+        string webhookQuery = string.Empty;
+
+        if(dayOffset != null)
+        {
+            webhookQuery = """
                 Select Request
                 From Webhooks 
-                Where (EventType = 'LEAD_CATEGORY_UPDATED') AND CONVERT(date, CreatedAt) >= CONVERT(DATE, DATEADD(DAY, -@dayOffset, GETDATE()))
-                Order By CreatedAt ASC
+                Where (EventType = 'LEAD_CATEGORY_UPDATED') 
+                    AND CONVERT(date, CreatedAt) >= CONVERT(DATE, DATEADD(DAY, -@dayOffset, GETDATE()))
+                Order By CreatedAt DESC
             """;
+        }
 
-        var webhooks = await connection.QueryAsync<string>(webhookQuery, new { dayOffset });
-        foreach (var payloadObject in webhooks.Select(w => JsonSerializer.Deserialize<JsonElement>(w)))
+        if (dateFrom != null && dateTo != null)
         {
-            var email = payloadObject.GetProperty("lead_email");
+            webhookQuery = """
+                Select Request
+                From Webhooks 
+                Where (EventType = 'LEAD_CATEGORY_UPDATED') 
+                    AND CONVERT(date, CreatedAt) >= @dateFrom
+                    AND CONVERT(date, CreatedAt) <= @dateTo
+                Order By CreatedAt DESC
+            """;
+        }
+
+        if (string.IsNullOrEmpty(webhookQuery))
+        {
+            throw new Exception("Invalid setting occured!");
+        }
+
+        var webhooks = await connection.QueryAsync<string>(webhookQuery, new { dayOffset, dateFrom, dateTo });
+        foreach (var webhook in webhooks)
+        {
+            var payloadObject = JsonSerializer.Deserialize<LeadCategoryUpdatePayload>(webhook);
+            var email = payloadObject.lead_email;
 
             if (string.IsNullOrWhiteSpace(email.ToString()))
             {
                 throw new ArgumentNullException("to_email", "Email is required.");
             }
 
-            var lead = _smartLeadsExportedContactsRepository.GetLeadByEmail(email.ToString());
+            var lead = await this.smartLeadsAllLeadsRepository.GetByEmail(email.ToString());
 
             if (lead == null)
             {
                 Console.WriteLine($"No lead found for {email.ToString()} email");
-                var leadFromSmartLeads = await _smartLeadHttpService.LeadByEmail(email.ToString(), string.Empty);
-                continue;
+                var account = await this.smartleadCampaignRepository.GetAccountByCampaignId(payloadObject.campaign_id);
+                var leadFromSmartLeads = await _smartLeadHttpService.LeadByEmail(email.ToString(), account.ApiKey);
+
+               
+                await this.smartLeadsAllLeadsRepository.InsertLeadFromSmartleads(leadFromSmartLeads);
+                lead = await this.smartLeadsAllLeadsRepository.GetByEmail(email.ToString());
             }
 
             Console.WriteLine($"Update lead category for {email.ToString()} email");
 
-            var leadCategoryName = payloadObject.GetProperty("lead_category").GetProperty("new_name");
+            var leadCategoryName = payloadObject.lead_category.new_name;
 
-            await _smartLeadsExportedContactsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
+            //await _smartLeadsExportedContactsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
+            await this.smartLeadsAllLeadsRepository.UpdateLeadCategory(email.ToString(), leadCategoryName.ToString());
         }
     }
 }
