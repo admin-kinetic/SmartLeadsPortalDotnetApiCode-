@@ -44,7 +44,7 @@ public class SmartLeadsExportedContactsService
                 {
                     await connection.ExecuteAsync("SET IDENTITY_INSERT SmartLeadsExportedContacts ON;", transaction: transaction);
                     var upsert = """
-                        MERGE INTO SmartLeadsExportedContacts AS Target
+                        MERGE INTO SmartLeadsExportedContacts WITH (ROWLOCK) AS Target
                         USING(
                         	VALUES (@id, @exportedDate, @email, @contactSource, @rate)
                         ) AS SOURCE (
