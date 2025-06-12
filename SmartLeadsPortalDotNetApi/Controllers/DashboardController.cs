@@ -302,5 +302,40 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var ret = await this._dashboardRepository.GetDashboardEmailCampaignQaByChart(param);
             return Ok(ret);
         }
+
+        [HttpPost("get-dashboard-leads-exported-charts")]
+        public async Task<IActionResult> GetDashboardAutomatedLeadsCampaignExportedCharts(DashboardFilterModel param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardAutomatedLeadsCampaignExportedCharts(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-leads-emailsequence-charts")]
+        public async Task<IActionResult> GetDashboardAutomatedLeadsCampaignEmailSequenceCharts(DashboardFilterModel param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardAutomatedLeadsCampaignEmailSequenceCharts(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-bdr-charts-csv")]
+        public async Task<IActionResult> GetDashboardAutomatedBdrChartsCsvDownload(DashboardFilterModel param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardAutomatedBdrChartsCsvDownload(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-leadsexported-charts-csv")]
+        public async Task<IActionResult> GetDashboardLeadsExportedCsvDownload(DashboardFilterModel param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardLeadsExportedCsvDownload(param);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-dashboard-emailsequence-charts-csv")]
+        public async Task<IActionResult> GetDashboardEmailSequenceCsvDownload(DashboardFilterModel param)
+        {
+            var ret = await this._dashboardRepository.GetDashboardEmailSequenceCsvDownload(param);
+            return Ok(ret);
+        }
     }
 }

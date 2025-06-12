@@ -34,7 +34,7 @@
     public class DashboardAutomatedCampaignLeadgen
     {
         public string? ExportedDate { get; set; }
-        public string? LeadGen { get; set; }
+        public string? LeadUsers { get; set; }
         public int? TotalCount { get; set; }
 
     }
@@ -110,6 +110,21 @@
     public class DashboardAnalyticsTotalIncorrectContact
     {
         public int? TotalIncorrectContact { get; set; }
+
+    }
+    public class DashboardCsvDownloadModel
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Country { get; set; }
+        public DateTime? DateCreated { get; set; }
+        public DateTime? DateEmailed { get; set; }
+        public string? BdrName { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? QaPassedBy { get; set; }
+        public string? RoleAdvertised { get; set; }
 
     }
 }
