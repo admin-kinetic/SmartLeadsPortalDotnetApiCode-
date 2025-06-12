@@ -223,7 +223,7 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<LeadByEmailResponse?> LeadByEmail(string email, string apiKey)
+    public async Task<SmartLeadsByEmailResponse?> LeadByEmail(string email, string apiKey)
     {
         try
         {
@@ -255,7 +255,7 @@ public class SmartLeadHttpService
                 string responseBody = await response.Content.ReadAsStringAsync();
 
                 // Deserialize JSON response
-                var result =  JsonSerializer.Deserialize<LeadByEmailResponse?>(responseBody);
+                var result =  JsonSerializer.Deserialize<SmartLeadsByEmailResponse?>(responseBody);
 
                 if (result != null && result.GetType().GetProperties().All(p => p.GetValue(result) == null))
                 {

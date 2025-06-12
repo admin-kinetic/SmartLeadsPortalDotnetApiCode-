@@ -2,7 +2,25 @@
 using Common.Database;
 using Common.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Serilog;
 using SmartLeadsAllLeadsToPortal;
+
+// Configure logger
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .CreateLogger();
+
+// Create logger factory
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddSerilog();
+});
+
+// Create logger
+var logger = loggerFactory.CreateLogger<Program>();
+
 
 Console.WriteLine("Importing Smartlead All Leads to Portal");
 
