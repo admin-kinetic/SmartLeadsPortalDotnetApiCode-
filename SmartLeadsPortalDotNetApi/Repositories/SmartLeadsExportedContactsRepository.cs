@@ -1,8 +1,6 @@
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
-using System;
-using System.Drawing;
 
 namespace SmartLeadsPortalDotNetApi.Repositories;
 
