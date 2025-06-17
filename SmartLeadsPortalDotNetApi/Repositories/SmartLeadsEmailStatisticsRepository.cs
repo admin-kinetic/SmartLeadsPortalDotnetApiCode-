@@ -22,17 +22,15 @@ public class SmartLeadsEmailStatisticsRepository
 
         _logger.LogInformation("Start UpsertEmailOpenCount");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-       
+
         using var connection = _dbConnectionFactory.GetSqlConnection();
         if (connection.State != System.Data.ConnectionState.Open)
         {
             connection.Open();
         }
 
-        using var transaction = await connection.BeginTransactionAsync();
-        try
-        {
-            var upsert = """
+
+        var upsert = """
                 MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING ( 
                     VALUES (@leadEmail, @sequenceNumber)
@@ -47,26 +45,18 @@ public class SmartLeadsEmailStatisticsRepository
                         VALUES (NewId(), @leadEmail, @leadName, @sequenceNumber, @emailSubject, 1, @openTime);
             """;
 
-            await connection.ExecuteAsync(upsert,
-                new
-                {
-                    leadEmail = emailOpenPayload.to_email,
-                    leadName = emailOpenPayload.to_name,
-                    sequenceNumber = emailOpenPayload.sequence_number,
-                    emailSubject = emailOpenPayload.subject,
-                    openTime = emailOpenPayload.time_opened
+        await connection.ExecuteAsync(upsert,
+            new
+            {
+                leadEmail = emailOpenPayload.to_email,
+                leadName = emailOpenPayload.to_name,
+                sequenceNumber = emailOpenPayload.sequence_number,
+                emailSubject = emailOpenPayload.subject,
+                openTime = emailOpenPayload.time_opened
 
-                },
-                transaction);
-            await transaction.CommitAsync();
-            _logger.LogInformation("UpsertEmailOpenCount took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Error on UpsertEmailOpenCount");
-            throw;
-        }
+            });
+        _logger.LogInformation("UpsertEmailOpenCount took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+
     }
 
     public async Task UpsertEmailLinkClickedCount(EmailLinkClickedPayload emaiLinkClickedPayload)
@@ -79,10 +69,8 @@ public class SmartLeadsEmailStatisticsRepository
         {
             await connection.OpenAsync();
         }
-        using var transaction = await connection.BeginTransactionAsync();
-        try
-        {
-            var upsert = """
+
+        var upsert = """
                 MERGE INTO SmartLeadsEmailStatistics  WITH (ROWLOCK) AS target
                 USING ( 
                     VALUES (@leadEmail, @sequenceNumber)
@@ -97,26 +85,20 @@ public class SmartLeadsEmailStatisticsRepository
                         VALUES (NewId(), @LeadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, 1, @timeClicked);
             """;
 
-            await connection.ExecuteAsync(upsert,
-                new
-                {
-                    leadEmail = emaiLinkClickedPayload.to_email,
-                    leadId = emaiLinkClickedPayload.sl_email_lead_id,
-                    leadName = emaiLinkClickedPayload.to_name,
-                    sequenceNumber = emaiLinkClickedPayload.sequence_number,
-                    emailSubject = emaiLinkClickedPayload.subject,
-                    timeClicked = emaiLinkClickedPayload.time_clicked,
-                },
-                transaction);
-            await transaction.CommitAsync();
-            _logger.LogInformation("UpsertEmailLinkClickedCount took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Error on UpsertEmailLinkClickedCount");
-            throw;
-        }
+        await connection.ExecuteAsync(upsert,
+            new
+            {
+                leadEmail = emaiLinkClickedPayload.to_email,
+                leadId = emaiLinkClickedPayload.sl_email_lead_id,
+                leadName = emaiLinkClickedPayload.to_name,
+                sequenceNumber = emaiLinkClickedPayload.sequence_number,
+                emailSubject = emaiLinkClickedPayload.subject,
+                timeClicked = emaiLinkClickedPayload.time_clicked,
+            });
+
+        _logger.LogInformation("UpsertEmailLinkClickedCount took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+
+
     }
 
     internal async Task UpsertEmailSent(EmailSentPayload emailOpenPayload)
@@ -130,10 +112,8 @@ public class SmartLeadsEmailStatisticsRepository
             await connection.OpenAsync();
         }
 
-        using var transaction = await connection.BeginTransactionAsync();
-        try
-        {
-            var upsert = """
+
+        var upsert = """
                 MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING ( 
                     VALUES (@leadEmail, @sequenceNumber)
@@ -151,27 +131,20 @@ public class SmartLeadsEmailStatisticsRepository
                         VALUES (NewId(), @leadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, @emailMessage, @sentTime);
             """;
 
-            await connection.ExecuteAsync(upsert,
-                new
-                {
-                    leadId = emailOpenPayload.sl_email_lead_id,
-                    leadEmail = emailOpenPayload.to_email,
-                    leadName = emailOpenPayload.to_name,
-                    sequenceNumber = emailOpenPayload.sequence_number,
-                    emailSubject = emailOpenPayload.subject,
-                    emailMessage = emailOpenPayload.sent_message_body,
-                    sentTime = emailOpenPayload.time_sent
-                },
-                transaction);
-            await transaction.CommitAsync();
-             _logger.LogInformation("UpsertEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Error on UpsertEmailSent");
-            throw;
-        }
+        await connection.ExecuteAsync(upsert,
+            new
+            {
+                leadId = emailOpenPayload.sl_email_lead_id,
+                leadEmail = emailOpenPayload.to_email,
+                leadName = emailOpenPayload.to_name,
+                sequenceNumber = emailOpenPayload.sequence_number,
+                emailSubject = emailOpenPayload.subject,
+                emailMessage = emailOpenPayload.sent_message_body,
+                sentTime = emailOpenPayload.time_sent
+            });
+
+        _logger.LogInformation("UpsertEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+
     }
 
     internal async Task UpdateEmailReply(EmailReplyPayload payloadObject)

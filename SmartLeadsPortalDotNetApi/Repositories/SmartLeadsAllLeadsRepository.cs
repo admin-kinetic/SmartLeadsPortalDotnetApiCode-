@@ -35,25 +35,22 @@ public class SmartLeadsAllLeadsRepository
 
         var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id.Value);
 
-        using var transaction = await connection.BeginTransactionAsync();
-        try
+
+        var (firstName, lastName) = SplitNameByLastSpace(payload.to_name);
+        var lead = new
         {
+            LeadId = payload.sl_email_lead_id,
+            Email = payload.to_email,
+            CampaignId = payload.campaign_id,
+            TimeSent = payload.time_sent,
+            FirstName = firstName,
+            LastName = lastName,
+            Bdr = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+            CreatedBy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+            QABy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+        };
 
-            var (firstName, lastName) = SplitNameByLastSpace(payload.to_name);
-            var lead = new
-            {
-                LeadId = payload.sl_email_lead_id,
-                Email = payload.to_email,
-                CampaignId = payload.campaign_id,
-                TimeSent = payload.time_sent,
-                FirstName = firstName,
-                LastName = lastName,
-                Bdr = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
-                CreatedBy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
-                QABy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
-            };
-
-            var upsert = """
+        var upsert = """
                 MERGE INTO SmartLeadAllLeads WITH (ROWLOCK) AS target
                 USING (SELECT 
                             @LeadId AS LeadId,
@@ -69,16 +66,8 @@ public class SmartLeadsAllLeadsRepository
                     VALUES (source.LeadId, source.Email, source.CampaignId, @TimeSent, 'INPROGRESS', @FirstName, @LastName, @Bdr, @CreatedBy, @QABy);
             """;
 
-            await connection.ExecuteAsync(upsert, lead, transaction);
-            await transaction.CommitAsync();
-            this.logger.LogInformation("UpsertLeadFromEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            this.logger.LogError(ex, "Error on UpsertLeadFromEmailSent");
-            throw;
-        }
+        await connection.ExecuteAsync(upsert, lead);
+        this.logger.LogInformation("UpsertLeadFromEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
     }
 
     public async Task UpsertLeadFromEmailLinkClick(EmailLinkClickedPayload payload)
@@ -94,24 +83,21 @@ public class SmartLeadsAllLeadsRepository
 
         var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id.Value);
 
-        using var transaction = await connection.BeginTransactionAsync();
-        try
+
+        var (firstName, lastName) = SplitNameByLastSpace(payload.to_name);
+        var lead = new
         {
+            LeadId = payload.sl_email_lead_id,
+            Email = payload.to_email,
+            CampaignId = payload.campaign_id,
+            FirstName = firstName,
+            LastName = lastName,
+            Bdr = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+            CreatedBy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+            QABy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
+        };
 
-            var (firstName, lastName) = SplitNameByLastSpace(payload.to_name);
-            var lead = new
-            {
-                LeadId = payload.sl_email_lead_id,
-                Email = payload.to_email,
-                CampaignId = payload.campaign_id,
-                FirstName = firstName,
-                LastName = lastName,
-                Bdr = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
-                CreatedBy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
-                QABy = string.Compare(campaignBdr, "Steph", StringComparison.OrdinalIgnoreCase) == 0 ? string.Empty : campaignBdr,
-            };
-
-            var upsert = """
+        var upsert = """
                 MERGE INTO SmartLeadAllLeads WITH (ROWLOCK) AS target
                 USING (SELECT 
                             @LeadId AS LeadId,
@@ -127,16 +113,8 @@ public class SmartLeadsAllLeadsRepository
                     VALUES (source.LeadId, source.Email, source.CampaignId, GETDATE(), 'INPROGRESS', @FirstName, @LastName, @Bdr, @CreatedBy, @QABy);
             """;
 
-            await connection.ExecuteAsync(upsert, lead, transaction);
-            await transaction.CommitAsync();
-            this.logger.LogInformation("UpsertLeadFromEmailLinkClick took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            this.logger.LogError(ex, "Error on UpsertLeadFromEmailLinkClick");
-            throw;
-        }
+        await connection.ExecuteAsync(upsert, lead);
+        this.logger.LogInformation("UpsertLeadFromEmailLinkClick took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
     }
 
     public async Task<SmartLeadAllLeads> GetByEmail(string email)

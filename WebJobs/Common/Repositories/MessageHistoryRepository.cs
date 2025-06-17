@@ -65,35 +65,35 @@ namespace Common.Repositories
                 };
 
                 var upsert = """
-                MERGE INTO MessageHistory WITH (ROWLOCK) AS target
-                USING (VALUES (
-                    @stats_id, @type, @message_id, @time, @email_body,
-                    @subject, @email_seq_number, @email
-                )) AS source (
-                    StatsId, Type, MessageId, Time, EmailBody,
-                    Subject, EmailSequenceNumber, LeadEmail
-                )
-                ON target.MessageId = source.MessageId
-                WHEN MATCHED THEN
-                    UPDATE SET
-                        StatsId = source.StatsId,
-                        Type = source.Type,
-                        MessageId = source.MessageId,
-                        Time = source.Time,
-                        EmailBody = source.EmailBody,
-                        Subject = source.Subject,
-                        EmailSequenceNumber = source.EmailSequenceNumber,
-                        LeadEmail = source.LeadEmail
-
-                WHEN NOT MATCHED THEN
-                    INSERT (
-                        StatsId, Type, MessageId, Time, EmailBody,
-                        Subject, EmailSequenceNumber, LeadEmail
-                    ) VALUES (
+                    MERGE INTO MessageHistory WITH (ROWLOCK) AS target
+                    USING (VALUES (
                         @stats_id, @type, @message_id, @time, @email_body,
                         @subject, @email_seq_number, @email
-                    );
-             """;
+                    )) AS source (
+                        StatsId, Type, MessageId, Time, EmailBody,
+                        Subject, EmailSequenceNumber, LeadEmail
+                    )
+                    ON target.MessageId = source.MessageId
+                    WHEN MATCHED THEN
+                        UPDATE SET
+                            StatsId = source.StatsId,
+                            Type = source.Type,
+                            MessageId = source.MessageId,
+                            Time = source.Time,
+                            EmailBody = source.EmailBody,
+                            Subject = source.Subject,
+                            EmailSequenceNumber = source.EmailSequenceNumber,
+                            LeadEmail = source.LeadEmail
+
+                    WHEN NOT MATCHED THEN
+                        INSERT (
+                            StatsId, Type, MessageId, Time, EmailBody,
+                            Subject, EmailSequenceNumber, LeadEmail
+                        ) VALUES (
+                            @stats_id, @type, @message_id, @time, @email_body,
+                            @subject, @email_seq_number, @email
+                        );
+                 """;
 
                 await connection.ExecuteAsync(upsert, email, transaction);
                 await transaction.CommitAsync();

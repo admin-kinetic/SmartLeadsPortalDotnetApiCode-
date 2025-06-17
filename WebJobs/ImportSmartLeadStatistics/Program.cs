@@ -29,7 +29,8 @@ var smartLeadHttpService = new SmartLeadHttpService();
 
 // var statistics = await smartLeadHttpService.GetCampaignStatistics(DateTime.Now.AddDays(-1), 0, 100);
 
-var smartLeadCampaignStatisticsService = new SmartLeadCampaignStatisticsService(dbConnectionFactory, smartLeadHttpService, configuration, loggerFactory.CreateLogger<SmartLeadCampaignStatisticsService>());
+var smartLeadCampaignStatisticsService = new SmartLeadCampaignStatisticsService(
+    dbConnectionFactory, smartLeadHttpService, configuration, loggerFactory.CreateLogger<SmartLeadCampaignStatisticsService>());
 
 //await smartLeadCampaignStatisticsService.SaveAllCampaignStatisticsByCampaignId();
 await smartLeadCampaignStatisticsService.SaveAllCampaignLeadStatistics();

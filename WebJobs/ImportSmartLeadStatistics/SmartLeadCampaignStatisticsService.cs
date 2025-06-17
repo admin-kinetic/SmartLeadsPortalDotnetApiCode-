@@ -1,12 +1,15 @@
-using System;
-using Common.Models;
-using Common.Services;
-using ImportSmartLeadStatistics.Entities;
-using Dapper;
-using Microsoft.Extensions.Configuration;
 using Common.Database;
+using Common.Entities;
+using Common.Models;
+using Common.Repositories;
+using Common.Services;
+using Dapper;
+using ImportSmartLeadStatistics.Entities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Runtime.CompilerServices;
+using System.Transactions;
 
 namespace ImportSmartLeadStatistics;
 
@@ -212,7 +215,9 @@ public class SmartLeadCampaignStatisticsService
                                         LeadId = double.Parse(statistic.lead_id),
                                         LeadEmail = statistic.to,
                                         SequenceNumber = int.Parse(historyItem.email_seq_number),
+                                        EmailMessageId = historyItem.message_id,
                                         EmailSubject = historyItem.subject,
+                                        EmailBody = historyItem.email_body,
                                         SentTime = historyItem.time,
                                         OpenCount = historyItem.open_count,
                                         ClickCount = historyItem.click_count
@@ -228,6 +233,9 @@ public class SmartLeadCampaignStatisticsService
                                         LeadId = double.Parse(statistic.lead_id),
                                         LeadEmail = statistic.to,
                                         SequenceNumber = int.Parse(historyItem.email_seq_number),
+                                        EmailMessageId = historyItem.message_id,
+                                        EmailSubject = historyItem.subject,
+                                        EmailBody = historyItem.email_body,
                                         ReplyTime = historyItem.time
                                     };
 
@@ -250,8 +258,56 @@ public class SmartLeadCampaignStatisticsService
     private async Task UpsertForEmailReply(List<SmartLeadsEmailStatistics> smartLeadCampaignStatisticsForEmailReply)
     {
         using var connection = this.connectionFactory.CreateConnection();
-        foreach (var emalReplyItem in smartLeadCampaignStatisticsForEmailReply)
+        foreach (var emailReplyItem in smartLeadCampaignStatisticsForEmailReply)
         {
+            var messageHistory = new MessageHistory
+            {
+                StatsId = emailReplyItem.EmailMessageStatsId,
+                Type = "SENT",
+                MessageId = emailReplyItem.EmailMessageId,
+                Time = emailReplyItem.SentTime,
+                EmailBody = emailReplyItem.EmailBody,
+                Subject = emailReplyItem.EmailSubject,
+                EmailSequenceNumber = emailReplyItem.SequenceNumber,
+                OpenCount = emailReplyItem.OpenCount,
+                ClickCount = emailReplyItem.ClickCount,
+                LeadEmail = emailReplyItem.LeadEmail
+            };
+
+            var upsertMessageHistory = """
+                    MERGE INTO MessageHistory WITH (ROWLOCK) AS target
+                    USING (VALUES (
+                        @StatsId, @Type, @MessageId, @Time, @EmailBody,
+                        @Subject, @EmailSequenceNumber, @OpenCount, @ClickCount, @LeadEmail
+                    )) AS source (
+                        StatsId, Type, MessageId, Time, EmailBody,
+                        Subject, EmailSequenceNumber, OpenCount, ClickCount, LeadEmail
+                    )
+                    ON target.MessageId = source.MessageId
+                    WHEN MATCHED THEN
+                        UPDATE SET
+                            StatsId = source.StatsId,
+                            Type = source.Type,
+                            Time = source.Time,
+                            EmailBody = source.EmailBody,
+                            Subject = source.Subject,
+                            EmailSequenceNumber = source.EmailSequenceNumber,
+                            OpenCount = source.OpenCount,
+                            ClickCount = source.ClickCount,
+                            LeadEmail = source.LeadEmail
+
+                    WHEN NOT MATCHED THEN
+                        INSERT (
+                            StatsId, Type, MessageId, Time, EmailBody,
+                            Subject, EmailSequenceNumber, OpenCount, ClickCount, LeadEmail
+                        ) VALUES (
+                            @StatsId, @Type, @MessageId, @Time, @EmailBody,
+                            @Subject, @EmailSequenceNumber, @OpenCount, @ClickCount, @LeadEmail
+                        );
+                 """;
+
+            await connection.ExecuteAsync(upsertMessageHistory, messageHistory);
+
             var upsertForEmailReply = """
                 MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING (VALUES (@GuId, @LeadId, @LeadEmail, @SequenceNumber, @ReplyTime)) 
@@ -270,10 +326,10 @@ public class SmartLeadCampaignStatisticsService
                 new
                 {
                     GuId = Guid.NewGuid(),
-                    emalReplyItem.LeadId,
-                    emalReplyItem.LeadEmail,
-                    emalReplyItem.SequenceNumber,
-                    emalReplyItem.ReplyTime
+                    emailReplyItem.LeadId,
+                    emailReplyItem.LeadEmail,
+                    emailReplyItem.SequenceNumber,
+                    emailReplyItem.ReplyTime
                 });
         }
     }
@@ -283,7 +339,55 @@ public class SmartLeadCampaignStatisticsService
         using var connection = this.connectionFactory.CreateConnection();
         foreach (var emailSentItem in smartLeadCampaignStatisticsForEmailSent)
         {
-            var upsertForEmailSent = """
+            var messageHistory = new MessageHistory
+            {
+                StatsId = emailSentItem.EmailMessageStatsId,
+                Type = "SENT",
+                MessageId = emailSentItem.EmailMessageId,
+                Time = emailSentItem.SentTime,
+                EmailBody = emailSentItem.EmailBody,
+                Subject = emailSentItem.EmailSubject,
+                EmailSequenceNumber = emailSentItem.SequenceNumber,
+                OpenCount = emailSentItem.OpenCount,
+                ClickCount = emailSentItem.ClickCount,
+                LeadEmail = emailSentItem.LeadEmail
+            };
+
+            var upsertMessageHistory = """
+                    MERGE INTO MessageHistory WITH (ROWLOCK) AS target
+                    USING (VALUES (
+                        @StatsId, @Type, @MessageId, @Time, @EmailBody,
+                        @Subject, @EmailSequenceNumber, @OpenCount, @ClickCount, @LeadEmail
+                    )) AS source (
+                        StatsId, Type, MessageId, Time, EmailBody,
+                        Subject, EmailSequenceNumber, OpenCount, ClickCount, LeadEmail
+                    )
+                    ON target.MessageId = source.MessageId
+                    WHEN MATCHED THEN
+                        UPDATE SET
+                            StatsId = source.StatsId,
+                            Type = source.Type,
+                            Time = source.Time,
+                            EmailBody = source.EmailBody,
+                            Subject = source.Subject,
+                            EmailSequenceNumber = source.EmailSequenceNumber,
+                            OpenCount = source.OpenCount,
+                            ClickCount = source.ClickCount,
+                            LeadEmail = source.LeadEmail
+
+                    WHEN NOT MATCHED THEN
+                        INSERT (
+                            StatsId, Type, MessageId, Time, EmailBody,
+                            Subject, EmailSequenceNumber, OpenCount, ClickCount, LeadEmail
+                        ) VALUES (
+                            @StatsId, @Type, @MessageId, @Time, @EmailBody,
+                            @Subject, @EmailSequenceNumber, @OpenCount, @ClickCount, @LeadEmail
+                        );
+                 """;
+
+            await connection.ExecuteAsync(upsertMessageHistory, messageHistory);
+
+            var upsertStatiscticsForEmailSent = """
                 MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING (VALUES (@GuId, @LeadId, @LeadEmail, @SequenceNumber, @EmailSubject, @SentTime, @OpenCount, @ClickCount)) 
                     AS source (GuId, LeadId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenCount, ClickCount)
@@ -301,7 +405,7 @@ public class SmartLeadCampaignStatisticsService
                     VALUES (source.GuId, source.LeadId, source.LeadEmail, source.SequenceNumber, source.EmailSubject, source.SentTime, source.OpenCount, source.ClickCount);
             """;
             await connection.ExecuteAsync(
-                upsertForEmailSent,
+                upsertStatiscticsForEmailSent,
                 new
                 {
                     GuId = Guid.NewGuid(),
