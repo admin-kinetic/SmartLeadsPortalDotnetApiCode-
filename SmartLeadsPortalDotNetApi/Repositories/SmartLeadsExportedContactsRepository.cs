@@ -1,4 +1,3 @@
-using System;
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
@@ -32,29 +31,29 @@ public class SmartLeadsExportedContactsRepository
         {
             var baseQuery = """ 
                 Select
-                    slec.Id,
-                    slec.Email,
-                    slec.ContactSource,
-                    slec.ExportedDate,
-                    sles.SentTime [SentAt],
-                    CASE 
-                        WHEN sles.ReplyTime IS NOT NULL THEN 1
-                        ELSE 0
-                    END [HasReply],
-                    sles.ReplyTime [RepliedAt],
-                    slec.HasReviewed,
-                    slec.SmartLeadsStatus,
-                    slec.SmartLeadsCategory
-                From SmartLeadsExportedContacts slec
-                LEFT JOIN SmartLeadsEmailStatistics sles ON 
-                    sles.LeadEmail = slec.Email AND sles.SequenceNumber = 1
+                TRY_CAST(sla.LeadId AS INT) AS Id,
+                sla.Email,
+                slec.ContactSource,
+                sla.CreatedAt AS ExportedDate,
+                ses.SentTime AS [SentAt],
+                CASE 
+                    WHEN ses.ReplyTime IS NOT NULL THEN 1
+                    ELSE 0
+                END AS [HasReply],
+                ses.ReplyTime AS [RepliedAt],
+                slec.HasReviewed,
+                sla.LeadStatus AS SmartLeadsStatus,
+                sla.SmartleadCategory AS SmartLeadsCategory
+            From SmartLeadAllLeads sla
+            LEFT JOIN SmartLeadsEmailStatistics ses ON sla.Email = ses.LeadEmail AND ses.SequenceNumber = 1
+            LEFT JOIN SmartLeadsExportedContacts slec ON sla.Email = slec.Email
             """;
 
             var countQuery = """ 
-                SELECT COUNT(slec.Id) AS TotalCount
-                FROM SmartLeadsExportedContacts slec
-                LEFT JOIN SmartLeadsEmailStatistics sles ON 
-                    sles.LeadEmail = slec.Email AND sles.SequenceNumber = 1
+                SELECT COUNT(sla.Id) AS TotalCount
+                    From SmartLeadAllLeads sla
+                LEFT JOIN SmartLeadsEmailStatistics ses ON sla.Email = ses.LeadEmail AND ses.SequenceNumber = 1
+                LEFT JOIN SmartLeadsExportedContacts slec ON sla.Email = slec.Email
             """;
 
             // Build WHERE clause if filters exist
@@ -71,22 +70,22 @@ public class SmartLeadsExportedContactsRepository
                     switch (filter.Column.ToLower())
                     {
                         case "email":
-                            whereClause.Add("slec.Email LIKE @Email");
+                            whereClause.Add("sla.Email LIKE @Email");
                             parameters.Add("Email", $"%{filter.Value}%");
                             break;
                         case "hasreply":
-                            whereClause.Add("(sles.ReplyTime IS NOT NULL OR sles.ReplyTime = '')");
+                            whereClause.Add("(ses.ReplyTime IS NOT NULL OR ses.ReplyTime = '')");
                             break;
                         case "hasreviewed":
-                            whereClause.Add("slec.hHasReview = @HasRevew");
+                            whereClause.Add("slec.HasReviewed = @HasRevew");
                             parameters.Add("HasReview", filter.Value);
                             break;
                         case "exporteddatefrom":
-                            whereClause.Add("slec.ExportedDate >= @ExportedDateFrom");
+                            whereClause.Add("sla.CreatedAt >= @ExportedDateFrom");
                             parameters.Add("ExportedDateFrom", filter.Value);
                             break;
                         case "exporteddateto":
-                            whereClause.Add("slec.ExportedDate <  DATEADD(day, 1, @ExportedDateTo)");
+                            whereClause.Add("sla.CreatedAt <  DATEADD(day, 1, @ExportedDateTo)");
                             parameters.Add("ExportedDateTo", filter.Value);
                             break;
                         case "category":
@@ -99,22 +98,26 @@ public class SmartLeadsExportedContactsRepository
                                     var endOfDayLocal = startOfDayLocal.AddDays(1).AddTicks(-1);
                                     var startOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(startOfDayLocal, localTimeZone);
                                     var endOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(endOfDayLocal, localTimeZone);
-                                    whereClause.Add("slec.RepliedAt BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
+                                    whereClause.Add("ses.ReplyTime BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
                                     parameters.Add("RepliedAtStartDay", startOfDayUtc);
                                     parameters.Add("RepliedAtEndDay", endOfDayUtc);
-                                    whereClause.Add("(slec.SmartleadsCategory IS NULL OR slec.SmartleadsCategory = '')");
+                                    whereClause.Add("(sla.SmartleadCategory IS NULL OR sla.SmartleadCategory = '')");
                                     break;
                                 case "positive-response":
-                                    whereClause.Add("slec.HasReviewed = 1");
+                                    //whereClause.Add("slec.HasReviewed = 1");
+                                    whereClause.Add("sla.SmartleadCategory = 'Interested' OR sla.SmartleadCategory = 'Information Request'");
                                     break;
                                 case "out-of-office":
-                                    whereClause.Add("slec.SmartleadsCategory = 'Out Of Office'");
+                                    whereClause.Add("sla.SmartleadCategory = 'Out Of Office'");
                                     break;
                                 case "incorrect-contact":
-                                    whereClause.Add("slec.SmartleadsCategory = 'Wrong Person'");
+                                    whereClause.Add("sla.SmartleadCategory = 'Wrong Person'");
                                     break;
                                 case "email-error":
-                                    whereClause.Add("slec.SmartleadsCategory = 'Sender Originated Bounce'");
+                                    whereClause.Add("sla.SmartleadCategory = 'Sender Originated Bounce' OR sla.SmartleadCategory = 'Bounced'");
+                                    break;
+                                case "open-email":
+                                    whereClause.Add("ses.OpenTime IS NOT NULL OR ses.OpenTime <> ''");
                                     break;
                                 default:
                                     break;
@@ -143,7 +146,7 @@ public class SmartLeadsExportedContactsRepository
                 switch (request.sorting.column.ToLower())
                 {
                     default:
-                        baseQuery += $" ORDER BY slec.Id DESC";
+                        baseQuery += $" ORDER BY TRY_CAST(sla.LeadId AS INT) DESC";
                         break;
                 }
             }
