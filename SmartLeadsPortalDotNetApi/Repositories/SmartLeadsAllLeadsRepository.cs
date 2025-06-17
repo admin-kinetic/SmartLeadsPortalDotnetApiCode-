@@ -1,11 +1,9 @@
-using System;
-using System.Linq.Expressions;
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
-using SmartLeadsPortalDotNetApi.Services.Model;
+using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Repositories;
 
@@ -139,14 +137,14 @@ public class SmartLeadsAllLeadsRepository
         }
     }
 
-    public async Task<SmartLeadAllLeads> GetByEmail(string email)
+    public async Task<SmartLeadAllLeads?> GetByEmail(string email)
     {
         using var connection = _dbConnectionFactory.GetSqlConnection();
         var query = """
                 SELECT * FROM SmartLeadAllLeads WHERE Email = @email
             """;
 
-        return await connection.QueryFirstOrDefaultAsync<SmartLeadAllLeads>(query, new { email });
+        return await connection.QueryFirstOrDefaultAsync<SmartLeadAllLeads?>(query, new { email });
     }
 
     public async Task InsertLeadFromSmartleads(SmartLeadsByEmailResponse leadFromSmartLeads)
@@ -154,18 +152,18 @@ public class SmartLeadsAllLeadsRepository
         var newLead = new SmartLeadAllLeads
         {
             LeadId = double.Parse(leadFromSmartLeads.id),
-            CampaignId = leadFromSmartLeads.lead_campaign_data.FirstOrDefault().campaign_id,
-            FirstName = leadFromSmartLeads.first_name,
-            LastName = leadFromSmartLeads.last_name,
-            CreatedAt = leadFromSmartLeads.created_at,
-            PhoneNumber = leadFromSmartLeads.phone_number,
-            CompanyName = leadFromSmartLeads.company_name,
+            CampaignId = leadFromSmartLeads?.lead_campaign_data?.FirstOrDefault()?.campaign_id,
+            FirstName = leadFromSmartLeads?.first_name,
+            LastName = leadFromSmartLeads?.last_name,
+            CreatedAt = leadFromSmartLeads?.created_at,
+            PhoneNumber = leadFromSmartLeads?.phone_number,
+            CompanyName = leadFromSmartLeads?.company_name,
             LeadStatus = "INPROGRESS",
-            Email = leadFromSmartLeads.email,
-            BDR = leadFromSmartLeads.custom_fields.BDR,
-            CreatedBy = leadFromSmartLeads.custom_fields.Created_by,
-            QABy = leadFromSmartLeads.custom_fields.QA_by,
-            Location = leadFromSmartLeads.location
+            Email = leadFromSmartLeads?.email,
+            BDR = leadFromSmartLeads?.custom_fields.BDR,
+            CreatedBy = leadFromSmartLeads?.custom_fields.Created_by,
+            QABy = leadFromSmartLeads?.custom_fields.QA_by,
+            Location = leadFromSmartLeads?.location
         };
         using var connection = _dbConnectionFactory.GetSqlConnection();
         var insert = """
@@ -224,6 +222,26 @@ public class SmartLeadsAllLeadsRepository
         {
             this.logger.LogError("Database error: {0}", ex.Message);
             throw;
+        }
+    }
+    public async Task<int> UpSertPhonenumbersInAllLeads(SmartLeadsUpdatePhoneNumberRequest filter)
+    {
+        try
+        {
+            using (var connection = this._dbConnectionFactory.GetSqlConnection())
+            {
+                var countProcedure = "sm_spUpSertPhonenumbersInAllLeads";
+                var param = new DynamicParameters();
+                param.Add("@email", filter.Email);
+                param.Add("@phonenumber", filter.PhoneNumber);
+                var affectedRows = await connection.ExecuteAsync(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                return affectedRows;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error updating phone numbers in database.", ex);
         }
     }
 }

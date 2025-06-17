@@ -219,5 +219,24 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
+        public async Task<LeadsDetailsModel?> GetLeadsProspectDetails(ProspectModelParam request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetLeadProspectDetails";
+                    var param = new DynamicParameters();
+                    param.Add("@email", request.Email);
+                    LeadsDetailsModel? result = await connection.QuerySingleOrDefaultAsync<LeadsDetailsModel>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
     }
 }
