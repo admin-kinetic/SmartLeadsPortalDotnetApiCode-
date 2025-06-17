@@ -69,3 +69,9 @@ public class UnsubscribedClientIdMap
 {
 }
 
+public class SmartLeadsUpdatePhoneNumberRequest
+{
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+}
+

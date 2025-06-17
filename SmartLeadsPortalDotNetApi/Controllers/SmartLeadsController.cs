@@ -18,13 +18,15 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly SmartLeadsRepository _smartLeadsRepository;
         private readonly CallTasksTableRepository callTasksTableRepository;
         private readonly CallsTableRepository callsTableRepository;
+        private readonly SmartLeadsAllLeadsRepository _smartAllLeadsRepository;
 
-        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository, CallsTableRepository callsTableRepository)
+        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository, CallsTableRepository callsTableRepository, SmartLeadsAllLeadsRepository smartAllLeadsRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
             _smartLeadsRepository = smartLeadsRepository;
             this.callTasksTableRepository = callTasksTableRepository;
             this.callsTableRepository = callsTableRepository;
+            _smartAllLeadsRepository = smartAllLeadsRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -304,6 +306,28 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             var ret = await this._smartLeadsRepository.UpdateLeadsEmailDetails(request);
             return Ok(ret);
+        }
+
+        [HttpPost("update-phonenumber-leads-details")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpSertPhonenumbersInAllLeads([FromBody] SmartLeadsUpdatePhoneNumberRequest request)
+        {
+            var ret = await this._smartAllLeadsRepository.UpSertPhonenumbersInAllLeads(request);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-leadsprospect-details")]
+        public async Task<IActionResult> GetLeadsProspectDetails(ProspectModelParam param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetLeadsProspectDetails(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 }
