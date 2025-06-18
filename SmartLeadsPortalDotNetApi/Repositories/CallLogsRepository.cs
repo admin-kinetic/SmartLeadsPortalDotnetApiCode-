@@ -13,28 +13,38 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             this.dbConnectionFactory = dbConnectionFactory;
         }
-        public async Task<int> InsertCallLogs(CallsInsert keyword)
+        public async Task<ApiResponse> InsertCallLogs(CallsInsert keyword)
         {
-            await Task.Delay(3000);
-            if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
-            {
-                throw new ArgumentException("UserPhoneNumber, UserCaller, and ProspectNumber cannot be null or empty.");
-            }
-
-            CallLogsOutbound? callLogsOutbound = await GetOutboundcallsInfo(keyword.UserPhoneNumber, keyword.ProspectNumber);
-
-            if (callLogsOutbound == null)
-            {
-                throw new InvalidOperationException("Failed to retrieve outbound call information.");
-            }
-
             try
             {
+                if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
+                {
+                    return new ApiResponse(false, "UserPhoneNumber and ProspectNumber cannot be null or empty.", "INVALID_INPUT");
+                }
+
+                CallLogsOutbound? callLogsOutbound;
+
+                if (keyword.CallDirectionId == 1)
+                {
+                    callLogsOutbound = await GetInboundcallsInfo(keyword.ProspectNumber, keyword.UserPhoneNumber);
+                }
+                else
+                {
+                    callLogsOutbound = await GetOutboundcallsInfo(keyword.UserPhoneNumber, keyword.ProspectNumber);
+                }
+
+                if (callLogsOutbound == null)
+                {
+                    return new ApiResponse(false, "Failed to retrieve call information.", "CALL_INFO_NOT_FOUND");
+                }
+
+                CallLogFullName? callername = await GetProspectNameByPhone(keyword.UserPhoneNumber);
+
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     string _proc = "sm_spInsertCallLogs";
                     var param = new DynamicParameters();
-                    param.Add("@usercaller", keyword.UserCaller);
+                    param.Add("@usercaller", string.IsNullOrEmpty(keyword.UserCaller) ? callername?.FullName : keyword.UserCaller);
                     param.Add("@userphonenumber", callLogsOutbound.CallerId);
                     param.Add("@leademail", keyword.LeadEmail);
                     param.Add("@prospectname", keyword.ProspectName);
@@ -53,15 +63,21 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     param.Add("@uniquecallid", callLogsOutbound.UniqueCallId);
                     param.Add("@calleddate", callLogsOutbound.CallStartAt);
 
-                    int ret = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
+                    int rowsAffected = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
 
-                    return ret;
+                    if (rowsAffected > 0)
+                    {
+                        return new ApiResponse(true, "Call logs saved successfully.");
+                    }
+                    else
+                    {
+                        return new ApiResponse(false, "Failed to save call logs.", "DATABASE_OPERATION_FAILED");
+                    }
                 }
-                
             }
             catch (Exception ex)
             {
-                throw new Exception("Database error: " + ex.Message);
+                return new ApiResponse(false, $"Database error: {ex.Message}", "DATABASE_ERROR");
             }
         }
         public async Task<int> InsertInboundCallLogs(CallsInsertInbound keyword)
