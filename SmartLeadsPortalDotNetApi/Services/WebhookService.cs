@@ -67,11 +67,13 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
+            return true;
         });
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject);
+            return true;
         });
     }
 
@@ -91,11 +93,13 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _messageHistoryRepository.UpsertEmailReply(payloadObject);
+            return true;
         });
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject);
+            return true;
         });
     }
 
@@ -180,11 +184,13 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
+            return true;
         });
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload);
+            return true;
         });
 
         // await dbExecution.ExecuteWithRetryAsync(async () =>

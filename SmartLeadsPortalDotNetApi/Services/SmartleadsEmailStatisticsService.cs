@@ -60,6 +60,11 @@ public class SmartleadsEmailStatisticsService
             var campaignId = payloadObject.campaign_id;
             var account = await this.smartleadCampaignRepository.GetAccountByCampaignId(campaignId);
 
+            if (account == null)
+            {
+                throw new ArgumentException($"Account not found for {campaignId} campaign in both in our database or smartleads.");
+            }
+
             _logger.LogInformation("Email not found in leads. Try to retrieve from SmartLeads.");
             var leadFromSmartLeads = await RetryHelper.ExecuteWithRetryAsync(async () =>
             {
