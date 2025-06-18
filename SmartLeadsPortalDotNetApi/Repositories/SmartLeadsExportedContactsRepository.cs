@@ -69,22 +69,22 @@ public class SmartLeadsExportedContactsRepository
                     // Handle different column types appropriately
                     switch (filter.Column.ToLower())
                     {
-                        case "email":
+                        case "emailaddress":
                             whereClause.Add("sla.Email LIKE @Email");
                             parameters.Add("Email", $"%{filter.Value}%");
                             break;
                         case "hasreply":
                             whereClause.Add("(ses.ReplyTime IS NOT NULL OR ses.ReplyTime = '')");
                             break;
-                        case "hasreviewed":
-                            whereClause.Add("slec.HasReviewed = @HasRevew");
+                        case "hasreview":
+                            whereClause.Add("slec.HasReviewed = @HasReview");
                             parameters.Add("HasReview", filter.Value);
                             break;
-                        case "exporteddatefrom":
+                        case "fromdate":
                             whereClause.Add("sla.CreatedAt >= @ExportedDateFrom");
                             parameters.Add("ExportedDateFrom", filter.Value);
                             break;
-                        case "exporteddateto":
+                        case "todate":
                             whereClause.Add("sla.CreatedAt <  DATEADD(day, 1, @ExportedDateTo)");
                             parameters.Add("ExportedDateTo", filter.Value);
                             break;
@@ -105,7 +105,7 @@ public class SmartLeadsExportedContactsRepository
                                     break;
                                 case "positive-response":
                                     //whereClause.Add("slec.HasReviewed = 1");
-                                    whereClause.Add("sla.SmartleadCategory = 'Interested' OR sla.SmartleadCategory = 'Information Request'");
+                                    whereClause.Add("sla.SmartleadCategory = 'Interested' OR sla.SmartleadCategory = 'Information Request' OR sla.SmartleadCategory = 'Meeting Request'");
                                     break;
                                 case "out-of-office":
                                     whereClause.Add("sla.SmartleadCategory = 'Out Of Office'");
