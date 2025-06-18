@@ -12,7 +12,10 @@ public class SmartLeadsEmailStatistics
     public string? LeadEmail { get; set; }
     public string? LeadName { get; set; }
     public int? SequenceNumber { get; set; }
+    public Guid? EmailMessageStatsId { get; set; }
+    public string? EmailMessageId { get; set; }
     public string? EmailSubject { get; set; }
+    public string? EmailBody { get; set; }
     [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? SentTime { get; set; }
     [JsonConverter(typeof(DateTimeFromStringConverter))]

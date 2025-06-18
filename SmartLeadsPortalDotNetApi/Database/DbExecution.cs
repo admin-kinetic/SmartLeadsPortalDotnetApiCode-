@@ -15,6 +15,36 @@ public class DbExecution
         this.logger = logger;
     }
 
+    public async Task ExecuteWithRetryAsync(Func<Task> operation, int maxRetries = 3)
+    {
+        int retryCount = 0;
+        while (true)
+        {
+            try
+            {
+                await operation();
+            }
+            catch (SqlException ex) when (ex.Number == 1205) // Deadlock
+            {
+                logger.LogWarning(ex, "Deadlock detected. Retrying...");
+                if (retryCount++ >= maxRetries)
+                    throw;
+
+                var delay = TimeSpan.FromMilliseconds(Math.Pow(2, retryCount) * 100);
+                logger.LogInformation("Retrying after {Delay} ms", delay.TotalMilliseconds);
+                await Task.Delay(delay);
+            }
+            catch (SqlException ex) when (ex.Number == 10928 || ex.Number == -2) // request limit exceeded or timeout
+            {
+                logger.LogWarning(ex, "Request limit exceeded. Adding to background task queue for retry.");
+                this.webhookBackgroundTaskQueue.QueueBackgroundWorkItem(async cancellationToken =>
+                {
+                    await operation();
+                }, Guid.NewGuid());
+            }
+        }
+    }
+
     public async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, int maxRetries = 3)
     {
         int retryCount = 0;

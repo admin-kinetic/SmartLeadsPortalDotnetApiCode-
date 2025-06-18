@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReprocessEmailStatistics", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReprocessLeadCategoryUpdated", "WebJobs\ReprocessLeadCategoryUpdated\ReprocessLeadCategoryUpdated.csproj", "{FA1D13A3-68B8-1638-81B3-89127A291178}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReprocessBdrAssignment", "WebJobs\ReprocessBdrAssignment\ReprocessBdrAssignment.csproj", "{8285E4E3-E165-4828-B9F4-407FF72C178C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{FA1D13A3-68B8-1638-81B3-89127A291178}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA1D13A3-68B8-1638-81B3-89127A291178}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA1D13A3-68B8-1638-81B3-89127A291178}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8285E4E3-E165-4828-B9F4-407FF72C178C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8285E4E3-E165-4828-B9F4-407FF72C178C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8285E4E3-E165-4828-B9F4-407FF72C178C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8285E4E3-E165-4828-B9F4-407FF72C178C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +116,7 @@ Global
 		{B0344224-8E8F-60A2-2477-B9E275CACBC9} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 		{7D99DC00-1EBF-5938-F6A6-1B1A93371801} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 		{FA1D13A3-68B8-1638-81B3-89127A291178} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
+		{8285E4E3-E165-4828-B9F4-407FF72C178C} = {66511A95-8CAE-4EE3-B4D1-8B346B5C1C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EF9ABDCB-4807-4550-85D8-F879B2DDCBCB}

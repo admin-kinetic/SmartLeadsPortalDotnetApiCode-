@@ -98,16 +98,9 @@ public class WebhookService
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
-            //await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
             await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject);
             return true;
         });
-
-        // await dbExecution.ExecuteWithRetryAsync(async () =>
-        // {
-        //     await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
-        //     return true;
-        // });
     }
 
     public async Task HandleLeadCategoryUpdated(string payload)
