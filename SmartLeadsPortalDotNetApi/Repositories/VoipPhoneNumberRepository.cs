@@ -72,13 +72,6 @@ public class VoipPhoneNumberRepository
                 INSERT INTO VoipPhoneNumbers (PhoneNumber, EmployeeId) VALUES (@phoneNumber, @employeeId);
             """;
             await connection.ExecuteAsync(insert, request);
-
-            var updateUser = """
-                UPDATE Users 
-                    SET PhoneNumber = @phoneNumber 
-                WHERE EmployeeId = @employeeId;
-            """;
-            await connection.ExecuteAsync(updateUser, request);
         }
     }
 
