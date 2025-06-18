@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Model;
@@ -53,15 +54,15 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return this.Ok();
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody] AddVoipPhoneNumberRequest request, int id)
+        [HttpPost("upsert-voipnumbers")]
+        public async Task<IActionResult> UpSertVoipnumbers([FromBody] AddVoipPhoneNumberRequest request)
         {
             if (request.PhoneNumber == null)
             {
                 return this.BadRequest("No phone number on the request");
             }
 
-            await this.voipPhoneNumberRepository.Update(id, request);
+            await this.voipPhoneNumberRepository.UpSertVoipnumbers(request);
             return this.Ok();
         }
 
@@ -79,6 +80,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             }
             await this.voipPhoneNumberRepository.AssignVoipPhoneNumber(request.EmployeeId.Value, request.PhoneNumber);
             return this.Ok();
+        }
+
+        [HttpGet("delete-voipnumber/{guid}")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> DeleteVoipNumber(Guid guid)
+        {
+            await this.voipPhoneNumberRepository.DeleteVoipNumber(guid);
+            return Ok(new { message = "Voip Number deleted successfully." });
         }
     }
 }

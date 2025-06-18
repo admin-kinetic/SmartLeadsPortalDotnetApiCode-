@@ -1,8 +1,8 @@
-using System;
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
+using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Repositories;
 
@@ -88,32 +88,46 @@ public class VoipPhoneNumberRepository
         }
     }
 
-    public async Task Update(int id, AddVoipPhoneNumberRequest request)
+    public async Task<int> UpSertVoipnumbers(AddVoipPhoneNumberRequest request)
     {
-        using (var connection = this.connectionFactory.GetSqlConnection())
+        try
         {
-            var update = """
-                UPDATE VoipPhoneNumbers 
-                SET EmployeeId = @employeeId,
-                    PhoneNumber = @phoneNumber
-                WHERE Id = @id;
-            """;
-            var updateParam = new {
-                employeeId = request.EmployeeId,
-                phoneNumber = request.PhoneNumber,
-                id
-            };
-            await connection.ExecuteAsync(update, updateParam);
-
-            if (request.EmployeeId != null)
+            using (var connection = this.connectionFactory.GetSqlConnection())
             {
-                var updateEmployee = """
-                    UPDATE Users 
-                        SET PhoneNumber = @phoneNumber 
-                    WHERE EmployeeId = @employeeId;
-                """;
-                await connection.ExecuteAsync(updateEmployee, request);
+                string _proc = "sm_spUpSertPhonenumberUsers";
+                var param = new DynamicParameters();
+                param.Add("@id", request.Id);
+                param.Add("@employeeid", request.EmployeeId);
+                param.Add("@phonenumber", request.PhoneNumber);
+
+                int ret = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
+
+                return ret;
             }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Database error: " + ex.Message);
+        }
+    }
+    public async Task<int> DeleteVoipNumber(Guid guid)
+    {
+        try
+        {
+            using (var connection = this.connectionFactory.GetSqlConnection())
+            {
+                string _proc = "sm_spDeleteVoipNumber";
+                var param = new DynamicParameters();
+                param.Add("@guid", guid);
+
+                int ret = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
+
+                return ret;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Database error: " + ex.Message);
         }
     }
 }
