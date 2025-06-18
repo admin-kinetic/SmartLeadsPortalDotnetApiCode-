@@ -25,7 +25,8 @@ namespace ReprocessEmailStatistics
         public async Task Run()
         {
             var emailStatisticsWithIssue = await GetEmailStatisticsWithIssue();
-            if (!emailStatisticsWithIssue.Any()){
+            if (!emailStatisticsWithIssue.Any())
+            {
                 Console.WriteLine("No email statistics with issue.");
                 return;
             }
@@ -72,10 +73,7 @@ namespace ReprocessEmailStatistics
                 await connection.OpenAsync();
             }
 
-            using var transaction = await connection.BeginTransactionAsync();
-            try
-            {
-                var upsert = """
+            var upsert = """
                 MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING ( 
                     VALUES (@leadEmail, @sequenceNumber)
@@ -93,27 +91,18 @@ namespace ReprocessEmailStatistics
                         VALUES (NewId(), @leadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, @emailMessage, @sentTime);
             """;
 
-                await connection.ExecuteAsync(upsert,
-                    new
-                    {
-                        leadId = leadId,
-                        leadEmail = toEmail,
-                        leadName = leadName,
-                        sequenceNumber = history.email_seq_number,
-                        emailSubject = history.subject,
-                        emailMessage = history.email_body,
-                        sentTime = history.time
-                    },
-                    transaction);
-                await transaction.CommitAsync();
-                Console.WriteLine($"UpsertEmailSent took {stopwatch.ElapsedMilliseconds} ms");
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                Console.WriteLine("Error on UpsertEmailSent", ex);
-                throw;
-            }
+            await connection.ExecuteAsync(upsert,
+                new
+                {
+                    leadId = leadId,
+                    leadEmail = toEmail,
+                    leadName = leadName,
+                    sequenceNumber = history.email_seq_number,
+                    emailSubject = history.subject,
+                    emailMessage = history.email_body,
+                    sentTime = history.time
+                });
+            Console.WriteLine($"UpsertEmailSent took {stopwatch.ElapsedMilliseconds} ms");
         }
     }
 }
