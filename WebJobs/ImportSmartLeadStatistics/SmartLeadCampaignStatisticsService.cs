@@ -5,6 +5,7 @@ using Common.Repositories;
 using Common.Services;
 using Dapper;
 using ImportSmartLeadStatistics.Entities;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -47,7 +48,7 @@ public class SmartLeadCampaignStatisticsService
                 foreach (var campaign in campaigns.Where(s => s.status == "ACTIVE"))
                 {
                     var hasData = false;
-                    var offset = 0;
+                    var offset = 300;
                     var limit = 100;
                     do
                     {
@@ -181,7 +182,7 @@ public class SmartLeadCampaignStatisticsService
 
                     hasMore = statistics.hasMore;
 
-                    if (!hasMore)
+                    if (!hasMore && statistics.data.Count == 0)
                     {
                         this.logger.LogInformation($"End for Campaign ID: {campaign.id.Value}, Offset: {offset}, Limit: {limit}, Has Data: {hasMore}");
                         break;
@@ -260,21 +261,23 @@ public class SmartLeadCampaignStatisticsService
         using var connection = this.connectionFactory.CreateConnection();
         foreach (var emailReplyItem in smartLeadCampaignStatisticsForEmailReply)
         {
-            var messageHistory = new MessageHistory
+            try
             {
-                StatsId = emailReplyItem.EmailMessageStatsId,
-                Type = "SENT",
-                MessageId = emailReplyItem.EmailMessageId,
-                Time = emailReplyItem.SentTime,
-                EmailBody = emailReplyItem.EmailBody,
-                Subject = emailReplyItem.EmailSubject,
-                EmailSequenceNumber = emailReplyItem.SequenceNumber,
-                OpenCount = emailReplyItem.OpenCount,
-                ClickCount = emailReplyItem.ClickCount,
-                LeadEmail = emailReplyItem.LeadEmail
-            };
+                var messageHistory = new MessageHistory
+                {
+                    StatsId = emailReplyItem.EmailMessageStatsId,
+                    Type = "SENT",
+                    MessageId = emailReplyItem.EmailMessageId,
+                    Time = emailReplyItem.SentTime,
+                    EmailBody = emailReplyItem.EmailBody,
+                    Subject = emailReplyItem.EmailSubject,
+                    EmailSequenceNumber = emailReplyItem.SequenceNumber,
+                    OpenCount = emailReplyItem.OpenCount,
+                    ClickCount = emailReplyItem.ClickCount,
+                    LeadEmail = emailReplyItem.LeadEmail
+                };
 
-            var upsertMessageHistory = """
+                var upsertMessageHistory = """
                     MERGE INTO MessageHistory WITH (ROWLOCK) AS target
                     USING (VALUES (
                         @StatsId, @Type, @MessageId, @Time, @EmailBody,
@@ -306,9 +309,9 @@ public class SmartLeadCampaignStatisticsService
                         );
                  """;
 
-            await connection.ExecuteAsync(upsertMessageHistory, messageHistory);
+                await connection.ExecuteAsync(upsertMessageHistory, messageHistory);
 
-            var upsertForEmailReply = """
+                var upsertForEmailReply = """
                 MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING (VALUES (@GuId, @LeadId, @LeadEmail, @SequenceNumber, @ReplyTime)) 
                     AS source (GuId, LeadId, LeadEmail, SequenceNumber, ReplyTime)
@@ -321,16 +324,23 @@ public class SmartLeadCampaignStatisticsService
                     INSERT (GuId, LeadId, LeadEmail, SequenceNumber, ReplyTime)
                     VALUES (source.GuId, source.LeadId,source.LeadEmail, source.SequenceNumber, source.ReplyTime);
             """;
-            await connection.ExecuteAsync(
-                upsertForEmailReply,
-                new
-                {
-                    GuId = Guid.NewGuid(),
-                    emailReplyItem.LeadId,
-                    emailReplyItem.LeadEmail,
-                    emailReplyItem.SequenceNumber,
-                    emailReplyItem.ReplyTime
-                });
+                await connection.ExecuteAsync(
+                    upsertForEmailReply,
+                    new
+                    {
+                        GuId = Guid.NewGuid(),
+                        emailReplyItem.LeadId,
+                        emailReplyItem.LeadEmail,
+                        emailReplyItem.SequenceNumber,
+                        emailReplyItem.ReplyTime
+                    });
+
+            }
+            catch (SqlException ex) when (ex.Number == -2)
+            {
+                this.logger.LogInformation($"Error occured on {emailReplyItem.LeadEmail}", ex.Message);
+                throw;
+            }
         }
     }
 
@@ -339,21 +349,23 @@ public class SmartLeadCampaignStatisticsService
         using var connection = this.connectionFactory.CreateConnection();
         foreach (var emailSentItem in smartLeadCampaignStatisticsForEmailSent)
         {
-            var messageHistory = new MessageHistory
+            try
             {
-                StatsId = emailSentItem.EmailMessageStatsId,
-                Type = "SENT",
-                MessageId = emailSentItem.EmailMessageId,
-                Time = emailSentItem.SentTime,
-                EmailBody = emailSentItem.EmailBody,
-                Subject = emailSentItem.EmailSubject,
-                EmailSequenceNumber = emailSentItem.SequenceNumber,
-                OpenCount = emailSentItem.OpenCount,
-                ClickCount = emailSentItem.ClickCount,
-                LeadEmail = emailSentItem.LeadEmail
-            };
+                var messageHistory = new MessageHistory
+                {
+                    StatsId = emailSentItem.EmailMessageStatsId,
+                    Type = "SENT",
+                    MessageId = emailSentItem.EmailMessageId,
+                    Time = emailSentItem.SentTime,
+                    EmailBody = emailSentItem.EmailBody,
+                    Subject = emailSentItem.EmailSubject,
+                    EmailSequenceNumber = emailSentItem.SequenceNumber,
+                    OpenCount = emailSentItem.OpenCount,
+                    ClickCount = emailSentItem.ClickCount,
+                    LeadEmail = emailSentItem.LeadEmail
+                };
 
-            var upsertMessageHistory = """
+                var upsertMessageHistory = """
                     MERGE INTO MessageHistory WITH (ROWLOCK) AS target
                     USING (VALUES (
                         @StatsId, @Type, @MessageId, @Time, @EmailBody,
@@ -385,9 +397,9 @@ public class SmartLeadCampaignStatisticsService
                         );
                  """;
 
-            await connection.ExecuteAsync(upsertMessageHistory, messageHistory);
+                await connection.ExecuteAsync(upsertMessageHistory, messageHistory);
 
-            var upsertStatiscticsForEmailSent = """
+                var upsertStatiscticsForEmailSent = """
                 MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
                 USING (VALUES (@GuId, @LeadId, @LeadEmail, @SequenceNumber, @EmailSubject, @SentTime, @OpenCount, @ClickCount)) 
                     AS source (GuId, LeadId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenCount, ClickCount)
@@ -404,19 +416,25 @@ public class SmartLeadCampaignStatisticsService
                     INSERT (GuId, LeadId, LeadEmail, SequenceNumber, EmailSubject, SentTime, OpenCount, ClickCount)
                     VALUES (source.GuId, source.LeadId, source.LeadEmail, source.SequenceNumber, source.EmailSubject, source.SentTime, source.OpenCount, source.ClickCount);
             """;
-            await connection.ExecuteAsync(
-                upsertStatiscticsForEmailSent,
-                new
-                {
-                    GuId = Guid.NewGuid(),
-                    emailSentItem.LeadId,
-                    emailSentItem.LeadEmail,
-                    emailSentItem.SequenceNumber,
-                    EmailSubject = emailSentItem.EmailSubject?.Length > 500 ? emailSentItem.EmailSubject.Substring(0, 500) : emailSentItem.EmailSubject,
-                    emailSentItem.SentTime,
-                    emailSentItem.OpenCount,
-                    emailSentItem.ClickCount
-                });
+                await connection.ExecuteAsync(
+                    upsertStatiscticsForEmailSent,
+                    new
+                    {
+                        GuId = Guid.NewGuid(),
+                        emailSentItem.LeadId,
+                        emailSentItem.LeadEmail,
+                        emailSentItem.SequenceNumber,
+                        EmailSubject = emailSentItem.EmailSubject?.Length > 500 ? emailSentItem.EmailSubject.Substring(0, 500) : emailSentItem.EmailSubject,
+                        emailSentItem.SentTime,
+                        emailSentItem.OpenCount,
+                        emailSentItem.ClickCount
+                    });
+            }
+            catch (SqlException ex) when (ex.Number == -2)
+            {
+                this.logger.LogInformation($"Error occured on {emailSentItem.LeadEmail}", ex.Message);
+                throw;
+            }
         }
     }
 }
