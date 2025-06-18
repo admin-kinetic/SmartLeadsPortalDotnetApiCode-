@@ -67,13 +67,11 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
-            return true;
         });
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject);
-            return true;
         });
     }
 
@@ -93,21 +91,12 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _messageHistoryRepository.UpsertEmailReply(payloadObject);
-            return true;
         });
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
-            //await _smartLeadsEmailStatisticsRepository.UpdateEmailReply(payloadObject);
             await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject);
-            return true;
         });
-
-        // await dbExecution.ExecuteWithRetryAsync(async () =>
-        // {
-        //     await this.automatedLeadsRepository.UpdateReply(email.ToString(), replyAt.ToString());
-        //     return true;
-        // });
     }
 
     public async Task HandleLeadCategoryUpdated(string payload)
@@ -191,13 +180,11 @@ public class WebhookService
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
-            return true;
         });
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
             await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload);
-            return true;
         });
 
         // await dbExecution.ExecuteWithRetryAsync(async () =>

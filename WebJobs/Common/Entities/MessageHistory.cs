@@ -14,4 +14,5 @@ public class MessageHistory
     public int? EmailSequenceNumber { get; set; }
     public int? OpenCount { get; set; }
     public int? ClickCount { get; set; }
+    public string? LeadEmail { get; set; }
 }
