@@ -204,4 +204,34 @@ public class SmartLeadsAllLeadsRepository
             throw;
         }
     }
+
+    public async Task<List<string>> GetLeadGen()
+    {
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        var query = """
+                SELECT DISTINCT CreatedBy FROM SmartLeadAllLeads WHERE CreatedBy IS NOT NULL AND CreatedBy != ''
+            """;
+        var queryResult = await connection.QueryAsync<string>(query);
+        return queryResult.ToList();
+    }
+
+    public async Task<List<string>> GetQa()
+    {
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        var query = """
+                SELECT DISTINCT QaBy FROM SmartLeadAllLeads WHERE QaBy IS NOT NULL AND QaBy != ''
+            """;
+        var queryResult = await connection.QueryAsync<string>(query);
+        return queryResult.ToList();
+    }
+
+    public async Task<List<string>> GetBdr()
+    {
+        using var connection = _dbConnectionFactory.GetSqlConnection();
+        var query = """
+                SELECT DISTINCT Bdr FROM SmartLeadAllLeads WHERE Bdr IS NOT NULL AND Bdr != ''
+            """;
+        var queryResult = await connection.QueryAsync<string>(query);
+        return queryResult.ToList();
+    }
 }
