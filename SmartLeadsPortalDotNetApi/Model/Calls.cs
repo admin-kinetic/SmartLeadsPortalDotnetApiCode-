@@ -122,4 +122,17 @@
         public string? UniqueCallId { get; set; }
         public string? Filename { get; set; }
     }
+    public class ApiResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public string? ErrorCode { get; set; }
+
+        public ApiResponse(bool success, string message, string? errorCode = null)
+        {
+            Success = success;
+            Message = message;
+            ErrorCode = errorCode;
+        }
+    }
 }
