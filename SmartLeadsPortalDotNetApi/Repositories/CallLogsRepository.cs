@@ -3,6 +3,7 @@ using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Services;
 using System.Data;
+using System.Text.RegularExpressions;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
@@ -23,14 +24,16 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 }
 
                 CallLogsOutbound? callLogsOutbound;
+                string cleanUserPhoneNumber = Regex.Replace(keyword.UserPhoneNumber, @"[\s()-]", "");
+                string cleanProspectNumber = Regex.Replace(keyword.ProspectNumber, @"[\s()-]", "");
 
                 if (keyword.CallDirectionId == 1)
                 {
-                    callLogsOutbound = await GetInboundcallsInfo(keyword.ProspectNumber, keyword.UserPhoneNumber);
+                    callLogsOutbound = await GetInboundcallsInfo(cleanProspectNumber, cleanUserPhoneNumber);
                 }
                 else
                 {
-                    callLogsOutbound = await GetOutboundcallsInfo(keyword.UserPhoneNumber, keyword.ProspectNumber);
+                    callLogsOutbound = await GetOutboundcallsInfo(cleanUserPhoneNumber, cleanProspectNumber);
                 }
 
                 if (callLogsOutbound == null)
@@ -38,7 +41,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     return new ApiResponse(false, "Failed to retrieve call information.", "CALL_INFO_NOT_FOUND");
                 }
 
-                CallLogFullName? callername = await GetProspectNameByPhone(keyword.UserPhoneNumber);
+                CallLogFullName? callername = await GetProspectNameByPhone(cleanUserPhoneNumber);
 
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
