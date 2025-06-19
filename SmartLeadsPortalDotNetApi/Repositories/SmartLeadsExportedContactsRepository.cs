@@ -89,7 +89,7 @@ public class SmartLeadsExportedContactsRepository
                             parameters.Add("ExportedDateTo", filter.Value);
                             break;
                         case "category":
-                            switch (filter.Value.ToLower())
+                            switch (filter?.Value?.ToLower())
                             {
                                 case "responses-today":
                                     var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
