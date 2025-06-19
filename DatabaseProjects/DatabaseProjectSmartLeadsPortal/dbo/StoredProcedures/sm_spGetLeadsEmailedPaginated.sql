@@ -26,10 +26,14 @@ BEGIN
 		AND (((@startDate IS NULL OR @endDate IS NULL) OR @hasReply IS NOT NULL) OR (sal.CreatedAt IS NOT NULL AND CONVERT(DATE, sal.CreatedAt) >= @startDate AND CONVERT(DATE, sal.CreatedAt) <= @endDate))
 		AND (((@startDate IS NULL OR @endDate IS NULL) OR @hasReply = 0) OR (ses.ReplyTime IS NOT NULL AND CONVERT(DATE, ses.ReplyTime) >= @startDate AND CONVERT(DATE, ses.ReplyTime) <= @endDate))
 		AND (@hasReply = 1 OR ses.ReplyTime IS NULL)
+		AND (@hasReply = 0 OR ses.ReplyTime IS NOT NULL)
 		AND (@Bdr IS NULL OR sal.Bdr = @Bdr)
 		AND (@LeadGen IS NULL OR sal.CreatedBy = @LeadGen)
 		AND (@QaBy IS NULL OR sal.QaBy = @QaBy)
 	ORDER BY ses.SentTime DESC
+	OFFSET (@Page - 1) * @PageSize ROWS
+	FETCH NEXT @PageSize ROWS ONLY
+	OPTION (RECOMPILE);
 END
 GO
 
