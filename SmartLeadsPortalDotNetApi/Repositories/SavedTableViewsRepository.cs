@@ -50,7 +50,8 @@ public class SavedTableViewsRepository
                     UPDATE SavedTableViews 
                     SET ViewFilters = @ViewFilters, 
                         ModifiedAt = GETDATE(), 
-                        ModifiedBy = @ModifiedBy 
+                        ModifiedBy = @ModifiedBy,
+                        IsDefault = @IsDefault 
                     WHERE OwnerId = @OwnerId 
                         AND TableName = @TableName 
                         AND ViewName = @ViewName
