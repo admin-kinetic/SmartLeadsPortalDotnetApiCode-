@@ -15,7 +15,7 @@ BEGIN
 		ConversationDuration, 
 		AzureStorageCallRecordingLink FROM [dbo].[OutboundCalls] 
 	WHERE CallerId = @callerid
-	AND DestNumber = @destnumber
+	AND DestNumber LIKE '%' +@destnumber+'%'
 	ORDER BY CallStartAt DESC
 END
 GO

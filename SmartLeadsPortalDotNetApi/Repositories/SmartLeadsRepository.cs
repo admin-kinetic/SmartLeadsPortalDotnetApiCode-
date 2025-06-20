@@ -135,7 +135,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<IEnumerable<SmartLeadsExportedLeadsEmailed>> GetAllExportedLeadsEmailed(SmartLeadRequest request)
+        public async Task<IEnumerable<SmartLeadsExportedLeadsEmailed>> GetAllExportedLeadsEmailed(SmartLeadEmailedRequest request)
         {
             try
             {
@@ -154,8 +154,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     param.Add("@PageSize", request.PageSize);
                     param.Add("@email", request.EmailAddress);
                     param.Add("@hasReply", request.HasReply);
-                    param.Add("@startDate", request.ExportedDateFrom);
-                    param.Add("@endDate", request.ExportedDateTo);
+                    param.Add("@startDate", request.FromDate);
+                    param.Add("@endDate", request.ToDate);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@leadGen", request.LeadGen); 
+                    param.Add("@qaBy", request.QaBy);
 
                     list = await connection.QueryAsync<SmartLeadsExportedLeadsEmailed>(_proc, param, commandType: CommandType.StoredProcedure);
 
@@ -167,7 +170,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<int?> GetAllExportedLeadsEmailedCount(SmartLeadRequest request)
+        public async Task<int?> GetAllExportedLeadsEmailedCount(SmartLeadEmailedRequest request)
         {
             try
             {
@@ -183,8 +186,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     string _proc = "sm_spGetLeadsEmailedPaginatedCount";
                     param.Add("@email", request.EmailAddress);
                     param.Add("@hasReply", request.HasReply);
-                    param.Add("@startDate", request.ExportedDateFrom);
-                    param.Add("@endDate", request.ExportedDateTo);
+                    param.Add("@startDate", request.FromDate);
+                    param.Add("@endDate", request.ToDate);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@leadGen", request.LeadGen); 
+                    param.Add("@qaBy", request.QaBy);
 
                     var countResult = await connection.QueryFirstOrDefaultAsync<SmartLeadsExportedContactLeadGenCount?>(_proc, param, commandType: CommandType.StoredProcedure);
 

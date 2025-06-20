@@ -273,7 +273,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("get-exportedleads-emailed")]
-        public async Task<IActionResult> GetAllExportedLeadsEmailed(SmartLeadRequest param)
+        public async Task<IActionResult> GetAllExportedLeadsEmailed(SmartLeadEmailedRequest param)
         {
             try
             {
@@ -287,7 +287,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("get-exportedleads-emailed-count")]
-        public async Task<IActionResult> GetAllExportedLeadsEmailedCount(SmartLeadRequest param)
+        public async Task<IActionResult> GetAllExportedLeadsEmailedCount(SmartLeadEmailedRequest param)
         {
             try
             {

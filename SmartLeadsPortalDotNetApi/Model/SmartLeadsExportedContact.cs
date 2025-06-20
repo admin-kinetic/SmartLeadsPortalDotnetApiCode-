@@ -43,6 +43,23 @@ namespace SmartLeadsPortalDotNetApi.Model
         public bool? IsEmailError { get; set; }
         public string? ExcludeKeywords { get; set; }
     }
+
+    public class SmartLeadEmailedRequest
+    {
+        public int Id { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public string? EmailAddress { get; set; }
+        public string? History { get; set; }
+        public bool? HasReply { get; set; }
+        public bool? HasReview { get; set; }
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public string? Bdr { get; set; }
+        public string? LeadGen { get; set; }
+        public string? QaBy { get; set; }
+    }
+
     public class SmartLeadsResponseModel<T>
     {
         public List<T> Items { get; set; }
