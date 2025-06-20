@@ -33,10 +33,17 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(list);
         }
 
-        [HttpGet("get-all-prospect")]
-        public async Task<IActionResult> GetSmartLeadsAllProspect()
+        [HttpPost("get-all-prospect")]
+        public async Task<IActionResult> GetSmartLeadsAllProspect(ProspectDropdownOptionParam request)
         {
-            var list = await _prospectRepository.GetSmartLeadsAllProspect();
+            var list = await _prospectRepository.GetSmartLeadsAllProspect(request);
+            return Ok(list);
+        }
+
+        [HttpPost("get-all-prospect-paginated")]
+        public async Task<IActionResult> GetSmartLeadsAllProspectPaginated(ProspectDropdownOptionParam request)
+        {
+            var list = await _prospectRepository.GetSmartLeadsAllProspectPaginated(request);
             return Ok(list);
         }
     }

@@ -1,5 +1,7 @@
-CREATE OR ALTER PROCEDURE [dbo].[sm_spGetSmartLeadsAllProspect]
-@Search VARCHAR(500)=''
+CREATE OR ALTER PROCEDURE [dbo].[sm_spGetSmartLeadsAllProspectPaginated]
+@Search VARCHAR(500)='',
+@Page INT = 1,
+@PageSize INT = 10
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -12,5 +14,8 @@ BEGIN
 	  AND LastName NOT LIKE '%?%'
 	  AND (FirstName + ' ' + LastName LIKE '%' + @Search + '%' OR @Search = '')
 	ORDER BY Email ASC
+	OFFSET (@Page - 1) * @PageSize ROWS
+	FETCH NEXT @PageSize ROWS ONLY
+	OPTION (RECOMPILE);
 END
 GO
