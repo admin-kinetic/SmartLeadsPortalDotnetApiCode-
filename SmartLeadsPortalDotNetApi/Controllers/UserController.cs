@@ -17,6 +17,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly VoipPhoneNumberRepository voipPhoneNumberRepository;
         private readonly BlobService _blobservice;
         private readonly SmartleadCampaignRepository smartleadCampaignRepository;
+        private readonly SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository;
         private readonly StorageConfig _storageConfig;
 
         public UserController(
@@ -24,12 +25,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             VoipPhoneNumberRepository voipPhoneNumberRepository,
             BlobService blobService,
             SmartleadCampaignRepository smartleadCampaignRepository,
+            SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository,
             IOptions<StorageConfig> options)
         {
             this.userRepository = userRepository;
             this.voipPhoneNumberRepository = voipPhoneNumberRepository;
             _blobservice = blobService;
             this.smartleadCampaignRepository = smartleadCampaignRepository;
+            this.smartLeadsAllLeadsRepository = smartLeadsAllLeadsRepository;
             _storageConfig = options.Value;
         }
 
@@ -83,9 +86,24 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [HttpGet("bdrs")]
         public async Task<IActionResult> GetBdrs()
         {
-            var bdrs = await this.smartleadCampaignRepository.GetBdrs();
+            var bdrs = await this.smartLeadsAllLeadsRepository.GetBdr();
             return this.Ok(bdrs);
         }
+
+        [HttpGet("leadGen")]
+        public async Task<IActionResult> GetLeadGen()
+        {
+            var leadGens = await this.smartLeadsAllLeadsRepository.GetLeadGen();
+            return this.Ok(leadGens);
+        }
+
+        [HttpGet("qa")]
+        public async Task<IActionResult> GetQa()
+        {
+            var qas = await this.smartLeadsAllLeadsRepository.GetQa();
+            return this.Ok(qas);
+        }
+
 
         [HttpPut()]
         public async Task<IActionResult> Update(UpdateUserRequest request)
