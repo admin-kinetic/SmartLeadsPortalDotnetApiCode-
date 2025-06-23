@@ -329,5 +329,19 @@ namespace SmartLeadsPortalDotNetApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpPost("get-exportedleads-emailed-export-csv")]
+        public async Task<IActionResult> GetAllExportedLeadsEmailedCsvExport(SmartLeadEmailedRequest param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailedCsvExport(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 }
