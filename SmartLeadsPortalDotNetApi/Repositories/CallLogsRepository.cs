@@ -24,6 +24,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 }
 
                 CallLogsOutbound? callLogsOutbound;
+                CallProspectNameEmail callProspectNameEmail = new CallProspectNameEmail { Email = null, FullName = null };
                 string cleanUserPhoneNumber = Regex.Replace(keyword.UserPhoneNumber, @"[\s()-]", "");
                 string cleanProspectNumber = Regex.Replace(keyword.ProspectNumber, @"[\s()-]", "");
 
@@ -41,6 +42,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     return new ApiResponse(false, "Failed to retrieve call information.", "CALL_INFO_NOT_FOUND");
                 }
 
+                if (keyword.ProspectName != null && keyword.ProspectName != "")
+                {
+                    callProspectNameEmail = await GetProspectEmailNameById(keyword.ProspectName ?? string.Empty) ?? new CallProspectNameEmail { Email = null, FullName = null };
+                }
+
                 CallLogFullName? callername = await GetProspectNameByPhone(cleanUserPhoneNumber);
 
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
@@ -49,22 +55,22 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     var param = new DynamicParameters();
                     param.Add("@usercaller", string.IsNullOrEmpty(keyword.UserCaller) ? callername?.FullName : keyword.UserCaller);
                     param.Add("@userphonenumber", callLogsOutbound.CallerId);
-                    param.Add("@leademail", keyword.LeadEmail);
-                    param.Add("@prospectname", keyword.ProspectName);
-                    param.Add("@prospectnumber", callLogsOutbound.DestNumber);
+                    param.Add("@leademail", callProspectNameEmail?.Email);
+                    param.Add("@prospectname", callProspectNameEmail?.FullName);
+                    param.Add("@prospectnumber", callLogsOutbound?.DestNumber);
                     param.Add("@callpurposeid", keyword.CallPurposeId);
                     param.Add("@calldispositionid", keyword.CallDispositionId);
                     param.Add("@calldirectionid", keyword.CallDirectionId);
                     param.Add("@notes", keyword.Notes);
                     param.Add("@calltagsid", keyword.CallTagsId);
                     param.Add("@callstateid", keyword.CallStateId);
-                    param.Add("@duration", callLogsOutbound.ConversationDuration);
+                    param.Add("@duration", callLogsOutbound?.ConversationDuration);
                     param.Add("@addedby", keyword.AddedBy);
                     param.Add("@statisticid", keyword.StatisticId);
                     param.Add("@due", keyword.Due);
                     param.Add("@userid", keyword.UserId);
-                    param.Add("@uniquecallid", callLogsOutbound.UniqueCallId);
-                    param.Add("@calleddate", callLogsOutbound.CallStartAt);
+                    param.Add("@uniquecallid", callLogsOutbound?.UniqueCallId);
+                    param.Add("@calleddate", callLogsOutbound?.CallStartAt);
 
                     int rowsAffected = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
 
@@ -209,6 +215,26 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     CallLogsOutbound? result = await connection.QuerySingleOrDefaultAsync<CallLogsOutbound>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return result;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public async Task<CallProspectNameEmail?> GetProspectEmailNameById(string leadid)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetProspectEmailNameById";
+                    var param = new DynamicParameters();
+                    param.Add("@leadid", leadid);
+                    var result = await connection.QuerySingleOrDefaultAsync<CallProspectNameEmail>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result ?? new CallProspectNameEmail { Email=null, FullName = null };
                 }
             }
             catch (Exception e)
