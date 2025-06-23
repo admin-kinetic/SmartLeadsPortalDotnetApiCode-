@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Data.SqlClient;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Helper;
 using SmartLeadsPortalDotNetApi.Model.Webhooks.Emails;
 using SmartLeadsPortalDotNetApi.Repositories;
@@ -22,6 +23,7 @@ public class WebhookService
     private readonly SmartleadsEmailStatisticsService _smartleadsEmailStatisticsService;
     private readonly SmartLeadsApiService smartLeadsApiService;
     private readonly SmartleadCampaignRepository smartleadCampaignRepository;
+    private readonly SmartleadAccountRepository smartleadAccountRepository;
     private readonly ILogger<WebhookService> logger;
 
     public WebhookService(
@@ -36,6 +38,7 @@ public class WebhookService
         SmartleadsEmailStatisticsService smartleadsEmailStatisticsService,
         SmartLeadsApiService smartLeadsApiService,
         SmartleadCampaignRepository smartleadCampaignRepository,
+        SmartleadAccountRepository smartleadAccountRepository,
         ILogger<WebhookService> logger)
     {
         this.automatedLeadsRepository = automatedLeadsRepository;
@@ -48,6 +51,7 @@ public class WebhookService
         _smartleadsEmailStatisticsService = smartleadsEmailStatisticsService;
         this.smartLeadsApiService = smartLeadsApiService;
         this.smartleadCampaignRepository = smartleadCampaignRepository;
+        this.smartleadAccountRepository = smartleadAccountRepository;
         this.logger = logger;
     }
 
@@ -180,6 +184,20 @@ public class WebhookService
         // {
         //     await _smartLeadsEmailStatisticsRepository.UpsertEmailSent(emailSentPayload);
         // });
+
+        var campaign = await smartleadCampaignRepository.GetCampaignBdr(emailSentPayload.campaign_id.Value);
+        if (campaign == null)
+        {
+            var account = await smartleadAccountRepository.GetAccountBySecretKey(emailSentPayload.secret_key);
+            if (account == null)
+            {
+                throw new ArgumentException("Account not found for the provided secret key.");
+            }
+
+            var campaignDetails = await this.smartLeadsApiService.GetSmartLeadsCampaignById(emailSentPayload.campaign_id.Value, account.Id);
+            await smartleadCampaignRepository.InsertCampaign(campaignDetails);
+            await smartleadAccountRepository.InsertAccountCampaign(account.Id, campaignDetails.id);
+        }
 
         await dbExecution.ExecuteWithRetryAsync(async () =>
         {
