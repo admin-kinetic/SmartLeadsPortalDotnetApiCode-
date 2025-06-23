@@ -184,6 +184,19 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(result);
         }
 
+        [HttpPost("call-tasks/export")]
+        public async Task<IActionResult> CallTaskExport(TableRequest request){
+            var user = this.HttpContext.User;
+            var employeeId = user.FindFirst("employeeId").Value;
+
+            if (string.IsNullOrEmpty(employeeId))
+            {
+                return BadRequest("Invalid user ID");
+            }
+            var result = await this.callTasksTableRepository.Export(request, employeeId);
+            return Ok(result);
+        }
+
         [HttpGet("call-tasks/columns/all")]
         public IActionResult CallTasksColumnsAll(){
             var result = this.callTasksTableRepository.AllColumns();
