@@ -13,11 +13,29 @@ public class CallTasksTableRepository
     {
         { "is", "=" },
         { "is not", "!=" },
+        { "contains", "LIKE" },
+        { "does not contains", "NOT LIKE" },
+        { "contains data", "IS NOT NULL" },
+        { "does not contains data", "IS NULL" },
+        { "equal", "=" },
+        { "not equal", "!=" },
         { "less than", "<" },
         { "less than equal", "<=" },
         { "greater than", ">" },
         { "greater than equal", ">=" },
-        { "contains", "LIKE" }
+        { "on", "=" },
+        { "on or after", ">=" },
+        { "on or before", "<=" },
+        { "after", ">" },
+        { "this week",  "{0} >= DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0) AND {0} < DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()) + 1, 0)"},
+        { "last week",  "{0} >= DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()) - 1, 0) AND {0} < DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0)"},
+        { "this month", "{0} >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) AND {0} < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) + 1, 0)" },
+        { "last month", "{0} >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 1, 0) AND {0} < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)" },
+        { "this year", "{0} >= DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0) AND {0} < DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()) + 1, 0)" },
+        { "last year", "{0} >= DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()) - 1, 0) AND {0} < DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0)" },
+        { "last x days", "{0} >= DATEADD(DAY, -{1}, CAST(GETDATE() AS DATE)) AND {0} < DATEADD(DAY, 1, CAST(GETDATE() AS DATE))" },
+        { "last x weeks", "{0} >= DATEADD(WEEK, -{1}, DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0) AND {0} < DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0)" },
+        { "last x months", "{0} >= DATEADD(MONTH, -{1}, DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)) AND {0} < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)" }
     };
 
     public CallTasksTableRepository(DbConnectionFactory dbConnectionFactory)
@@ -91,6 +109,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
+                LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 OUTER APPLY (
                     SELECT TOP 1 cs.CategoryName
                     FROM CategorySettings cs
@@ -115,6 +134,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId
                 LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
+                LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 OUTER APPLY (
                     SELECT TOP 1 cs.CategoryName
                     FROM CategorySettings cs
@@ -144,52 +164,167 @@ public class CallTasksTableRepository
                     switch (filter.Column.ToLower())
                     {
                         case "email":
-                            whereClause.Add("sle.LeadEmail LIKE @Email");
-                            parameters.Add("Email", $"%{filter.Value}%");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"sle.LeadEmail {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"sle.LeadEmail {this.operatorsMap[filter.Operator]} @Email");
+                            parameters.Add("Email", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
                         case "fullname":
-                            whereClause.Add("slal.FirstName + ' ' + slal.LastName) = @FullName");
-                            parameters.Add("FullName", $"%{filter.Value}%");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.FirstName + ' ' + slal.LastName) {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"slal.FirstName + ' ' + slal.LastName) {this.operatorsMap[filter.Operator]} @FullName");
+                            parameters.Add("FullName", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
                         case "assignedto":
-                            whereClause.Add("us.FullName = @AssignedTo");
-                            parameters.Add("AssignedTo", $"{filter.Value}");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"us.FullName {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"us.FullName {this.operatorsMap[filter.Operator]} @AssignedTo");
+                            parameters.Add("AssignedTo", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
                         case "campaignname":
-                            whereClause.Add("slc.Name = @CampaignName");
-                            parameters.Add("CampaignName", $"{filter.Value}");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slc.Name {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"slc.Name {this.operatorsMap[filter.Operator]} @CampaignName");
+                            parameters.Add("CampaignName", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
                         case "subjectname":
-                            whereClause.Add("sle.EmailSubject LIKE @SubjectName");
-                            parameters.Add("SubjectName", $"%{filter.Value}%");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"sle.EmailSubject {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"sle.EmailSubject {this.operatorsMap[filter.Operator]} @SubjectName");
+                            parameters.Add("SubjectName", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
                         case "callstate":
-                            whereClause.Add("cs.StateName LIKE @CallState");
-                            parameters.Add("CallState", $"%{filter.Value}%");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"cs.StateName {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"cs.StateName {this.operatorsMap[filter.Operator]} @CallState");
+                            parameters.Add("CallState", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
                         case "opencount":
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"sle.OpenCount {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
                             whereClause.Add($"sle.OpenCount {this.operatorsMap[filter.Operator]} @OpenCount");
                             parameters.Add("OpenCount", filter.Value);
                             break;
                         case "clickcount":
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"sle.ClickCount {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
                             whereClause.Add($"sle.ClickCount {this.operatorsMap[filter.Operator]} @ClickCount");
                             parameters.Add("ClickCount", filter.Value);
                             break;
                         case "priority":
-                            whereClause.Add("cs_applied.CategoryName = @Priority");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"cs_applied.CategoryName {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"cs_applied.CategoryName {this.operatorsMap[filter.Operator]} @Priority");
                             parameters.Add("Priority", $"{filter.Value}");
                             break;
                         case "sequencenumber":
-                            whereClause.Add("sle.SequenceNumber = @SequenceNumber");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"sle.SequenceNumber {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"sle.SequenceNumber {this.operatorsMap[filter.Operator]} @SequenceNumber");
                             parameters.Add("SequenceNumber", $"{filter.Value}");
                             break;
                         case "due":
-                            whereClause.Add($"CONVERT(DATE, sle.Due){this.operatorsMap[filter.Operator]} @Due");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"sle.Due {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"CONVERT(DATE, sle.Due) {this.operatorsMap[filter.Operator]} @Due");
                             parameters.Add("Due", $"{filter.Value}");
                             break;
                         case "bdr":
-                            whereClause.Add($"slal.Bdr = @Bdr");
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]} @Bdr");
                             parameters.Add("Bdr", $"{filter.Value}");
+                            break;
+                        case "country":
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} @Country");
+                            parameters.Add("Country", $"{filter.Value}");
+                            break;
+                        case "companyname":
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.CompanyName {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            whereClause.Add($"slal.CompanyName {this.operatorsMap[filter.Operator]} @CompanyName");
+                            parameters.Add("CompanyName", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
+                            break;
+                        case "lastemailedon":
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"sle.SentTime {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+                            
+                            if (filter.Operator.Contains("this", StringComparison.OrdinalIgnoreCase)
+                                || filter.Operator.Contains("last", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var operatorValue = this.operatorsMap[filter.Operator].Replace("{0}", "sle.SentTime");
+                                whereClause.Add($"{operatorValue}");
+                                break;
+                            }
+
+                            whereClause.Add($"CONVERT(DATE, sle.SentTime) {this.operatorsMap[filter.Operator]} @SentTime");
+                            parameters.Add("SentTime", $"{filter.Value}");
+                            break;
+                         case "lastcalledon":
+                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"c.CalledDate {this.operatorsMap[filter.Operator]}");
+                                break; 
+                            }
+
+                            if(filter.Operator.Contains("this", StringComparison.OrdinalIgnoreCase) 
+                                || filter.Operator.Contains("last", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var operatorValue = this.operatorsMap[filter.Operator].Replace("{0}", "c.CalledDate");
+                                whereClause.Add($"{operatorValue}");
+                                break; 
+                            }
+
+
+                            whereClause.Add($"CONVERT(DATE, c.CalledDate) {this.operatorsMap[filter.Operator]} @CalledDate");
+                            parameters.Add("CalledDate", $"{filter.Value}");
                             break;
                         // Add more cases for other filterable columns
                         default:
