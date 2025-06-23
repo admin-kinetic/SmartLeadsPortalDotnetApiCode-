@@ -2,7 +2,7 @@ using System;
 
 namespace SmartLeadsPortalDotNetApi.Entities;
 
-public class SmartleadsAccounts
+public class SmartLeadCampaign
 {
     public int? Id { get; set; }
     public string? Name { get; set; }
