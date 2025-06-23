@@ -329,7 +329,7 @@ public class CallTasksTableRepository
                         // Add more cases for other filterable columns
                         default:
                             // For numeric fields or exact matches
-                            whereClause.Add($"{filter.Column} = @{filter.Column}");
+                            whereClause.Add($"{filter.Column} {this.operatorsMap[filter.Operator]} @{filter.Column}");
                             parameters.Add(filter.Column, filter.Value);
                             break;
                     }
