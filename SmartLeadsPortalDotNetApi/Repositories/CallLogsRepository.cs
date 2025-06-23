@@ -24,7 +24,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 }
 
                 CallLogsOutbound? callLogsOutbound;
-                CallProspectNameEmail? callProspectNameEmail;
+                CallProspectNameEmail callProspectNameEmail = new CallProspectNameEmail { Email = null, FullName = null };
                 string cleanUserPhoneNumber = Regex.Replace(keyword.UserPhoneNumber, @"[\s()-]", "");
                 string cleanProspectNumber = Regex.Replace(keyword.ProspectNumber, @"[\s()-]", "");
 
@@ -42,7 +42,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     return new ApiResponse(false, "Failed to retrieve call information.", "CALL_INFO_NOT_FOUND");
                 }
 
-                callProspectNameEmail = keyword.ProspectName != null ? await GetProspectEmailNameById(keyword.ProspectName)  : new CallProspectNameEmail { Email = null, FullName = null };
+                if (keyword.ProspectName != null && keyword.ProspectName != "")
+                {
+                    callProspectNameEmail = await GetProspectEmailNameById(keyword.ProspectName ?? string.Empty) ?? new CallProspectNameEmail { Email = null, FullName = null };
+                }
+
                 CallLogFullName? callername = await GetProspectNameByPhone(cleanUserPhoneNumber);
 
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
