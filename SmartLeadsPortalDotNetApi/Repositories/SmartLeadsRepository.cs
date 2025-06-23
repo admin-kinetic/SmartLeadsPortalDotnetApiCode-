@@ -6,7 +6,7 @@ using System.Data;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
-    public class SmartLeadsRepository: SQLDBService
+    public class SmartLeadsRepository : SQLDBService
     {
         private readonly DbConnectionFactory dbConnectionFactory;
         public SmartLeadsRepository(DbConnectionFactory dbConnectionFactory)
@@ -157,7 +157,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     param.Add("@startDate", request.FromDate);
                     param.Add("@endDate", request.ToDate);
                     param.Add("@bdr", request.Bdr);
-                    param.Add("@leadGen", request.LeadGen); 
+                    param.Add("@leadGen", request.LeadGen);
                     param.Add("@qaBy", request.QaBy);
 
                     list = await connection.QueryAsync<SmartLeadsExportedLeadsEmailed>(_proc, param, commandType: CommandType.StoredProcedure);
@@ -189,7 +189,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     param.Add("@startDate", request.FromDate);
                     param.Add("@endDate", request.ToDate);
                     param.Add("@bdr", request.Bdr);
-                    param.Add("@leadGen", request.LeadGen); 
+                    param.Add("@leadGen", request.LeadGen);
                     param.Add("@qaBy", request.QaBy);
 
                     var countResult = await connection.QueryFirstOrDefaultAsync<SmartLeadsExportedContactLeadGenCount?>(_proc, param, commandType: CommandType.StoredProcedure);
@@ -237,6 +237,41 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     LeadsDetailsModel? result = await connection.QuerySingleOrDefaultAsync<LeadsDetailsModel>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return result;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<SmartLeadsExportedLeadsEmailed>> GetAllExportedLeadsEmailedCsvExport(SmartLeadEmailedRequest request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var param = new DynamicParameters();
+                    IEnumerable<SmartLeadsExportedLeadsEmailed> list = new List<SmartLeadsExportedLeadsEmailed>();
+
+                    if (request.EmailAddress == null || request.EmailAddress == "" || request.EmailAddress == "null")
+                    {
+                        request.EmailAddress = "";
+                    }
+
+                    string _proc = "sm_spGetLeadsExportCsv";
+                    param.Add("@Page", request.Page);
+                    param.Add("@PageSize", request.PageSize);
+                    param.Add("@email", request.EmailAddress);
+                    param.Add("@hasReply", request.HasReply);
+                    param.Add("@startDate", request.FromDate);
+                    param.Add("@endDate", request.ToDate);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@leadGen", request.LeadGen);
+                    param.Add("@qaBy", request.QaBy);
+
+                    list = await connection.QueryAsync<SmartLeadsExportedLeadsEmailed>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
                 }
             }
             catch (Exception e)
