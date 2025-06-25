@@ -4,70 +4,72 @@ using System.Data;
 using System.Data.Common;
 
 namespace SmartLeadsPortalDotNetApi.Database;
+
 public class DbConnectionFactory : IDisposable
 {
-    private readonly string _sqlConnectionString;
-    //private readonly string _leadsqlConnectionString;
-    //private readonly string _mysqlConnectionString;
-    private readonly ILogger<DbConnectionFactory> logger;
-    private DbConnection? _sqlConnection;
-    //private IDbConnection? _leadsqlConnection;
-    //private IDbConnection? _mySqlConnection;
+    private readonly string callsSqlConnectionString;
+    private readonly object connectionLock = new object();
 
+    private readonly ILogger<DbConnectionFactory> logger;
+    private SqlConnection callsSqlConnection;
+    private bool disposed = false;
     public DbConnectionFactory(IConfiguration configuration, ILogger<DbConnectionFactory> logger)
     {
-        _sqlConnectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
+        callsSqlConnectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")
             ?? configuration.GetConnectionString("SmartLeadsSQLServerDBConnectionString")
             ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
 
-        // _leadsqlConnectionString = configuration.GetConnectionString("LeadsPortalSQLServerDBConnectionString")
-        //     ?? throw new ArgumentNullException(nameof(configuration), "Robotics Leads SQL Server connection string is missing.");
-
-        // _mysqlConnectionString = configuration.GetConnectionString("MySQLDBConnectionString")
-        //     ?? throw new ArgumentNullException(nameof(configuration), "MySQL connection string is missing.");
         this.logger = logger;
         this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
-        this.logger.LogInformation($"SQL Connection String: {this._sqlConnectionString}");
+        this.logger.LogInformation($"SQL Connection String: {this.callsSqlConnectionString}");
     }
 
     public DbConnection GetSqlConnection()
     {
-        return new SqlConnection(_sqlConnectionString);
+        if (this.disposed)
+        {
+            throw new ObjectDisposedException(nameof(DbConnectionFactory), "Cannot access a disposed connection factory");
+        }
+
+        lock (connectionLock)
+        {
+            if (this.callsSqlConnection == null || this.callsSqlConnection.State == ConnectionState.Closed || this.callsSqlConnection.State == ConnectionState.Broken)
+            {
+                this.callsSqlConnection = new SqlConnection(this.callsSqlConnectionString);
+            }
+        }
+
+        if (this.callsSqlConnection.State != ConnectionState.Open)
+        {
+            this.callsSqlConnection.Open();
+        }
+
+        return this.callsSqlConnection;
     }
 
-    //public IDbConnection GetLeadSqlConnection()
-    //{
-    //    if (_leadsqlConnection == null || _leadsqlConnection.State == ConnectionState.Closed)
-    //    {
-    //        _leadsqlConnection = CreateConnection(_leadsqlConnectionString, () => new SqlConnection(_leadsqlConnectionString));
-    //    }
-    //    return _leadsqlConnection;
-    //}
+    
 
-    //public IDbConnection GetMySqlConnection()
-    //{
-    //    if (_mySqlConnection == null || _mySqlConnection.State == ConnectionState.Closed)
-    //    {
-    //        _mySqlConnection = CreateConnection(_mysqlConnectionString, () => new MySqlConnection(_mysqlConnectionString));
-    //    }
-
-    //    return _mySqlConnection;
-    //}
-
-    private IDbConnection CreateConnection(string connectionString, Func<IDbConnection> connectionFactory)
+    public async Task<SqlConnection> GetSqlConnectionAsync()
     {
-        var connection = connectionFactory();
-        try
+        if (this.disposed)
         {
-            connection.Open();
-        }
-        catch
-        {
-            connection.Dispose();
-            throw;
+            throw new ObjectDisposedException(nameof(DbConnectionFactory), "Cannot access a disposed connection factory");
         }
 
-        return connection;
+        lock (connectionLock)
+        {
+            if (this.callsSqlConnection == null || this.callsSqlConnection.State == ConnectionState.Closed || this.callsSqlConnection.State == ConnectionState.Broken)
+            {
+                this.callsSqlConnection = new SqlConnection(this.callsSqlConnectionString);
+            }
+        }
+
+        if (this.callsSqlConnection.State != ConnectionState.Open)
+        {
+            await this.callsSqlConnection.OpenAsync();
+        }
+
+        return this.callsSqlConnection;
     }
 
     public void ValidateConnections()
@@ -83,30 +85,6 @@ public class DbConnectionFactory : IDisposable
         {
             this.logger.LogError($"Failed to connect to SQL Server database: {ex.Message}");
         }
-
-        //try
-        //{
-        //    using (var leadSqlConnection = GetLeadSqlConnection())
-        //    {
-        //        this.logger.LogInformation("Successfully connected to Leads SQL Server database.");
-        //    }
-        //}
-        //catch (Exception ex)
-        //{
-        //    this.logger.LogError($"Failed to connect to Leads SQL Server database: {ex.Message}");
-        //}
-
-        // try
-        // {
-        //     using (var mySqlConnection = GetMySqlConnection())
-        //     {
-        //         this.logger.LogInformation("Successfully connected to MySQL database.");
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     this.logger.LogError($"Failed to connect to MySQL database: {ex.Message}");
-        // }
     }
 
     public void Dispose()
@@ -117,11 +95,26 @@ public class DbConnectionFactory : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
+        if (!this.disposed)
         {
-            _sqlConnection?.Dispose();
-            //_leadsqlConnection?.Dispose();
-            //_mySqlConnection?.Dispose();
+            if (disposing)
+            {
+                if (this.callsSqlConnection != null)
+                {
+                    try
+                    {
+                        if (this.callsSqlConnection.State != ConnectionState.Closed)
+                            this.callsSqlConnection.Close();
+                    }
+                    catch { /* Ignore errors during dispose */ }
+                    finally
+                    {
+                        this.callsSqlConnection.Dispose();
+                    }
+                }
+            }
+
+            disposed = true;
         }
     }
 }

@@ -4,7 +4,10 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spGetLeadsExportCsv]
 @startDate DATETIME = NULL,
 @endDate DATETIME = NULL,
 @Page INT = 1,
-@PageSize INT = 10
+@PageSize INT = 10,
+@Bdr NVARCHAR(255) = NULL,
+@LeadGen NVARCHAR(255) = NULL,
+@QaBy NVARCHAR(255) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
