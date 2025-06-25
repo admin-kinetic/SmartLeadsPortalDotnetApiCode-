@@ -400,6 +400,18 @@ public class CallTasksTableRepository
                     slal.CompanyName,
                     slal.Location as [Country],
                     slec.ContactSource as [Source],
+                    CASE 
+                        WHEN CHARINDEX('re. your ', sle.EmailSubject) > 0 
+                            AND CHARINDEX(' ad on', sle.EmailSubject) > CHARINDEX('re. your ', sle.EmailSubject)
+                        THEN TRIM(
+                            SUBSTRING(
+                                sle.EmailSubject,
+                                CHARINDEX('re. your ', sle.EmailSubject) + LEN('re. your '),
+                                CHARINDEX(' ad on', sle.EmailSubject) - (CHARINDEX('re. your ', sle.EmailSubject) + LEN('re. your '))
+                            )
+                        )
+                        ELSE NULL
+                    END AS RoleAdvertised,
                     slal.CreatedAt AS [ExportedDate],
                     CASE WHEN sle.SentTime IS NOT NULL THEN 1 ELSE 0 END AS HasReply,
                     ISNULL(cs_applied.CategoryName, 'Low') AS Category,

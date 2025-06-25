@@ -76,6 +76,7 @@ public class SmartLeadsCallTasksExport
     public string? CompanyName { get; set; }
     public string? Country { get; set; }
     public string? Source { get; set; }
+    public string? RoleAdvertised { get; set; }
     public DateTime? ExportedDate { get; set; }
     public bool? HasReply { get; set; }
     public string? Category { get; set; }
