@@ -288,29 +288,15 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [HttpPost("get-exportedleads-emailed")]
         public async Task<IActionResult> GetAllExportedLeadsEmailed(SmartLeadEmailedRequest param)
         {
-            try
-            {
-                var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailed(param);
-                return Ok(leads);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailed(param);
+            return Ok(leads);
         }
 
         [HttpPost("get-exportedleads-emailed-count")]
         public async Task<IActionResult> GetAllExportedLeadsEmailedCount(SmartLeadEmailedRequest param)
         {
-            try
-            {
-                var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailedCount(param);
-                return Ok(leads);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailedCount(param);
+            return Ok(leads);
         }
 
         [HttpPost("update-leadsemailed-details")]
