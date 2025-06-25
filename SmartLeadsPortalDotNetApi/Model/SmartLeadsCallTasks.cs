@@ -78,6 +78,8 @@ public class SmartLeadsCallTasksExport
     public string? Source { get; set; }
     public string? RoleAdvertised { get; set; }
     public DateTime? ExportedDate { get; set; }
+    public DateTime? FromExportedDate { get; set; }
+    public DateTime? ToExportedDate { get; set; }
     public bool? HasReply { get; set; }
     public string? Category { get; set; }
     public string? Bdr { get; set; }
