@@ -242,7 +242,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message);
+                throw;
             }
         }
         public async Task<int?> GetAllExportedLeadsEmailedCount(SmartLeadEmailedRequest request)
@@ -340,7 +340,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message);
+                throw;
             }
         }
 
@@ -517,7 +517,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message);
+                throw;
             }
         }
     }
