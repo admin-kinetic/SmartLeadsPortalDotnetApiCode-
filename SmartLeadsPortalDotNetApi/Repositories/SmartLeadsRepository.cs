@@ -385,14 +385,14 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
-        public async Task<IEnumerable<SmartLeadsExportedLeadsEmailed>> GetAllExportedLeadsEmailedCsvExport(SmartLeadEmailedRequest request)
+        public async Task<IEnumerable<SmartLeadsCallTasksExport>> GetAllExportedLeadsEmailedCsvExport(SmartLeadEmailedRequest request)
         {
             try
             {
                 await using (var connection = await this.dbConnectionFactory.GetSqlConnectionAsync())
                 {
                     var param = new DynamicParameters();
-                    IEnumerable<SmartLeadsExportedLeadsEmailed> list = new List<SmartLeadsExportedLeadsEmailed>();
+                    IEnumerable<SmartLeadsCallTasksExport> list = new List<SmartLeadsCallTasksExport>();
 
                     // if (request.EmailAddress == null || request.EmailAddress == "" || request.EmailAddress == "null")
                     // {
@@ -425,8 +425,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                             @startDate AS FromDateExported,
                             @endDate AS ToDateExported,
                             CASE 
-                                WHEN ses.ReplyTime IS NOT NULL AND LTRIM(RTRIM(CAST(ses.ReplyTime AS NVARCHAR))) <> '' THEN 'Yes'
-                                ELSE 'No'
+                                WHEN ses.ReplyTime IS NOT NULL AND LTRIM(RTRIM(CAST(ses.ReplyTime AS NVARCHAR))) <> '' THEN 1
+                                ELSE 0
                             END AS HasReply,
                             sal.CreatedAt AS ExportedDate, 
                             sal.SmartleadCategory AS Category,
@@ -510,7 +510,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     param.Add("@leadGen", request.LeadGen);
                     param.Add("@qaBy", request.QaBy);
 
-                    list = await connection.QueryAsync<SmartLeadsExportedLeadsEmailed>(baseQuery, param);
+                    list = await connection.QueryAsync<SmartLeadsCallTasksExport>(baseQuery, param);
 
                     return list;
                 }
