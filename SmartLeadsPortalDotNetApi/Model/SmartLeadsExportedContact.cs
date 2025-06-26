@@ -145,4 +145,28 @@ namespace SmartLeadsPortalDotNetApi.Model
         public string? PhoneNumber { get; set; }
         public string? Country { get; set; }
     }
+
+    public class SmartLeadsExportedLeadsEmailedExportCsv
+    {
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Country { get; set; }
+        public string? RoleAdvertised { get; set; }
+        public string? Source {  get; set; }
+        public DateTime? FromDateExported { get; set; }
+        public DateTime? ToDateExported { get; set; }
+        public string? HasReply { get; set; }
+        public DateTime? ExportedDate { get; set; }
+        public string? Category { get; set; }
+        public string? Bdr { get; set; }
+        public string? AssignedTo { get; set; }
+        public string? EmailCampaign { get; set; }
+        public string? LeadGen {  get; set; }
+        public string? QadBy { get; set; }
+        public int? OpenCount { get; set; }
+        public int? ClickCount { get; set; }
+    }
 }
