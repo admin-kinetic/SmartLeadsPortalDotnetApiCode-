@@ -26,6 +26,7 @@ public class WebhookService
     private readonly SmartleadCampaignRepository smartleadCampaignRepository;
     private readonly SmartleadAccountRepository smartleadAccountRepository;
     private readonly ILogger<WebhookService> logger;
+    private readonly IAsyncPolicy _retryPolicy;
 
     public WebhookService(
         AutomatedLeadsRepository automatedLeadsRepository,
@@ -54,6 +55,16 @@ public class WebhookService
         this.smartleadCampaignRepository = smartleadCampaignRepository;
         this.smartleadAccountRepository = smartleadAccountRepository;
         this.logger = logger;
+        
+        _retryPolicy = Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetry: (exception, timeSpan, retryCount, context) => {
+                    this.logger.LogWarning(
+                        "Retry {RetryCount} after {RetrySpan:g} due to {ExceptionType}: {ExceptionMessage}", 
+                        retryCount, timeSpan, exception.GetType().Name, exception.Message);
+                });
     }
 
     public async Task HandleClick(string payload)
@@ -69,19 +80,11 @@ public class WebhookService
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        await Policy
-            .Handle<SqlException>()
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-            .ExecuteAsync(async () => 
-                await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject));
+        await _retryPolicy.ExecuteAsync(async () => 
+            await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject));
 
-        await Policy
-            .Handle<SqlException>()
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-            .ExecuteAsync(async () => 
-                await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject));
+        await _retryPolicy.ExecuteAsync(async () => 
+            await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject));
     }
 
     public async Task HandleReply(string payload)
@@ -97,19 +100,11 @@ public class WebhookService
         var replyAt = payloadObject.event_timestamp;
 
 
-        await Policy
-            .Handle<SqlException>()
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-            .ExecuteAsync(async () => 
-                await _messageHistoryRepository.UpsertEmailReply(payloadObject));
+        await _retryPolicy.ExecuteAsync(async () => 
+            await _messageHistoryRepository.UpsertEmailReply(payloadObject));
 
-        await Policy
-            .Handle<SqlException>()
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-            .ExecuteAsync(async () => 
-                await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject));
+        await _retryPolicy.ExecuteAsync(async () => 
+            await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject));
     }
 
     public async Task HandleLeadCategoryUpdated(string payload)
@@ -163,12 +158,8 @@ public class WebhookService
         var sequenceNumber = emailOpenPayload.sequence_number;
 
 
-        await Policy
-            .Handle<SqlException>()
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-            .ExecuteAsync(async () => 
-                await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload));
+        await _retryPolicy.ExecuteAsync(async () => 
+            await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload));
     }
 
     internal async Task HandleEmailSent(string payload)
@@ -205,19 +196,11 @@ public class WebhookService
             await smartleadAccountRepository.InsertAccountCampaign(account.Id, campaignDetails.id);
         }
 
-        await Policy
-            .Handle<SqlException>()
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-            .ExecuteAsync(async () => 
-                await _messageHistoryRepository.UpsertEmailSent(emailSentPayload));
+        await _retryPolicy.ExecuteAsync(async () => 
+            await _messageHistoryRepository.UpsertEmailSent(emailSentPayload));
 
-        await Policy
-            .Handle<SqlException>()
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-            .ExecuteAsync(async () => 
-                await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload));
+        await _retryPolicy.ExecuteAsync(async () => 
+            await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload));
 
         // await dbExecution.ExecuteWithRetryAsync(async () =>
         // {
