@@ -112,27 +112,11 @@ public class SmartLeadsEmailStatisticsRepository
             await connection.OpenAsync();
         }
 
+        using var transaction = await connection.BeginTransactionAsync();
 
-        var upsert = """
-                MERGE INTO SmartLeadsEmailStatistics WITH (ROWLOCK) AS target
-                USING ( 
-                    VALUES (@leadEmail, @sequenceNumber)
-                ) AS source (LeadEmail, SequenceNumber)
-                ON target.LeadEmail = source.LeadEmail AND target.SequenceNumber = source.SequenceNumber
-                WHEN MATCHED THEN
-                    UPDATE SET 
-                        LeadId = @leadId,
-                        LeadName = @leadName,
-                        EmailSubject = @emailSubject,
-                        EmailMessage = @emailMessage,
-                        SentTime = @sentTime
-                WHEN NOT MATCHED THEN
-                    INSERT (Guid, LeadId, LeadEmail, LeadName, SequenceNumber, EmailSubject, EmailMessage, SentTime)
-                        VALUES (NewId(), @leadId, @leadEmail, @leadName, @sequenceNumber, @emailSubject, @emailMessage, @sentTime);
-            """;
-
-        await connection.ExecuteAsync(upsert,
-            new
+        try 
+        {
+            var parameters = new
             {
                 leadId = emailOpenPayload.sl_email_lead_id,
                 leadEmail = emailOpenPayload.to_email,
@@ -141,10 +125,51 @@ public class SmartLeadsEmailStatisticsRepository
                 emailSubject = emailOpenPayload.subject,
                 emailMessage = emailOpenPayload.sent_message_body,
                 sentTime = emailOpenPayload.time_sent
-            });
+            };
 
-        _logger.LogInformation("UpsertEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+            // First check if the record exists
+            var existingRecord = await connection.QueryFirstOrDefaultAsync<int>("""
+                SELECT 1 FROM SmartLeadsEmailStatistics 
+                WHERE LeadEmail = @leadEmail AND SequenceNumber = @sequenceNumber
+            """, parameters, transaction);
 
+            if (existingRecord != 0)
+            {
+                // Update existing record
+                await connection.ExecuteAsync("""
+                    UPDATE SmartLeadsEmailStatistics 
+                    SET LeadId = @leadId,
+                        LeadName = @leadName,
+                        EmailSubject = @emailSubject,
+                        EmailMessage = @emailMessage,
+                        SentTime = @sentTime
+                    WHERE LeadEmail = @leadEmail 
+                    AND SequenceNumber = @sequenceNumber
+                """, parameters, transaction);
+            }
+            else
+            {
+                // Insert new record
+                await connection.ExecuteAsync("""
+                    INSERT INTO SmartLeadsEmailStatistics (
+                        Guid, LeadId, LeadEmail, LeadName, 
+                        SequenceNumber, EmailSubject, EmailMessage, SentTime
+                    ) VALUES (
+                        NewId(), @leadId, @leadEmail, @leadName, 
+                        @sequenceNumber, @emailSubject, @emailMessage, @sentTime
+                    )
+                """, parameters, transaction);
+            }
+
+            await transaction.CommitAsync();
+            _logger.LogInformation("UpsertEmailSent took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Error in UpsertEmailSent for {Email}", emailOpenPayload.to_email);
+            throw;
+        }
     }
 
     internal async Task UpdateEmailReply(EmailReplyPayload payloadObject)

@@ -2,6 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Data.SqlClient;
+using Polly;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Helper;
@@ -68,17 +69,19 @@ public class WebhookService
             throw new ArgumentNullException("to_email", "Email is required.");
         }
 
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
-            await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject);
-            return true;
-        });
+        await Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () => 
+                await _smartLeadsEmailStatisticsRepository.UpsertEmailLinkClickedCount(payloadObject));
 
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
-            await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject);
-            return true;
-        });
+        await Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () => 
+                await smartLeadsAllLeadsRepository.UpsertLeadFromEmailLinkClick(payloadObject));
     }
 
     public async Task HandleReply(string payload)
@@ -94,17 +97,19 @@ public class WebhookService
         var replyAt = payloadObject.event_timestamp;
 
 
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
-            await _messageHistoryRepository.UpsertEmailReply(payloadObject);
-            return true;
-        });
+        await Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () => 
+                await _messageHistoryRepository.UpsertEmailReply(payloadObject));
 
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
-            await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject);
-            return true;
-        });
+        await Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () => 
+                await _smartleadsEmailStatisticsService.UpdateEmailReply(payloadObject));
     }
 
     public async Task HandleLeadCategoryUpdated(string payload)
@@ -158,11 +163,12 @@ public class WebhookService
         var sequenceNumber = emailOpenPayload.sequence_number;
 
 
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
-            await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload);
-            return true;
-        });
+        await Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () => 
+                await _smartLeadsEmailStatisticsRepository.UpsertEmailOpenCount(emailOpenPayload));
     }
 
     internal async Task HandleEmailSent(string payload)
@@ -199,17 +205,19 @@ public class WebhookService
             await smartleadAccountRepository.InsertAccountCampaign(account.Id, campaignDetails.id);
         }
 
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
-            await _messageHistoryRepository.UpsertEmailSent(emailSentPayload);
-            return true;
-        });
+        await Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () => 
+                await _messageHistoryRepository.UpsertEmailSent(emailSentPayload));
 
-        await dbExecution.ExecuteWithRetryAsync(async () =>
-        {
-            await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload);
-            return true;
-        });
+        await Policy
+            .Handle<SqlException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () => 
+                await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload));
 
         // await dbExecution.ExecuteWithRetryAsync(async () =>
         // {
