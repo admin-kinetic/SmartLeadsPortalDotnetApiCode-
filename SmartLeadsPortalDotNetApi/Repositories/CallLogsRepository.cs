@@ -25,8 +25,8 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                 CallLogsOutbound? callLogsOutbound;
                 CallProspectNameEmail callProspectNameEmail = new CallProspectNameEmail { Email = null, FullName = null };
-                string cleanUserPhoneNumber = Regex.Replace(keyword.UserPhoneNumber, @"[\s()-]", "");
-                string cleanProspectNumber = Regex.Replace(keyword.ProspectNumber, @"[\s()-]", "");
+                string cleanUserPhoneNumber = Regex.Replace(keyword.UserPhoneNumber, @"[^\d+]", "");
+                string cleanProspectNumber = Regex.Replace(keyword.ProspectNumber, @"[^\d+]", "");
 
                 if (keyword.CallDirectionId == 1)
                 {
