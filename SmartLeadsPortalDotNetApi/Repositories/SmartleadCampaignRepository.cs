@@ -1,7 +1,8 @@
-using System;
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Entities;
+using SmartLeadsPortalDotNetApi.Helper;
+using SmartLeadsPortalDotNetApi.Services.Model;
 
 namespace SmartLeadsPortalDotNetApi.Repositories;
 
@@ -41,7 +42,7 @@ public class SmartleadCampaignRepository
         }
     }
 
-    public async Task<SmartleadsAccounts> GetAccountByCampaignId(int? campaignId)
+    public async Task<SmartleadAccount> GetAccountByCampaignId(int? campaignId)
     {
         using var connection = this.dbConnectionFactory.GetSqlConnection();
         var query = """
@@ -51,7 +52,23 @@ public class SmartleadCampaignRepository
             Where slc.Id = @campaignId
         """;
 
-        var queryResult = await connection.QueryFirstOrDefaultAsync<SmartleadsAccounts>(query, new { campaignId });
+        var queryResult = await connection.QueryFirstOrDefaultAsync<SmartleadAccount>(query, new { campaignId });
         return queryResult;
+    }
+
+    public async Task InsertCampaign(SmartLeadsCampaign? campaignDetails)
+    {
+        using var connection = this.dbConnectionFactory.GetSqlConnection();
+        var query = """
+            INSERT INTO SmartLeadCampaigns (Id, Name, Status, Bdr)
+            VALUES (@Id, @Name, @Status, @Bdr)
+        """;
+        await connection.ExecuteAsync(query, new
+        {
+            Id = campaignDetails?.id,
+            Name = campaignDetails?.name,
+            Status = campaignDetails?.status,
+            bdr = BdrHelper.CampaignToBdrMapping.FirstOrDefault(name => campaignDetails.name.Contains(name, StringComparison.OrdinalIgnoreCase))
+        });
     }
 }
