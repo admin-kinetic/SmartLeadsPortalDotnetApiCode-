@@ -64,7 +64,7 @@ public class SmartLeadsEmailStatisticsRepository
         _logger.LogInformation("Start UpsertEmailLinkClickedCount");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        using var connection = _dbConnectionFactory.GetSqlConnection();
+        await using var connection = await _dbConnectionFactory.GetSqlConnectionAsync();
         if (connection.State != System.Data.ConnectionState.Open)
         {
             await connection.OpenAsync();
@@ -106,7 +106,7 @@ public class SmartLeadsEmailStatisticsRepository
         _logger.LogInformation("Start UpsertEmailSent");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        using var connection = _dbConnectionFactory.GetSqlConnection();
+        await using var connection = await _dbConnectionFactory.GetSqlConnectionAsync();
         if (connection.State != System.Data.ConnectionState.Open)
         {
             await connection.OpenAsync();
@@ -175,7 +175,7 @@ public class SmartLeadsEmailStatisticsRepository
     internal async Task UpdateEmailReply(EmailReplyPayload payloadObject)
     {
         _logger.LogInformation($"Start Update email reply for {payloadObject.to_email} in statistics");
-        using var connection = this._dbConnectionFactory.GetSqlConnection();
+        await using var connection = await this._dbConnectionFactory.GetSqlConnectionAsync();
         var update = """
             UPDATE SmartLeadsEmailStatistics
             SET ReplyTime = @replyTime

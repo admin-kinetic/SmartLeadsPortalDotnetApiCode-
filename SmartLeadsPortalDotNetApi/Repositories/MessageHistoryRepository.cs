@@ -113,7 +113,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             this.logger.LogInformation($"Start UpsertEmailReply {payloadObject.to_email}");
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            using var connection = _dbConnectionFactory.GetSqlConnection();
+            await using var connection = await _dbConnectionFactory.GetSqlConnectionAsync();
 
             if (connection.State != System.Data.ConnectionState.Open)
             {

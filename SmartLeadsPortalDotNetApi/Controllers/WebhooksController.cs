@@ -171,9 +171,22 @@ public class WebhooksController : ControllerBase
             return BadRequest("incompatible event type");
         }
 
-        await this.webhooksRepository.InsertWebhook("EMAIL_REPLY", payload);
-        await webhookService.HandleReply(payload);
-        return Ok();
+        using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            try
+            {
+                await this.webhooksRepository.InsertWebhook("EMAIL_REPLY", payload);
+                await webhookService.HandleReply(payload);
+                scope.Complete();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error processing EMAIL_REPLY webhook");
+                // Transaction will automatically rollback
+                throw;
+            }
+        }
     }
 
     [HttpPost("lead-unsubscribed")]
