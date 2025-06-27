@@ -63,38 +63,41 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     email_seq_number = emailOpenPayload.sequence_number
                 };
 
-                var upsert = """
-                MERGE INTO MessageHistory WITH (ROWLOCK) AS target
-                USING (VALUES (
-                    @stats_id, @type, @message_id, @time, @email_body,
-                    @subject, @email_seq_number, @email
-                )) AS source (
-                    StatsId, Type, MessageId, Time, EmailBody,
-                    Subject, EmailSequenceNumber, LeadEmail
-                )
-                ON target.MessageId = source.MessageId
-                WHEN MATCHED THEN
-                    UPDATE SET
-                        StatsId = source.StatsId,
-                        Type = source.Type,
-                        MessageId = source.MessageId,
-                        Time = source.Time,
-                        EmailBody = source.EmailBody,
-                        Subject = source.Subject,
-                        EmailSequenceNumber = source.EmailSequenceNumber,
-                        LeadEmail = source.LeadEmail
+                // First check if the record exists
+                var existingRecord = await connection.QueryFirstOrDefaultAsync<int>("""
+                    SELECT 1 FROM MessageHistory 
+                    WHERE MessageId = @message_id
+                """, new { message_id = email.message_id }, transaction);
 
-                WHEN NOT MATCHED THEN
-                    INSERT (
-                        StatsId, Type, MessageId, Time, EmailBody,
-                        Subject, EmailSequenceNumber, LeadEmail
-                    ) VALUES (
-                        @stats_id, @type, @message_id, @time, @email_body,
-                        @subject, @email_seq_number, @email
-                    );
-             """;
+                if (existingRecord != 0)
+                {
+                    // Update existing record
+                    await connection.ExecuteAsync("""
+                        UPDATE MessageHistory 
+                        SET StatsId = @stats_id,
+                            Type = @type,
+                            Time = @time,
+                            EmailBody = @email_body,
+                            Subject = @subject,
+                            EmailSequenceNumber = @email_seq_number,
+                            LeadEmail = @email
+                        WHERE MessageId = @message_id
+                    """, email, transaction);
+                }
+                else
+                {
+                    // Insert new record
+                    await connection.ExecuteAsync("""
+                        INSERT INTO MessageHistory (
+                            StatsId, Type, MessageId, Time, EmailBody,
+                            Subject, EmailSequenceNumber, LeadEmail
+                        ) VALUES (
+                            @stats_id, @type, @message_id, @time, @email_body,
+                            @subject, @email_seq_number, @email
+                        )
+                    """, email, transaction);
+                }
 
-                await connection.ExecuteAsync(upsert, email, transaction);
                 await transaction.CommitAsync();
                 this.logger.LogInformation($"Successfully UpsertEmailSent for {emailOpenPayload.to_email}, took {stopwatch.ElapsedMilliseconds} ms");
             }
@@ -110,7 +113,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             this.logger.LogInformation($"Start UpsertEmailReply {payloadObject.to_email}");
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            using var connection = _dbConnectionFactory.GetSqlConnection();
+            await using var connection = await _dbConnectionFactory.GetSqlConnectionAsync();
 
             if (connection.State != System.Data.ConnectionState.Open)
             {
@@ -125,55 +128,57 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     email = payloadObject.sl_lead_email,
                     stats_id = payloadObject.stats_id,
                     type = "REPLY",
-                    message_id = payloadObject.reply_message.message_id,
+                    message_id = payloadObject.reply_message?.message_id, // Added null check
                     time = payloadObject.event_timestamp,
                     email_body = payloadObject.reply_body,
                     subject = payloadObject.subject,
                     email_seq_number = payloadObject.sequence_number
                 };
 
-                var upsert = """
-                    MERGE INTO MessageHistory WITH (ROWLOCK) AS target
-                    USING (VALUES (
-                        @stats_id, @type, @message_id, @time, @email_body,
-                        @subject, @email_seq_number, @email
-                    )) AS source (
-                        StatsId, Type, MessageId, Time, EmailBody,
-                        Subject, EmailSequenceNumber, LeadEmail
-                    )
-                    ON target.MessageId = source.MessageId
-                    WHEN MATCHED THEN
-                        UPDATE SET
-                            StatsId = source.StatsId,
-                            Type = source.Type,
-                            MessageId = source.MessageId,
-                            Time = source.Time,
-                            EmailBody = source.EmailBody,
-                            Subject = source.Subject,
-                            EmailSequenceNumber = source.EmailSequenceNumber,
-                            LeadEmail = source.LeadEmail
+                // First check if the record exists
+                var existingRecord = await connection.QueryFirstOrDefaultAsync<int>("""
+                    SELECT 1 FROM MessageHistory 
+                    WHERE MessageId = @message_id
+                """, new { message_id = email.message_id }, transaction);
 
-                    WHEN NOT MATCHED THEN
-                        INSERT (
+                if (existingRecord != 0)
+                {
+                    // Update existing record
+                    await connection.ExecuteAsync("""
+                        UPDATE MessageHistory 
+                        SET StatsId = @stats_id,
+                            Type = @type,
+                            Time = @time,
+                            EmailBody = @email_body,
+                            Subject = @subject,
+                            EmailSequenceNumber = @email_seq_number,
+                            LeadEmail = @email
+                        WHERE MessageId = @message_id
+                    """, email, transaction);
+                }
+                else
+                {
+                    // Insert new record
+                    await connection.ExecuteAsync("""
+                        INSERT INTO MessageHistory (
                             StatsId, Type, MessageId, Time, EmailBody,
                             Subject, EmailSequenceNumber, LeadEmail
                         ) VALUES (
                             @stats_id, @type, @message_id, @time, @email_body,
                             @subject, @email_seq_number, @email
-                        );
-                    """;
+                        )
+                    """, email, transaction);
+                }
 
-                await connection.ExecuteAsync(upsert, email, transaction);
                 await transaction.CommitAsync();
-                this.logger.LogInformation($"Successfully UpsertEmailSent for {payloadObject.to_email}, took {stopwatch.ElapsedMilliseconds} ms");
+                this.logger.LogInformation($"Successfully UpsertEmailReply for {payloadObject.to_email}, took {stopwatch.ElapsedMilliseconds} ms");
             }
             catch (System.Exception ex)
             {
                 await transaction.RollbackAsync();
-                this.logger.LogError($"Error on UpsertEmailSent for {payloadObject.to_email}", ex.Message);
+                this.logger.LogError($"Error on UpsertEmailReply for {payloadObject.to_email}", ex.Message);
                 throw;
             }
-           
         }
     }
 }
