@@ -50,6 +50,7 @@ builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
         graphSettings.ClientSecret = clientSecret;
     }
 });
+builder.Services.Configure<CallRecordingFtpCredentials>(builder.Configuration.GetSection("CallRecordingFtp"));
 
 builder.Services.Configure<StorageConfig>(storageConfig =>
 {
