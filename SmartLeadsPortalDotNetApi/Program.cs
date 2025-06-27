@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RestSharp;
 using Serilog;
+using Serilog.Sinks.Async;
 using SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 using SmartLeadsPortalDotNetApi.BackgroundTasks;
@@ -24,11 +25,16 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Create the logger
+// Create the logger with async sinks
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File("logs/smartleadsportal.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+    .WriteTo.Console() // Console is fine without async wrapper
+    .WriteTo.Async(a => a.File(
+        "logs/smartleadsportal.txt",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 7,  // Optional: keep only 7 days of logs
+        flushToDiskInterval: TimeSpan.FromSeconds(1)) // Ensure logs are written periodically
+    ).CreateLogger();
+
 builder.Host.UseSerilog();
 
 // Add services to the container.
@@ -50,6 +56,7 @@ builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
         graphSettings.ClientSecret = clientSecret;
     }
 });
+builder.Services.Configure<CallRecordingFtpCredentials>(builder.Configuration.GetSection("CallRecordingFtp"));
 
 builder.Services.Configure<StorageConfig>(storageConfig =>
 {

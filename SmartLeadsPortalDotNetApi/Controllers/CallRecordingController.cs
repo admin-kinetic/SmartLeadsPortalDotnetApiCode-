@@ -6,7 +6,7 @@ using SmartLeadsPortalDotNetApi.Services;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
 {
-    [Authorize]
+    // [Authorize]
     [Route("api/call-recording")]
     [ApiController]
     public class CallRecordingController : ControllerBase
@@ -21,7 +21,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [HttpPost("move/{uniqueCallId}")]
         public async Task<IActionResult> Move(string uniqueCallId)
         {
-            await this.outlookService.MoveCallRecordingToAzureStorage(uniqueCallId);
+            await this.outlookService.MoveCallRecordingToAzureStorageAndGoDaddyFtp(uniqueCallId);
             return Ok();
         }
     }

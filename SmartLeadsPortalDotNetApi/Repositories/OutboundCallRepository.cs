@@ -75,7 +75,7 @@ public class OutboundCallRepository
 
     internal async Task UpdateAzureStorageRecordingLik(string uniqueCallId, string uri)
     {
-        using var connection = this.dbConnectionFactory.GetSqlConnection();
+        await using var connection = await this.dbConnectionFactory.GetSqlConnectionAsync();
         const string sql = """
             UPDATE OutboundCalls
             SET AzureStorageCallRecordingLink = @uri
