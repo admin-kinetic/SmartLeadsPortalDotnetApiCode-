@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Transactions;
 using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Repositories;
 using SmartLeadsPortalDotNetApi.Services;
@@ -43,9 +44,22 @@ public class WebhooksController : ControllerBase
             return BadRequest("incompatible event type");
         }
 
-        await this.webhooksRepository.InsertWebhook("EMAIL_SENT", payload);
-        await this.webhookService.HandleEmailSent(payload);
-        return Ok();
+        using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            try
+            {
+                await this.webhooksRepository.InsertWebhook("EMAIL_SENT", payload);
+                await this.webhookService.HandleEmailSent(payload);
+                scope.Complete();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error processing EMAIL_SENT webhook");
+                // Transaction will automatically rollback
+                throw;
+            }
+        }
     }
 
     [HttpPost("first-email-sent")]
@@ -66,9 +80,22 @@ public class WebhooksController : ControllerBase
         //     return BadRequest("incompatible event type");
         // }
 
-        await this.webhooksRepository.InsertWebhook("FIRST_EMAIL_SENT", payload);
-        await this.webhookService.HandleEmailSent(payload);
-        return Ok();
+        using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            try
+            {
+                await this.webhooksRepository.InsertWebhook("FIRST_EMAIL_SENT", payload);
+                await this.webhookService.HandleEmailSent(payload);
+                scope.Complete();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error processing EMAIL_SENT webhook");
+                // Transaction will automatically rollback
+                throw;
+            }
+        }
     }
 
     [HttpPost("email-open")]
@@ -144,9 +171,22 @@ public class WebhooksController : ControllerBase
             return BadRequest("incompatible event type");
         }
 
-        await this.webhooksRepository.InsertWebhook("EMAIL_REPLY", payload);
-        await webhookService.HandleReply(payload);
-        return Ok();
+        using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            try
+            {
+                await this.webhooksRepository.InsertWebhook("EMAIL_REPLY", payload);
+                await webhookService.HandleReply(payload);
+                scope.Complete();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error processing EMAIL_REPLY webhook");
+                // Transaction will automatically rollback
+                throw;
+            }
+        }
     }
 
     [HttpPost("lead-unsubscribed")]

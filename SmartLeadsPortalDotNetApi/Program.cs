@@ -73,7 +73,7 @@ builder.Services.Configure<StorageConfig>(storageConfig =>
 builder.Services.AddHostedService<WebhookBackgroundService>();
 builder.Services.AddSingleton<WebhookBackgroundTaskQueue>();
 
-builder.Services.AddScoped<DbConnectionFactory>();
+builder.Services.AddTransient<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<SmartLeadsRepository>();
 builder.Services.AddScoped<AutomatedLeadsRepository>();
