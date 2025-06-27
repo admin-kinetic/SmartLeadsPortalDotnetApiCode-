@@ -11,6 +11,8 @@ using SmartLeadsPortalDotNetApi.Configs;
 using System.Net;
 using FluentFTP;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Retry;
 
 namespace SmartLeadsPortalDotNetApi.Services;
 
@@ -22,6 +24,7 @@ public class OutlookService
     private readonly CallRecordingFtpCredentials ftpCredentials;
     private readonly IConfiguration configuration;
     private readonly ILogger<OutlookService> logger;
+    private readonly AsyncRetryPolicy<MessageCollectionResponse> retryPolicy;
     private const string VOIP_EMAIL = "do_not_reply@au.voipcloud.online";
     private const string RECORDING_EMAIL = "smartleadscallrecording@kineticstaff.com";
 
@@ -39,18 +42,28 @@ public class OutlookService
         this.ftpCredentials = ftpCredentials.Value;
         this.configuration = configuration;
         this.logger = logger;
+
+        // Configure retry policy
+        this.retryPolicy = Policy<MessageCollectionResponse>
+            .Handle<ApplicationException>()
+            .WaitAndRetryAsync(
+                5, // retry 5 times
+                retryAttempt => TimeSpan.FromSeconds(60), // wait 10 seconds between retries
+                onRetry: (outcome, timeSpan, retryCount, context) =>
+                {
+                    this.logger.LogWarning(
+                        "Attempt {RetryCount} to fetch email failed. Waiting {TimeSpan} seconds before next retry. Error: {Error}",
+                        retryCount,
+                        timeSpan.TotalSeconds,
+                        outcome.Exception?.Message);
+                }
+            );
     }
 
-    public async Task MoveCallRecordingToAzureStorageAndGoDaddyFtp(string uniqueCallId)
+    private async Task<MessageCollectionResponse> GetEmailsWithRetryAsync(GraphServiceClient graphServiceClient, string uniqueCallId)
     {
-        try
+        return await this.retryPolicy.ExecuteAsync(async () =>
         {
-            var graphServiceClient = await this.graphClientWrapper.GetClientAsync();
-            if (graphServiceClient == null)
-            {
-                throw new ApplicationException("Graph service client is not initialized.");
-            }
-
             var emails = await graphServiceClient.Users[RECORDING_EMAIL].MailFolders["Inbox"].Messages
                 .GetAsync(requestConfiguration =>
                 {
@@ -64,12 +77,38 @@ public class OutlookService
                 throw new ApplicationException($"No emails found for unique call id {uniqueCallId}.");
             }
 
+            return emails;
+        });
+    }
+
+    public async Task MoveCallRecordingToAzureStorageAndGoDaddyFtp(string uniqueCallId)
+    {
+        try
+        {
+            var graphServiceClient = await this.graphClientWrapper.GetClientAsync();
+            if (graphServiceClient == null)
+            {
+                throw new ApplicationException("Graph service client is not initialized.");
+            }
+
+            var emails = await GetEmailsWithRetryAsync(graphServiceClient, uniqueCallId);
+
+            if (emails?.Value == null || !emails.Value.Any())
+            {
+                throw new ApplicationException($"No emails found for unique call id {uniqueCallId}.");
+            }
+
             foreach (var email in emails.Value)
             {
+                if (email.Attachments == null) continue;
+                
                 foreach (var attachment in email.Attachments)
                 {
                     var fileAttachment = attachment as FileAttachment;
+                    if (fileAttachment == null) continue;
+                    
                     var attachmentContent = fileAttachment.ContentBytes;
+                    if (attachmentContent == null) continue;
 
                     var fileName = $"{uniqueCallId}.mp3";
 

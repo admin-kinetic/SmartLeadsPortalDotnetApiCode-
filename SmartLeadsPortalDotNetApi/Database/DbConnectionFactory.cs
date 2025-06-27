@@ -1,5 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using MySqlConnector;
+using Polly;
+using Polly.Retry;
 using System.Data;
 using System.Data.Common;
 
@@ -9,7 +11,7 @@ public class DbConnectionFactory : IDisposable
 {
     private readonly string callsSqlConnectionString;
     private readonly object connectionLock = new object();
-
+    private readonly AsyncRetryPolicy retryPolicy;
     private readonly ILogger<DbConnectionFactory> logger;
     private SqlConnection callsSqlConnection;
     private bool disposed = false;
@@ -22,6 +24,12 @@ public class DbConnectionFactory : IDisposable
         this.logger = logger;
         this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
         this.logger.LogInformation($"SQL Connection String: {this.callsSqlConnectionString}");
+
+        // Configure retry policy
+        this.retryPolicy = Policy
+            .Handle<SqlException>(ex => ex.IsTransient)
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
     }
 
     public DbConnection GetSqlConnection()
