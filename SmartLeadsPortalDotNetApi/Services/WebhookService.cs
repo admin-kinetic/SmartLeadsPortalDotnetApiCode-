@@ -196,17 +196,14 @@ public class WebhookService
             await smartleadAccountRepository.InsertAccountCampaign(account.Id, campaignDetails.id);
         }
 
-        await _retryPolicy.ExecuteAsync(async () => 
+        await _retryPolicy.ExecuteAsync(async () =>
             await _messageHistoryRepository.UpsertEmailSent(emailSentPayload));
 
-        await _retryPolicy.ExecuteAsync(async () => 
+        await _retryPolicy.ExecuteAsync(async () =>
             await _smartleadsEmailStatisticsService.UpdateEmailSent(emailSentPayload));
 
-        // await dbExecution.ExecuteWithRetryAsync(async () =>
-        // {
-        //     await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload);
-        //     return true;
-        // });
+        await _retryPolicy.ExecuteAsync(async () =>
+            await smartLeadsAllLeadsRepository.UpsertLeadFromEmailSent(emailSentPayload));
     }
 
     internal async Task HandleEmailBounce(string payload)
