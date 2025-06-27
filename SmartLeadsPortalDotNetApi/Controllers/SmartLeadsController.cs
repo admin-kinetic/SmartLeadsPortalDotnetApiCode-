@@ -184,6 +184,19 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(result);
         }
 
+        [HttpPost("call-tasks/export")]
+        public async Task<IActionResult> CallTaskExport(TableRequest request){
+            var user = this.HttpContext.User;
+            var employeeId = user.FindFirst("employeeId").Value;
+
+            if (string.IsNullOrEmpty(employeeId))
+            {
+                return BadRequest("Invalid user ID");
+            }
+            var result = await this.callTasksTableRepository.Export(request, employeeId);
+            return Ok(result);
+        }
+
         [HttpGet("call-tasks/columns/all")]
         public IActionResult CallTasksColumnsAll(){
             var result = this.callTasksTableRepository.AllColumns();
@@ -275,29 +288,15 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [HttpPost("get-exportedleads-emailed")]
         public async Task<IActionResult> GetAllExportedLeadsEmailed(SmartLeadEmailedRequest param)
         {
-            try
-            {
-                var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailed(param);
-                return Ok(leads);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailed(param);
+            return Ok(leads);
         }
 
         [HttpPost("get-exportedleads-emailed-count")]
         public async Task<IActionResult> GetAllExportedLeadsEmailedCount(SmartLeadEmailedRequest param)
         {
-            try
-            {
-                var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailedCount(param);
-                return Ok(leads);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailedCount(param);
+            return Ok(leads);
         }
 
         [HttpPost("update-leadsemailed-details")]

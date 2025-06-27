@@ -110,9 +110,9 @@ public class SmartLeadsApiService
     }
 
     //Get Campaigns details by Id
-    public async Task<SmartLeadsCampaign?> GetSmartLeadsCampaignById(int id)
+    public async Task<SmartLeadsCampaign?> GetSmartLeadsCampaignById(int id, int? accountId = null)
     {
-        await this.InitializeSmartleadConfig();
+        await this.InitializeSmartleadConfig(accountId);
         if (smartLeadConfig.ApiKey == null)
         {
             throw new Exception("API Key is null");
