@@ -44,7 +44,14 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                 if (keyword.ProspectName != null && keyword.ProspectName != "")
                 {
-                    callProspectNameEmail = await GetProspectEmailNameById(keyword.ProspectName ?? string.Empty) ?? new CallProspectNameEmail { Email = null, FullName = null };
+                    if(keyword.CallDirectionId == 1)
+                    {
+                        callProspectNameEmail = await GetProspectEmailNameById(keyword.ProspectName) ?? new CallProspectNameEmail { Email = null, FullName = null };
+                    }
+                    else
+                    {
+                        callProspectNameEmail = new CallProspectNameEmail { Email = keyword.LeadEmail, FullName = keyword.ProspectName };
+                    }
                 }
 
                 CallLogFullName? callername = await GetProspectNameByPhone(cleanUserPhoneNumber);
