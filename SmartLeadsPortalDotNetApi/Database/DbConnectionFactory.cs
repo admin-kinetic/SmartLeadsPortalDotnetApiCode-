@@ -11,7 +11,7 @@ public class DbConnectionFactory : IDisposable
 {
     private readonly string callsSqlConnectionString;
     private readonly object connectionLock = new object();
-    private readonly AsyncRetryPolicy retryPolicy;
+    private readonly AsyncRetryPolicy<DbConnection> retryPolicy;
     private readonly ILogger<DbConnectionFactory> logger;
     private SqlConnection callsSqlConnection;
     private bool disposed = false;
@@ -26,7 +26,7 @@ public class DbConnectionFactory : IDisposable
         this.logger.LogInformation($"SQL Connection String: {this.callsSqlConnectionString}");
 
         // Configure retry policy
-        this.retryPolicy = Policy
+        this.retryPolicy = Policy<DbConnection>
             .Handle<SqlException>(ex => ex.IsTransient)
             .WaitAndRetryAsync(3, retryAttempt => 
                 TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
@@ -34,50 +34,33 @@ public class DbConnectionFactory : IDisposable
 
     public DbConnection GetSqlConnection()
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(nameof(DbConnectionFactory), "Cannot access a disposed connection factory");
-        }
-
-        lock (connectionLock)
-        {
-            if (this.callsSqlConnection == null || this.callsSqlConnection.State == ConnectionState.Closed || this.callsSqlConnection.State == ConnectionState.Broken)
-            {
-                this.callsSqlConnection = new SqlConnection(this.callsSqlConnectionString);
-            }
-        }
-
-        if (this.callsSqlConnection.State != ConnectionState.Open)
-        {
-            this.callsSqlConnection.Open();
-        }
-
-        return this.callsSqlConnection;
+        return GetSqlConnectionAsync().GetAwaiter().GetResult();
     }
 
-    
-
-    public async Task<SqlConnection> GetSqlConnectionAsync()
+    public async Task<DbConnection> GetSqlConnectionAsync()
     {
         if (this.disposed)
         {
             throw new ObjectDisposedException(nameof(DbConnectionFactory), "Cannot access a disposed connection factory");
         }
 
-        lock (connectionLock)
+        return await retryPolicy.ExecuteAsync(async () =>
         {
-            if (this.callsSqlConnection == null || this.callsSqlConnection.State == ConnectionState.Closed || this.callsSqlConnection.State == ConnectionState.Broken)
+            lock (connectionLock)
             {
-                this.callsSqlConnection = new SqlConnection(this.callsSqlConnectionString);
+                if (this.callsSqlConnection == null || this.callsSqlConnection.State == ConnectionState.Closed || this.callsSqlConnection.State == ConnectionState.Broken)
+                {
+                    this.callsSqlConnection = new SqlConnection(this.callsSqlConnectionString);
+                }
             }
-        }
 
-        if (this.callsSqlConnection.State != ConnectionState.Open)
-        {
-            await this.callsSqlConnection.OpenAsync();
-        }
+            if (this.callsSqlConnection.State != ConnectionState.Open)
+            {
+                await this.callsSqlConnection.OpenAsync();
+            }
 
-        return this.callsSqlConnection;
+            return this.callsSqlConnection;
+        });
     }
 
     public void ValidateConnections()
