@@ -87,7 +87,23 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         request.EmailAddress = "";
                     }
 
-                    string _proc = "sm_spGetLeadGenExportedLeadsPaginated";
+                    string baseQuery = """
+                        SELECT sec.Id, sal.CreatedAt AS ExportedDate, sec.Email, sec.ContactSource, ses.SequenceNumber, ses.ReplyTime, sec.HasReviewed, ses.SentTime
+                        FROM [dbo].[SmartLeadsExportedContacts] sec
+                        LEFT JOIN [dbo].[SmartLeadAllLeads] sal ON sec.Email = sal.Email
+                        LEFT JOIN [dbo].[SmartLeadsEmailStatistics] ses ON sec.Email = ses.LeadEmail
+                        WHERE sal.BDR ='Steph' AND sal.CreatedBy <> 'Bots'
+                    """;
+                    
+                    baseQuery = ComposeWhereConditions(baseQuery, request);
+
+                     // Add ORDER BY clause and pagination
+                    baseQuery += """
+                        ORDER BY sal.CreatedAt DESC
+                        OFFSET (@Page - 1) * @PageSize ROWS
+                        FETCH NEXT @PageSize ROWS ONLY
+                    """;
+
                     param.Add("@Page", request.Page);
                     param.Add("@PageSize", request.PageSize);
                     param.Add("@email", request.EmailAddress);
@@ -95,8 +111,11 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     param.Add("@isValid", request.HasReview);
                     param.Add("@startDate", request.ExportedDateFrom);
                     param.Add("@endDate", request.ExportedDateTo);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@leadGen", request.LeadGen);
+                    param.Add("@qaBy", request.QaBy);
 
-                    list = await connection.QueryAsync<SmartLeadsExportedContactLeadGen>(_proc, param, commandType: CommandType.StoredProcedure);
+                    list = await connection.QueryAsync<SmartLeadsExportedContactLeadGen>(baseQuery, param);
 
                     return list;
                 }
@@ -106,6 +125,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+        
         public async Task<int?> GetAllLeadGenExportedLeadsCount(SmartLeadRequest request)
         {
             try
@@ -119,14 +139,29 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         request.EmailAddress = "";
                     }
 
-                    string _proc = "sm_spGetLeadGenExportedLeadsPaginatedCount";
+                    // string _proc = "sm_spGetLeadGenExportedLeadsPaginatedCount";
+
+                    string countQuery = """
+                        SELECT 
+                            COUNT(sec.Id) AS TotalCount
+                        FROM [dbo].[SmartLeadsExportedContacts] sec
+                        LEFT JOIN [dbo].[SmartLeadAllLeads] sal ON sec.Email = sal.Email
+                        LEFT JOIN [dbo].[SmartLeadsEmailStatistics] ses ON sec.Email = ses.LeadEmail
+                        WHERE sal.BDR ='Steph' AND sal.CreatedBy <> 'Bots'
+                    """;
+
+                    countQuery = ComposeWhereConditions(countQuery, request);
+
                     param.Add("@email", request.EmailAddress);
                     param.Add("@hasReply", request.HasReply);
                     param.Add("@isValid", request.HasReview);
                     param.Add("@startDate", request.ExportedDateFrom);
                     param.Add("@endDate", request.ExportedDateTo);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@leadGen", request.LeadGen);
+                    param.Add("@qaBy", request.QaBy);
 
-                    var countResult = await connection.QueryFirstOrDefaultAsync<SmartLeadsExportedContactLeadGenCount?>(_proc, param, commandType: CommandType.StoredProcedure);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<SmartLeadsExportedContactLeadGenCount?>(countQuery, param);
 
                     return countResult?.TotalCount;
                 }
@@ -136,6 +171,68 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+
+         private static string ComposeWhereConditions(string baseQuery, SmartLeadRequest request)
+        {
+             var whereClause = new List<string>();
+
+            if (!string.IsNullOrEmpty(request.EmailAddress) && request.EmailAddress != "null")
+            {
+                whereClause.Add("sal.Email = @email");
+            }
+
+            // Determine which date field to use based on HasReply filter
+            string dateField;
+
+                if (request.HasReply.HasValue)
+                {
+                    dateField = request.HasReply.Value ? "ses.ReplyTime" : "ses.SentTime";
+                }
+                else
+                {
+                    dateField = "sal.CreatedAt";
+                }
+            
+
+            // Apply date filters using the determined field
+            if (request.ExportedDateFrom.HasValue)
+            {
+                whereClause.Add($"CONVERT(DATE, {dateField}) >= @startDate");
+            }
+
+            if (request.ExportedDateTo.HasValue)
+            {
+                whereClause.Add($"CONVERT(DATE, {dateField}) <= @endDate");
+            }
+
+            if (!string.IsNullOrEmpty(request.Bdr))
+            {
+                whereClause.Add("sal.BDR = @bdr");
+            }
+
+            if (!string.IsNullOrEmpty(request.LeadGen))
+            {
+                whereClause.Add("sal.CreatedBy = @leadGen");
+            }
+
+            if (!string.IsNullOrEmpty(request.QaBy))
+            {
+                whereClause.Add("sal.QABy = @qaBy");
+            }
+
+
+            // Add WHERE clause if needed
+            if (whereClause.Count > 0)
+            {
+                var filterClause = $"""
+                                AND {string.Join(" AND ", whereClause)}
+                            """;
+                baseQuery += filterClause;
+            }
+
+            return baseQuery;
+        }
+
         public async Task<IEnumerable<SmartLeadsExportedLeadsEmailed>> GetAllExportedLeadsEmailed(SmartLeadEmailedRequest request)
         {
             try
