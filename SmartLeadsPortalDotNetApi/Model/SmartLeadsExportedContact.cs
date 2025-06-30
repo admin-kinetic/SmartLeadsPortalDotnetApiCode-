@@ -42,6 +42,9 @@ namespace SmartLeadsPortalDotNetApi.Model
         public bool? IsIncorrectContact { get; set; }
         public bool? IsEmailError { get; set; }
         public string? ExcludeKeywords { get; set; }
+        public string? Bdr { get; set; }
+        public string? LeadGen { get; set; }
+        public string? QaBy { get; set; }
     }
 
     public class SmartLeadEmailedRequest
@@ -59,6 +62,7 @@ namespace SmartLeadsPortalDotNetApi.Model
         public string? Bdr { get; set; }
         public string? LeadGen { get; set; }
         public string? QaBy { get; set; }
+        public int? CampaignType { get; set; }
     }
 
     public class SmartLeadsResponseModel<T>
