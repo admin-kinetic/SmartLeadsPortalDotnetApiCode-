@@ -31,9 +31,9 @@ public class CallsTableRepository
         { "last month", "{0} >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 1, 0) AND {0} < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)" },
         { "this year", "{0} >= DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0) AND {0} < DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()) + 1, 0)" },
         { "last year", "{0} >= DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()) - 1, 0) AND {0} < DATEADD(YEAR, DATEDIFF(YEAR, 0, GETDATE()), 0)" },
-        { "last x days", "{0} >= DATEADD(DAY, -{1}, CAST(GETDATE() AS DATE)) AND {0} < DATEADD(DAY, 1, CAST(GETDATE() AS DATE))" },
-        { "last x weeks", "{0} >= DATEADD(WEEK, -{1}, DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0) AND {0} < DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0)" },
-        { "last x months", "{0} >= DATEADD(MONTH, -{1}, DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)) AND {0} < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)" }
+        { "last x days", "{0} >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND {0} < DATEADD(DAY, 1, CAST(GETDATE() AS DATE))" },
+        { "last x weeks", "{0} >= DATEADD(WEEK, -1, DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0)) AND {0} < DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0)" },
+        { "last x months", "{0} >= DATEADD(MONTH, -1, DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)) AND {0} < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)" }
     };
 
     public CallsTableRepository(DbConnectionFactory dbConnectionFactory)
