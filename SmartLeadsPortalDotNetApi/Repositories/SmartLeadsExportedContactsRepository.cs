@@ -88,6 +88,18 @@ public class SmartLeadsExportedContactsRepository
                             whereClause.Add("sla.CreatedAt <  DATEADD(day, 1, @ExportedDateTo)");
                             parameters.Add("ExportedDateTo", filter.Value);
                             break;
+                        case "bdr":
+                            whereClause.Add("sla.BDR = @BDR");
+                            parameters.Add("BDR", filter.Value);
+                            break;
+                        case "leadgen":
+                            whereClause.Add("sla.CreatedBy = @CreatedBy");
+                            parameters.Add("CreatedBy", filter.Value);
+                            break;
+                        case "qaby":
+                            whereClause.Add("sla.QaBy = @QaBy");
+                            parameters.Add("QaBy", filter.Value);
+                            break;
                         case "category":
                             switch (filter?.Value?.ToLower())
                             {
