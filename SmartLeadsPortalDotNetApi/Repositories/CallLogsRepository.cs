@@ -326,5 +326,26 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             }
         }
 
+        public async Task<int> UpdatePhoneNumber(string email, string phonenumber)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spUpSertPhonenumbersInAllLeads";
+                    var param = new DynamicParameters();
+                    param.Add("@email", email);
+                    param.Add("@phonenumber", phonenumber);
+                    var affectedRows = await connection.ExecuteAsync(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return affectedRows;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error updating phone numbers in database.", ex);
+            }
+        }
+
     }
 }
