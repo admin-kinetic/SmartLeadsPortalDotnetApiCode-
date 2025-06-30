@@ -23,7 +23,7 @@ public class WebhooksRepository
 
         try
         {
-            using var connection = dbConnectionFactory.GetSqlConnection();
+            await using var connection = await dbConnectionFactory.GetSqlConnectionAsync();
             var insert = @"INSERT INTO Webhooks (EventType, Request, CreatedAt) VALUES (@eventType, @payload, GETDATE());";
             await connection.ExecuteAsync(insert, new { eventType, payload });
         }
