@@ -173,7 +173,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                     // Determine which date field to use based on HasReply filter
                     string dateField;
-                    if (request.HasReply.HasValue)
+                    if (request.HasReply.HasValue || request.Category == "reply-email")
                     {
                         dateField = request.HasReply.Value ? "ses.ReplyTime" : "ses.SentTime";
                     }
@@ -206,6 +206,32 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     if (!string.IsNullOrEmpty(request.QaBy))
                     {
                         whereClause.Add("sal.QABy = @qaBy");
+                    }
+
+                    //Condition for Category
+                    if(!string.IsNullOrEmpty(request.Category) && request.Category == "positive-response")
+                    {
+                        whereClause.Add("(sal.SmartleadCategory = 'Information Request' OR sal.SmartleadCategory = 'Interested')");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "email-error")
+                    {
+                        whereClause.Add("(sal.SmartleadCategory = 'Bounced' OR sal.SmartleadCategory = 'Sender Originated Bounce')");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "out-of-office")
+                    {
+                        whereClause.Add("sal.SmartleadCategory = 'Out Of Office'");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "incorrect-contact")
+                    {
+                        whereClause.Add("sal.SmartleadCategory = 'Wrong Person'");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "open-email")
+                    {
+                        whereClause.Add("ses.OpenTime IS NOT NULL OR ses.OpenTime <> ''");
                     }
 
                     // Add WHERE clause if needed
@@ -314,6 +340,32 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     if (!string.IsNullOrEmpty(request.QaBy))
                     {
                         whereClause.Add("sal.QABy = @qaBy");
+                    }
+
+                    //Condition for Category
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "positive-response")
+                    {
+                        whereClause.Add("(sal.SmartleadCategory = 'Information Request' OR sal.SmartleadCategory = 'Interested')");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "email-error")
+                    {
+                        whereClause.Add("(sal.SmartleadCategory = 'Bounced' OR sal.SmartleadCategory = 'Sender Originated Bounce')");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "out-of-office")
+                    {
+                        whereClause.Add("sal.SmartleadCategory = 'Out Of Office'");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "incorrect-contact")
+                    {
+                        whereClause.Add("sal.SmartleadCategory = 'Wrong Person'");
+                    }
+
+                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "reply-email")
+                    {
+                        whereClause.Add("ses.ReplyTime IS NOT NULL OR ses.ReplyTime <> ''");
                     }
 
                     // Add WHERE clause if needed

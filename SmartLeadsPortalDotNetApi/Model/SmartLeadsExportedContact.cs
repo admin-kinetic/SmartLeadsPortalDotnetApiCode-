@@ -55,6 +55,7 @@ namespace SmartLeadsPortalDotNetApi.Model
         public bool? HasReview { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
+        public string? Category { get; set; }
         public string? Bdr { get; set; }
         public string? LeadGen { get; set; }
         public string? QaBy { get; set; }
