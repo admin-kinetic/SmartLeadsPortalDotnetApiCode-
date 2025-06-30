@@ -59,6 +59,7 @@ namespace SmartLeadsPortalDotNetApi.Model
         public string? Bdr { get; set; }
         public string? LeadGen { get; set; }
         public string? QaBy { get; set; }
+        public int? CampaignType { get; set; }
     }
 
     public class SmartLeadsResponseModel<T>
