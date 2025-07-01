@@ -10,16 +10,16 @@ BEGIN
 	SET NOCOUNT ON;
 	SELECT COUNT(sla.Email) AS TotalBounced from SmartLeadAllLeads sla
 	INNER JOIN SmartLeadsEmailStatistics ses ON sla.Email = ses.LeadEmail
-	WHERE (sla.SmartleadCategory IS NOT NULL AND sla.SmartleadCategory = 'Sender Originated Bounce' OR sla.SmartleadCategory = 'Bounced')
+	WHERE (sla.SmartleadCategory IS NOT NULL AND (sla.SmartleadCategory = 'Sender Originated Bounce' OR sla.SmartleadCategory = 'Bounced'))
 	AND (@bdr = '' OR sla.BDR = @bdr)
 	AND (@createdby = '' OR sla.CreatedBy = @createdby)
 	AND (@qaby = '' OR sla.QABy = @qaby)
 	-- Campaign-specific logic
 	AND (
 		@campaignId IS NULL
-		OR (@campaignId = 1 AND sla.CreatedBy <> 'Bots' AND sla.BDR <> 'Steph')
+		OR ((@campaignId = 1 AND sla.CreatedBy <> 'Bots' AND sla.BDR <> 'Steph')
 		OR (@campaignId = 2 AND sla.CreatedBy = 'Bots' AND sla.BDR = 'Steph')
-		OR (@campaignId = 3 AND sla.CreatedBy <> 'Bots' AND sla.BDR = 'Steph')
+		OR (@campaignId = 3 AND sla.CreatedBy <> 'Bots' AND sla.BDR = 'Steph'))
 	)
 	-- Date range filter
 	AND (
