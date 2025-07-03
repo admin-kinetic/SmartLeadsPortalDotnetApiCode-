@@ -8,7 +8,7 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spGetDashboardSmartLeadAnalyticsTotalReply]
 AS  
 BEGIN   
 	SET NOCOUNT ON;
-	SELECT COUNT(sla.Email) AS TotalReplied from SmartLeadAllLeads sla
+	SELECT COUNT(DISTINCT sla.Email) AS TotalReplied from SmartLeadAllLeads sla
 	INNER JOIN SmartLeadsEmailStatistics ses ON sla.Email = ses.LeadEmail
 	WHERE (ses.ReplyTime IS NOT NULL OR ses.ReplyTime <> '')
 	AND (@bdr = '' OR sla.BDR = @bdr)
