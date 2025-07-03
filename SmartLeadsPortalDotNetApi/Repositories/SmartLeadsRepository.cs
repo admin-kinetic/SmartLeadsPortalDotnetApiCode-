@@ -248,10 +248,10 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                             sal.CompanyName,
                             sal.Email,
                             sal.PhoneNumber,
-                            sal.CreatedAt AS ExportedDate,
-                            ses.SequenceNumber,
-                            ses.ReplyTime,
-                            ses.SentTime, 
+                            MAX(sal.CreatedAt) AS ExportedDate,
+                            MAX(ses.SequenceNumber) AS SequenceNumber,
+                            MAX(ses.ReplyTime) AS ReplyTime,
+                            MIN(ses.SentTime) AS SentTime, 
                             sal.[Location] AS Country
                         FROM [dbo].[SmartLeadAllLeads] sal
                             LEFT JOIN [dbo].[SmartLeadsEmailStatistics] ses ON sal.Email = ses.LeadEmail
@@ -262,7 +262,22 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                     // Add ORDER BY clause
                     baseQuery += """
-                        ORDER BY sal.CreatedAt DESC
+                        GROUP BY 
+                            sal.FirstName,
+                            sal.LastName,
+                            sal.CompanyName,
+                            sal.Email,
+                            sal.PhoneNumber,
+                            sal.[Location]
+                    """;
+
+                    // Add ORDER BY clause
+                    var wrappedBaseQuery = $"""
+                        Select * From 
+                        (
+                            {baseQuery}
+                        )  AS SQ
+                        ORDER BY SQ.ExportedDate Desc
                         OFFSET (@Page - 1) * @PageSize ROWS
                         FETCH NEXT @PageSize ROWS ONLY
                     """;
@@ -278,7 +293,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     param.Add("@leadGen", request.LeadGen);
                     param.Add("@qaBy", request.QaBy);
 
-                    list = await connection.QueryAsync<SmartLeadsExportedLeadsEmailed>(baseQuery, param);
+                    list = await connection.QueryAsync<SmartLeadsExportedLeadsEmailed>(wrappedBaseQuery, param);
 
                     return list;
                 }
@@ -300,7 +315,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                      var countQuery = """
                         SELECT
-                            COUNT(sal.Id) AS TotalCount
+                            COUNT(DISTINCT sal.Email) AS TotalCount
                         FROM [dbo].[SmartLeadAllLeads] sal
                             LEFT JOIN [dbo].[SmartLeadsEmailStatistics] ses ON sal.Email = ses.LeadEmail
                         
