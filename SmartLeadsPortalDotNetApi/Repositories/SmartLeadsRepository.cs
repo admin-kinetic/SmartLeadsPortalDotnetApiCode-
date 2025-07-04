@@ -606,47 +606,6 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                         whereClause.Add("sal.QABy = @qaBy");
                     }
 
-                    //Condition for Category
-                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "positive-response")
-                    {
-                        whereClause.Add("(sal.SmartleadCategory = 'Information Request' OR sal.SmartleadCategory = 'Interested' OR sal.SmartleadCategory = 'Meeting Request')");
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "email-error")
-                    {
-                        whereClause.Add("(sal.SmartleadCategory = 'Bounced' OR sal.SmartleadCategory = 'Sender Originated Bounce')");
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "out-of-office")
-                    {
-                        whereClause.Add("sal.SmartleadCategory = 'Out Of Office'");
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "incorrect-contact")
-                    {
-                        whereClause.Add("sal.SmartleadCategory = 'Wrong Person'");
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Category) && request.Category == "open-email")
-                    {
-                        whereClause.Add("ses.OpenTime IS NOT NULL OR ses.OpenTime <> ''");
-                    }
-
-                    if (request.CampaignType.HasValue && request.CampaignType.Value == 1)
-                    {
-                        whereClause.Add("sal.CreatedBy <> 'Bots' AND sal.BDR <> 'Steph'");
-                    }
-
-                    if (request.CampaignType.HasValue && request.CampaignType.Value == 2)
-                    {
-                        whereClause.Add("sal.CreatedBy = 'Bots' AND sal.BDR = 'Steph'");
-                    }
-
-                    if (request.CampaignType.HasValue && request.CampaignType.Value == 3)
-                    {
-                        whereClause.Add("sal.CreatedBy <> 'Bots' AND sal.BDR = 'Steph'");
-                    }
-
                     // Add WHERE clause if needed
                     if (whereClause.Count > 0)
                     {
