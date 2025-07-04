@@ -244,6 +244,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
                     var baseQuery = """
                         SELECT
+                            sal.LeadId AS Id,
                             sal.FirstName + ' ' + sal.LastName AS FullName,
                             sal.CompanyName,
                             sal.Email,
@@ -263,6 +264,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     // Add ORDER BY clause
                     baseQuery += """
                         GROUP BY 
+                            sal.LeadId,
                             sal.FirstName,
                             sal.LastName,
                             sal.CompanyName,
@@ -354,7 +356,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
 
             // Determine which date field to use based on HasReply filter
             string dateField;
-            if (request.Category == "reply-email")
+            if (request.Category == "reply-email" || request.HasReply.HasValue)
             {
                 dateField = "ses.ReplyTime";
             }
