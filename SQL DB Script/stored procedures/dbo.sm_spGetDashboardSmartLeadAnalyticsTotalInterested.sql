@@ -8,7 +8,7 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spGetDashboardSmartLeadAnalyticsTotalInteres
 AS  
 BEGIN   
 	SET NOCOUNT ON;
-	SELECT COUNT(sla.Email) AS TotalInterested from SmartLeadAllLeads sla
+	SELECT COUNT(DISTINCT sla.Email) AS TotalInterested from SmartLeadAllLeads sla
 	INNER JOIN SmartLeadsEmailStatistics ses ON sla.Email = ses.LeadEmail
 	WHERE (sla.SmartleadCategory IS NOT NULL AND (sla.SmartleadCategory = 'Interested' OR sla.SmartleadCategory = 'Information Request' OR sla.SmartleadCategory = 'Meeting Request'))
 	AND (@bdr = '' OR sla.BDR = @bdr)
