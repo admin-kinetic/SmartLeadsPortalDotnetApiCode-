@@ -285,6 +285,20 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             }
         }
 
+        [HttpPost("leads/find")]
+        public async Task<IActionResult> LeadsFind(TableRequest request)
+        {
+            var result = await this._smartLeadsRepository.Find(request);
+            return this.Ok(result);
+        }
+
+        [HttpPost("leads/export")]
+        public async Task<IActionResult> LeadsExport(TableRequest request)
+        {
+            var result = await this._smartLeadsRepository.Export(request);
+            return this.Ok(result);
+        }
+
         [HttpPost("get-exportedleads-emailed")]
         public async Task<IActionResult> GetAllExportedLeadsEmailed(SmartLeadEmailedRequest param)
         {

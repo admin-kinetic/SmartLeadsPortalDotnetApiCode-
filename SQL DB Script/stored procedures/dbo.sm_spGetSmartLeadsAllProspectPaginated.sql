@@ -12,7 +12,9 @@ BEGIN
 	WHERE Email NOT LIKE '%?%' 
 	  AND FirstName NOT LIKE '%?%' 
 	  AND LastName NOT LIKE '%?%'
-	  AND (FirstName + ' ' + LastName LIKE '%' + @Search + '%' OR @Search = '')
+	  AND (@Search = '' 
+	       OR (CHARINDEX('@', @Search) > 0 AND Email LIKE '%' + @Search + '%')
+	       OR (CHARINDEX('@', @Search) = 0 AND FirstName + ' ' + LastName LIKE '%' + @Search + '%'))
 	ORDER BY Email ASC
 	OFFSET (@Page - 1) * @PageSize ROWS
 	FETCH NEXT @PageSize ROWS ONLY
