@@ -677,7 +677,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     var baseQuery = """
                         SELECT
                             sal.LeadId AS Id,
-                            sal.FirstName + ' ' + sal.LastName AS FullName,
+                            ISNULL(sal.FirstName,'') + ' ' + ISNULL(sal.LastName, '') AS FullName,
                             sal.CompanyName,
                             sal.Email,
                             sal.PhoneNumber,
