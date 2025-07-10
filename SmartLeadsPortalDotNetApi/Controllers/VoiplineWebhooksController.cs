@@ -28,7 +28,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             OutboundCallEventParser outboundCallEventParser,
             InboundCallEventParser inboundCallEventParser,
             InboundCallRepository inboundCallRepository,
-            OutlookService outlookService,
+             OutlookService outlookService,
             IConfiguration configuration)
         {
             this.voiplineWebhookRepository = voiplineWebhookRepository;

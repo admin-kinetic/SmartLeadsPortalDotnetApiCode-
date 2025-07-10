@@ -1,7 +1,8 @@
-using System.Collections.Generic;
-using System.Text.Json;
 using Common.Models;
 using Common.Repositories;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Web;
 
 namespace Common.Services;
 
@@ -262,6 +263,11 @@ public class SmartLeadHttpService
                     return null;
                 }
 
+                if (result != null  && result.email == null)
+                {
+                    return null;
+                }
+
                 return result;
             }
         }
@@ -321,4 +327,26 @@ public class SmartLeadHttpService
             throw ex;
         }
     }
+
+    //Get lead by email
+    public async Task<SmartLeadsByEmailResponse?> GetLeadByEmail(string email, string? apiKey = null)
+    {
+        using var client = new HttpClient();
+        var queryString = HttpUtility.ParseQueryString(string.Empty);
+        queryString["api_key"] = apiKey;
+        queryString["email"] = email;
+
+        var response = await client.GetAsync($"{this.baseUrl}/leads?{queryString}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error fetching data: {response.StatusCode} - {errorMessage}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        var campaigns = JsonSerializer.Deserialize<SmartLeadsByEmailResponse>(content);
+        return campaigns;
+    }
+
 }
