@@ -50,7 +50,7 @@ builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
 {
     builder.Configuration.GetSection("MicrosoftGraph").Bind(graphSettings);
 
-    var clientSecret = Environment.GetEnvironmentVariable("MicrosoftGraph");
+    var clientSecret = Environment.GetEnvironmentVariable("MICROSOFTGRAPH_CLIENTSECRET");
     if (!string.IsNullOrEmpty(clientSecret))
     {
         graphSettings.ClientSecret = clientSecret;
@@ -157,9 +157,10 @@ builder.Services.AddScoped(provider =>
 
 builder.Services.AddSingleton(provider =>
     {
-    return new StorageSharedKeyCredential(
-            builder.Configuration["AzureStorage:AccountName"], 
-            builder.Configuration["AzureStorage:AccountKey"]);
+        var accountKey = Environment.GetEnvironmentVariable("AZURESTORAGE_ACCOUNTKEY");
+        return new StorageSharedKeyCredential(
+                    builder.Configuration["AzureStorage:AccountName"],
+                    accountKey ?? builder.Configuration["AzureStorage:AccountKey"]);
     });
 
 // Register BlobServiceClient as a singleton
