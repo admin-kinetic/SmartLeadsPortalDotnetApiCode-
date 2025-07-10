@@ -50,7 +50,7 @@ builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
 {
     builder.Configuration.GetSection("MicrosoftGraph").Bind(graphSettings);
 
-    var clientSecret = Environment.GetEnvironmentVariable("MicrosoftGraph");
+    var clientSecret = Environment.GetEnvironmentVariable("MICROSOFTGRAPH_CLIENTSECRET");
     if (!string.IsNullOrEmpty(clientSecret))
     {
         graphSettings.ClientSecret = clientSecret;
