@@ -18,7 +18,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly OutboundCallEventParser outboundCallEventParser;
         private readonly InboundCallEventParser inboundCallEventParser;
         private readonly InboundCallRepository inboundCallRepository;
-        // private readonly OutlookService outlookService;
+        private readonly OutlookService outlookService;
         private readonly IConfiguration configuration;
 
         public VoiplineWebhooksController(
@@ -28,7 +28,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             OutboundCallEventParser outboundCallEventParser,
             InboundCallEventParser inboundCallEventParser,
             InboundCallRepository inboundCallRepository,
-            // OutlookService outlookService,
+             OutlookService outlookService,
             IConfiguration configuration)
         {
             this.voiplineWebhookRepository = voiplineWebhookRepository;
@@ -37,7 +37,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             this.outboundCallEventParser = outboundCallEventParser;
             this.inboundCallEventParser = inboundCallEventParser;
             this.inboundCallRepository = inboundCallRepository;
-            // this.outlookService = outlookService;
+            this.outlookService = outlookService;
             this.configuration = configuration;
         }
 
@@ -103,7 +103,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
 
             // saving call recording to azure and ftp storage
-            // await this.outlookService.MoveCallRecordingToAzureStorageAndGoDaddyFtp(outboundCallRecording.UniqueCallId);
+            await this.outlookService.MoveCallRecordingToAzureStorageAndGoDaddyFtp(outboundCallRecording.UniqueCallId);
             return Ok();
         }
 
@@ -226,7 +226,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
 
             var inboundCallEvent = inboundCallEventParser.ParseEvent(payload);
             // saving call recording to azure and ftp storage
-            // await this.outlookService.MoveCallRecordingToAzureStorageAndGoDaddyFtp(inboundCallEvent.UniqueCallId);
+            await this.outlookService.MoveCallRecordingToAzureStorageAndGoDaddyFtp(inboundCallEvent.UniqueCallId);
             return Ok();
         }
 
