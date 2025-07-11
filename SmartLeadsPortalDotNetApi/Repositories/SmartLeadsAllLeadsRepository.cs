@@ -34,7 +34,7 @@ public class SmartLeadsAllLeadsRepository
 
         var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id ?? 0);
         var (firstName, lastName) = SplitNameByLastSpace(payload.to_name ?? string.Empty);
-        
+
         var lead = new
         {
             LeadId = double.Parse(payload.sl_email_lead_id ?? "0"),
@@ -66,7 +66,7 @@ public class SmartLeadsAllLeadsRepository
                     CampaignId = @CampaignId
                 WHERE LeadId = @LeadId
             """;
-            
+
             await connection.ExecuteAsync(updateQuery, lead);
         }
         else
@@ -78,7 +78,7 @@ public class SmartLeadsAllLeadsRepository
                 VALUES 
                 (@LeadId, @Email, @CampaignId, @TimeSent, 'INPROGRESS', @FirstName, @LastName, @Bdr, @CreatedBy, @QABy)
             """;
-            
+
             await connection.ExecuteAsync(insertQuery, lead);
         }
 
@@ -94,7 +94,7 @@ public class SmartLeadsAllLeadsRepository
 
         var campaignBdr = await smartleadCampaignRepository.GetCampaignBdr(payload.campaign_id ?? 0);
         var (firstName, lastName) = SplitNameByLastSpace(payload.to_name ?? string.Empty);
-        
+
         var lead = new
         {
             LeadId = double.Parse(payload.sl_email_lead_id ?? "0"),
@@ -125,7 +125,7 @@ public class SmartLeadsAllLeadsRepository
                     CampaignId = @CampaignId
                 WHERE LeadId = @LeadId
             """;
-            
+
             await connection.ExecuteAsync(updateQuery, lead);
         }
         else
@@ -137,7 +137,7 @@ public class SmartLeadsAllLeadsRepository
                 VALUES 
                 (@LeadId, @Email, @CampaignId, GETDATE(), 'INPROGRESS', @FirstName, @LastName, @Bdr, @CreatedBy, @QABy)
             """;
-            
+
             await connection.ExecuteAsync(insertQuery, lead);
         }
         this.logger.LogInformation("UpsertLeadFromEmailLinkClick took {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
@@ -155,7 +155,7 @@ public class SmartLeadsAllLeadsRepository
         {
             await connection.OpenAsync();
         }
-        
+
         var query = """
                 SELECT * FROM SmartLeadAllLeads WHERE Email = @email
             """;
@@ -290,7 +290,7 @@ public class SmartLeadsAllLeadsRepository
         var queryResult = await connection.QueryAsync<string>(query);
         return queryResult.ToList();
     }
-    
+
     public async Task<int> UpSertPhonenumbersInAllLeads(SmartLeadsUpdatePhoneNumberRequest filter)
     {
         try
@@ -309,6 +309,23 @@ public class SmartLeadsAllLeadsRepository
         catch (Exception ex)
         {
             throw new Exception("Error updating phone numbers in database.", ex);
+        }
+    }
+    
+     public async Task<string?> GetLeadStatus(string email)
+    {
+        try
+        {
+            await using var connection = await _dbConnectionFactory.GetSqlConnectionAsync();
+            var query = """
+                    SELECT LeadStatus FROM SmartLeadAllLeads WHERE Email = @email
+                """;
+            return await connection.QueryFirstOrDefaultAsync<string?>(query, new { email });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Database error: {0}", ex.Message);
+            throw;
         }
     }
 }
