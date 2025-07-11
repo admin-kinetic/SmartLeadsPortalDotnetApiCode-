@@ -224,4 +224,21 @@ public class SmartLeadsAllLeadsRepository
             throw;
         }
     }
+
+    public async Task<string?> GetLeadStatus(string email)
+    {
+        try
+        {
+            await using var connection = _dbConnectionFactory.CreateConnection();
+            var query = """
+                    SELECT LeadStatus FROM SmartLeadAllLeads WHERE Email = @email
+                """;
+            return await connection.QueryFirstOrDefaultAsync<string?>(query, new { email });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Database error: {0}", ex.Message);
+            throw;
+        }
+    }
 }
