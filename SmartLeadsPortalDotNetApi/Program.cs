@@ -147,6 +147,7 @@ builder.Services.AddScoped<SmartleadCampaignRepository>();
 builder.Services.AddScoped<DbExecution>();
 builder.Services.AddScoped<SmartleadsEmailStatisticsService>();
 builder.Services.AddScoped<SmartleadAccountRepository>();
+builder.Services.AddScoped<CallsReportRepository>();
 
 builder.Services.AddScoped(provider =>
     {
