@@ -172,7 +172,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("call-tasks/find")]
-        public async Task<IActionResult> CallTasksFind(TableRequest request){
+        public async Task<IActionResult> CallTasksFind(TableRequest request)
+        {
             var user = this.HttpContext.User;
             var employeeId = user.FindFirst("employeeId").Value;
 
@@ -185,7 +186,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("call-tasks/export")]
-        public async Task<IActionResult> CallTaskExport(TableRequest request){
+        public async Task<IActionResult> CallTaskExport(TableRequest request)
+        {
             var user = this.HttpContext.User;
             var employeeId = user.FindFirst("employeeId").Value;
 
@@ -198,7 +200,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("call-tasks/columns/all")]
-        public IActionResult CallTasksColumnsAll(){
+        public IActionResult CallTasksColumnsAll()
+        {
             var result = this.callTasksTableRepository.AllColumns();
             result.Sort();
             return Ok(new { data = result });
@@ -355,6 +358,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
+        }
+
+        [HttpGet("get-lead-status/{email}")]
+        public async Task<IActionResult> GetLeadStatus(string email)
+        {
+            var leadStatus = await _smartAllLeadsRepository.GetLeadStatus(email);
+            return Ok(new { LeadStatus = leadStatus });
         }
     }
 }
