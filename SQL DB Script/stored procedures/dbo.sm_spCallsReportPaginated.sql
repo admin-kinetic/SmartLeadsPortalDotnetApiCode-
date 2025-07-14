@@ -9,63 +9,75 @@ CREATE OR ALTER PROCEDURE [dbo].[sm_spCallsReportPaginated]
 AS
 BEGIN
 	WITH CombinedCalls AS (
-		SELECT UniqueCallId,
+		SELECT oc.UniqueCallId,
 			'Outbound' AS CallType,
-			CallerId,
-			UserName,
-			DestNumber,
-			CallStartAt,
-			CallDuration,
-			ConversationDuration,
-			AzureStorageCallRecordingLink
-		FROM OutboundCalls
+			oc.CallerId,
+			oc.UserName,
+			oc.DestNumber,
+			oc.CallStartAt,
+			oc.CallDuration,
+			oc.ConversationDuration,
+			oc.AzureStorageCallRecordingLink,
+			sl.FirstName + ' ' + sl.LastName AS CallerName
+		FROM OutboundCalls oc
+		LEFT JOIN SmartLeadAllLeads sl 
+		  ON REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(oc.DestNumber, ' ', ''), '+', ''), '-', ''), '(', ''), ')', ''), '.', '') 
+			 = 
+			 REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(sl.PhoneNumber, ' ', ''), '+', ''), '-', ''), '(', ''), ')', ''), '.', '')
 		WHERE (@Type IS NULL OR @Type = 1)
 		  AND (
 			  @startDate IS NULL OR @endDate IS NULL
-				OR (CONVERT(DATE, CallStartAt) >= CONVERT(DATE, @startDate) 
-				AND CONVERT(DATE, CallStartAt) <= CONVERT(DATE, @endDate))
+				OR (CONVERT(DATE, oc.CallStartAt) >= CONVERT(DATE, @startDate) 
+				AND CONVERT(DATE, oc.CallStartAt) <= CONVERT(DATE, @endDate))
 		  )
 		  AND (
 			  @Search IS NULL OR @Search = ''
-			  OR CallerId LIKE '%' + @Search + '%'
-			  OR UserName LIKE '%' + @Search + '%'
-			  OR DestNumber LIKE '%' + @Search + '%'
-			  OR EmailSubject LIKE '%' + @Search + '%'
+			  OR oc.CallerId LIKE '%' + @Search + '%'
+			  OR oc.UserName LIKE '%' + @Search + '%'
+			  OR oc.DestNumber LIKE '%' + @Search + '%'
+			  OR oc.EmailSubject LIKE '%' + @Search + '%'
+			  OR sl.FirstName + ' ' + sl.LastName LIKE '%' + @Search + '%'
 		  )
 		  AND (
 			  @Bdr IS NULL OR @Bdr = ''
-			  OR UserName = @Bdr
+			  OR oc.UserName = @Bdr
 		  )
 
 		UNION ALL
 
-		SELECT UniqueCallId,
+		SELECT ic.UniqueCallId,
 			'Inbound' AS CallType,
-			CallerId,
-			UserName,
-			DestNumber,
-			CallStartAt,
-			CallDuration,
-			ConversationDuration,
-			AzureStorageCallRecordingLink
-		FROM InboundCalls
+			ic.CallerId,
+			ic.UserName,
+			ic.DestNumber,
+			ic.CallStartAt,
+			ic.CallDuration,
+			ic.ConversationDuration,
+			ic.AzureStorageCallRecordingLink,
+			sl.FirstName + ' ' + sl.LastName AS CallerName
+		FROM InboundCalls ic
+		LEFT JOIN SmartLeadAllLeads sl 
+		  ON REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ic.DestNumber, ' ', ''), '+', ''), '-', ''), '(', ''), ')', ''), '.', '') 
+			 = 
+			 REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(sl.PhoneNumber, ' ', ''), '+', ''), '-', ''), '(', ''), ')', ''), '.', '')
 		WHERE (@Type IS NULL OR @Type = 2)
 		  AND (
 			  @StartDate IS NULL OR @EndDate IS NULL
-			  OR (CONVERT(DATE, CallStartAt) >= CONVERT(DATE, @startDate) 
-				AND CONVERT(DATE, CallStartAt) <= CONVERT(DATE, @endDate))
+			  OR (CONVERT(DATE, ic.CallStartAt) >= CONVERT(DATE, @startDate) 
+				AND CONVERT(DATE, ic.CallStartAt) <= CONVERT(DATE, @endDate))
 		  )
 		  AND (
 			  @Search IS NULL OR @Search = ''
-			  OR CallerId LIKE '%' + @Search + '%'
-			  OR UserName LIKE '%' + @Search + '%'
-			  OR DestNumber LIKE '%' + @Search + '%'
-			  OR EmailSubject LIKE '%' + @Search + '%'
-			  OR CallerName LIKE '%' + @Search + '%'
+			  OR ic.CallerId LIKE '%' + @Search + '%'
+			  OR ic.UserName LIKE '%' + @Search + '%'
+			  OR ic.DestNumber LIKE '%' + @Search + '%'
+			  OR ic.EmailSubject LIKE '%' + @Search + '%'
+			  OR ic.CallerName LIKE '%' + @Search + '%'
+			  OR sl.FirstName + ' ' + sl.LastName LIKE '%' + @Search + '%'
 		  )
 		   AND (
 			  @Bdr IS NULL OR @Bdr = ''
-			  OR UserName = @Bdr
+			  OR ic.UserName = @Bdr
 		  )
 	)
 
