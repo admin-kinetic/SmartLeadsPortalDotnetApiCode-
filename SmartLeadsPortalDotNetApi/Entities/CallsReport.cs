@@ -11,6 +11,7 @@
         public int? CallDuration { get; set; }
         public int? ConversationDuration { get; set; }
         public string? AzureStorageCallRecordingLink { get; set; }
+        public string? CallerName { get; set; }
     }
 
     public class CallsParam
