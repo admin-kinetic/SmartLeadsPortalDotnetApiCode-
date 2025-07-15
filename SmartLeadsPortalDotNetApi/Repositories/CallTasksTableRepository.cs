@@ -132,9 +132,9 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId
-                LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
-                LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
+                LEFT JOIN Users us ON us.EmployeeId = sle.AssignedTo
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
+                LEFT JOIN CallState cs ON cs.Id = c.CallStateId
                 OUTER APPLY (
                     SELECT TOP 1 cs.CategoryName
                     FROM CategorySettings cs
@@ -155,6 +155,16 @@ public class CallTasksTableRepository
             parameters.Add("PageNumber", request.paginator.page);
             parameters.Add("PageSize", request.paginator.pageSize);
             parameters.Add("EmployeeId", employeeId);
+
+            if (request.filters != null && !request.filters.Any(f => f.Column.Equals("callstate", StringComparison.OrdinalIgnoreCase)))
+            {
+                request.filters.Add(new Filter
+                {
+                    Column = "callstate",
+                    Operator = "does not contains data",
+                    Value = string.Empty
+                });
+            }
 
             if (request.filters != null && request.filters.Count > 0)
             {
