@@ -52,7 +52,7 @@ public class CallTasksTableRepository
                     sle.GuId,
                     slal.LeadId, 
                     sle.LeadEmail AS Email, 
-                    slal.FirstName + ' ' + slal.LastName AS FullName, 
+                    ISNULL(slal.FirstName, '') + ' ' + ISNULL(slal.LastName, '') AS FullName, 
                     sle.SequenceNumber,
                     CASE 
                         WHEN slc.Name LIKE '%US/CA%' THEN 
