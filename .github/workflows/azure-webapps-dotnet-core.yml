@@ -1,21 +1,21 @@
-name: Build and deploy ASP.Net Core app to an Azure Web App - KineticChatBotAPI
+name: Build and deploy ASP.Net Core app to an Azure Web App - Smartleads Portal API
 
 env:
-  AZURE_WEBAPP_NAME: app-smartleadsapi-test-sea
+  AZURE_WEBAPP_NAME: app-callsapi-prod
   AZURE_WEBAPP_PACKAGE_PATH: './dist'     
   DOTNET_VERSION: '8.0'                
 
 on:
-  # push:
-  #   branches: 
-  #     - main
+  push:
+    branches: 
+      - APP_PRODUCTION
   workflow_dispatch:
   
 jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
-    environment: Staging
+    environment: Production
     steps:
       - uses: actions/checkout@v4
     
@@ -33,15 +33,16 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj
+        run: dotnet build --configuration Release --runtime win-x64 ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj
 
       - name: dotnet publish
-        run: dotnet publish -c Release ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj -o ${{env.DOTNET_ROOT}}/dist
+        run: dotnet publish -c Release --runtime win-x64 ./SmartLeadsPortalDotNetApi/SmartLeadsPortalDotNetApi.csproj -o ${{env.DOTNET_ROOT}}/dist
     
-      # - name: Deploy to Azure Web App
-      #   id: deploy-to-webapp
-      #   uses: azure/webapps-deploy@v2
-      #   with:
-      #     app-name: ${{ env.AZURE_WEBAPP_NAME }}
-      #     publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_STAGING }}
-      #     package: ${{env.DOTNET_ROOT}}/dist
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot: 'master'
+          publish-profile: ${{ secrets.APP_CALLSAPI_PROD_PROFILE }}
+          package: ${{env.DOTNET_ROOT}}/dist
