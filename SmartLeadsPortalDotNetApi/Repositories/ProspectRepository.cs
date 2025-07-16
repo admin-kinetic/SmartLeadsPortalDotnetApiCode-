@@ -32,7 +32,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 var baseQuery = """ 
                     SELECT al.LeadId,
                         sle.LeadEmail AS Email, 
-                        al.FirstName + ' ' + al.LastName as FullName
+                        ISNULL(al.FirstName, '') + ' ' + ISNULL(al.LastName, '') AS FullName
                     FROM [dbo].[SmartLeadsEmailStatistics] sle
                     INNER JOIN SmartLeadAllLeads al ON al.email = sle.LeadEmail
                 """;
