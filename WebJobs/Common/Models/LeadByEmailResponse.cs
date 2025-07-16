@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Common.Converters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Common.Models;
@@ -12,6 +14,7 @@ public class LeadByEmailResponse
     public string first_name { get; set; }
     public string last_name { get; set; }
     public string email { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? created_at { get; set; }
     public object phone_number { get; set; }
     public string company_name { get; set; }

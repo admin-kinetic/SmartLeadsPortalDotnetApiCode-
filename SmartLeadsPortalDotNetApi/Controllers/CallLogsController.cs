@@ -36,8 +36,13 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         [EnableCors("CorsApi")]
         public async Task<IActionResult> InsertCallLogs([FromBody] CallsInsert request)
         {
-            await _callLogsRepository.InsertCallLogs(request);
-            return Ok(new { message = "call logs created successfully." });
+            var response = await _callLogsRepository.InsertCallLogs(request);
+
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
 
         [HttpPost("insert-call-logs-inbound")]

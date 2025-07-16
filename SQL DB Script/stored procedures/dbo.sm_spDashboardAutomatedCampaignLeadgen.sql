@@ -15,14 +15,15 @@ BEGIN
 	),
 	DailyBreakdown AS (
 		SELECT 
-			CAST(sla.CreatedAt AS date) AS ExportedDate,
+			CAST(sle.SentTime AS date) AS ExportedDate,
 			ISNULL(NULLIF(sla.CreatedBy, ''), 'Others') AS LeadGen,
 			COUNT(sla.Id) AS TotalCount
 		FROM [dbo].[SmartLeadAllLeads] sla
 		INNER JOIN [dbo].[SmartLeadsEmailStatistics] sle ON sla.Email = sle.LeadEmail
-		WHERE sla.CreatedAt BETWEEN @startDate AND @endDate
+		WHERE sle.SentTime BETWEEN @startDate AND @endDate
 			AND sle.SequenceNumber = 1
-		GROUP BY CAST(sla.CreatedAt AS date), ISNULL(NULLIF(sla.CreatedBy, ''), 'Others')
+			AND sla.BDR = 'Steph'
+		GROUP BY CAST(sle.SentTime AS date), ISNULL(NULLIF(sla.CreatedBy, ''), 'Others')
 	),
 	DistinctLeadGens AS (
 		SELECT DISTINCT LeadGen FROM DailyBreakdown

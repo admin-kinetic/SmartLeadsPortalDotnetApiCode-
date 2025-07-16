@@ -1,4 +1,3 @@
-using System;
 using Dapper;
 using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
@@ -31,26 +30,31 @@ public class SmartLeadsExportedContactsRepository
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
             var baseQuery = """ 
-                SELECT *
-                FROM SmartLeadsExportedContacts slec
+                Select
+                TRY_CAST(sla.LeadId AS INT) AS Id,
+                sla.Email,
+                slec.ContactSource,
+                sla.CreatedAt AS ExportedDate,
+                ses.SentTime AS [SentAt],
+                CASE 
+                    WHEN ses.ReplyTime IS NOT NULL THEN 1
+                    ELSE 0
+                END AS [HasReply],
+                ses.ReplyTime AS [RepliedAt],
+                slec.HasReviewed,
+                sla.LeadStatus AS SmartLeadsStatus,
+                sla.SmartleadCategory AS SmartLeadsCategory
+            From SmartLeadAllLeads sla
+            LEFT JOIN SmartLeadsEmailStatistics ses ON sla.Email = ses.LeadEmail AND ses.SequenceNumber = 1
+            LEFT JOIN SmartLeadsExportedContacts slec ON sla.Email = slec.Email
             """;
-
-            var queryParam = new
-            {
-                PageNumber = request.paginator.page,
-                PageSize = request.paginator.pageSize
-            };
 
             var countQuery = """ 
-                SELECT COUNT(slec.Id) AS TotalCount
-                FROM SmartLeadsExportedContacts slec
+                SELECT COUNT(sla.Id) AS TotalCount
+                    From SmartLeadAllLeads sla
+                LEFT JOIN SmartLeadsEmailStatistics ses ON sla.Email = ses.LeadEmail AND ses.SequenceNumber = 1
+                LEFT JOIN SmartLeadsExportedContacts slec ON sla.Email = slec.Email
             """;
-
-            var countQueryParam = new
-            {
-                PageNumber = request.paginator.page,
-                PageSize = request.paginator.pageSize
-            };
 
             // Build WHERE clause if filters exist
             var whereClause = new List<string>();
@@ -65,28 +69,39 @@ public class SmartLeadsExportedContactsRepository
                     // Handle different column types appropriately
                     switch (filter.Column.ToLower())
                     {
-                        case "email":
-                            whereClause.Add("slec.Email LIKE @Email");
+                        case "emailaddress":
+                            whereClause.Add("sla.Email LIKE @Email");
                             parameters.Add("Email", $"%{filter.Value}%");
                             break;
                         case "hasreply":
-                            whereClause.Add("slec.HasReply = @HasReply");
-                            parameters.Add("HasReply", filter.Value);
+                            whereClause.Add("(ses.ReplyTime IS NOT NULL OR ses.ReplyTime = '')");
                             break;
-                        case "hasreviewed":
-                            whereClause.Add("slec.hHasReview = @HasRevew");
+                        case "hasreview":
+                            whereClause.Add("slec.HasReviewed = @HasReview");
                             parameters.Add("HasReview", filter.Value);
                             break;
-                        case "exporteddatefrom":
-                            whereClause.Add("slec.ExportedDate >= @ExportedDateFrom");
+                        case "fromdate":
+                            whereClause.Add("sla.CreatedAt >= @ExportedDateFrom");
                             parameters.Add("ExportedDateFrom", filter.Value);
                             break;
-                        case "exporteddateto":
-                            whereClause.Add("slec.ExportedDate <  DATEADD(day, 1, @ExportedDateTo)");
+                        case "todate":
+                            whereClause.Add("sla.CreatedAt <  DATEADD(day, 1, @ExportedDateTo)");
                             parameters.Add("ExportedDateTo", filter.Value);
                             break;
+                        case "bdr":
+                            whereClause.Add("sla.BDR = @BDR");
+                            parameters.Add("BDR", filter.Value);
+                            break;
+                        case "leadgen":
+                            whereClause.Add("sla.CreatedBy = @CreatedBy");
+                            parameters.Add("CreatedBy", filter.Value);
+                            break;
+                        case "qaby":
+                            whereClause.Add("sla.QaBy = @QaBy");
+                            parameters.Add("QaBy", filter.Value);
+                            break;
                         case "category":
-                            switch (filter.Value.ToLower())
+                            switch (filter?.Value?.ToLower())
                             {
                                 case "responses-today":
                                     var localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
@@ -95,22 +110,26 @@ public class SmartLeadsExportedContactsRepository
                                     var endOfDayLocal = startOfDayLocal.AddDays(1).AddTicks(-1);
                                     var startOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(startOfDayLocal, localTimeZone);
                                     var endOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(endOfDayLocal, localTimeZone);
-                                    whereClause.Add("slec.RepliedAt BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
+                                    whereClause.Add("ses.ReplyTime BETWEEN @RepliedAtStartDay AND @RepliedAtEndDay");
                                     parameters.Add("RepliedAtStartDay", startOfDayUtc);
                                     parameters.Add("RepliedAtEndDay", endOfDayUtc);
-                                    whereClause.Add("(slec.SmartleadsCategory IS NULL OR slec.SmartleadsCategory = '')");
+                                    whereClause.Add("(sla.SmartleadCategory IS NULL OR sla.SmartleadCategory = '')");
                                     break;
                                 case "positive-response":
-                                    whereClause.Add("slec.HasReviewed = 1");
+                                    //whereClause.Add("slec.HasReviewed = 1");
+                                    whereClause.Add("sla.SmartleadCategory = 'Interested' OR sla.SmartleadCategory = 'Information Request' OR sla.SmartleadCategory = 'Meeting Request'");
                                     break;
                                 case "out-of-office":
-                                    whereClause.Add("slec.SmartleadsCategory = 'Out Of Office'");
+                                    whereClause.Add("sla.SmartleadCategory = 'Out Of Office'");
                                     break;
                                 case "incorrect-contact":
-                                    whereClause.Add("slec.SmartleadsCategory = 'Wrong Person'");
+                                    whereClause.Add("sla.SmartleadCategory = 'Wrong Person'");
                                     break;
                                 case "email-error":
-                                    whereClause.Add("slec.SmartleadsCategory = 'Sender Originated Bounce'");
+                                    whereClause.Add("sla.SmartleadCategory = 'Sender Originated Bounce' OR sla.SmartleadCategory = 'Bounced'");
+                                    break;
+                                case "open-email":
+                                    whereClause.Add("ses.OpenTime IS NOT NULL OR ses.OpenTime <> ''");
                                     break;
                                 default:
                                     break;
@@ -139,7 +158,7 @@ public class SmartLeadsExportedContactsRepository
                 switch (request.sorting.column.ToLower())
                 {
                     default:
-                        baseQuery += $" ORDER BY slec.Id DESC";
+                        baseQuery += $" ORDER BY TRY_CAST(sla.LeadId AS INT) DESC";
                         break;
                 }
             }

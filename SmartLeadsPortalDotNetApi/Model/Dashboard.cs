@@ -19,7 +19,7 @@
     public class DashboardEmailCampaignModel
     {
         public string? LeadsUser { get; set; }
-        public int Total { get; set; }
+        public int? Total { get; set; }
     }
     public class DashboardDateParameter
     {
@@ -34,7 +34,7 @@
     public class DashboardAutomatedCampaignLeadgen
     {
         public string? ExportedDate { get; set; }
-        public string? LeadGen { get; set; }
+        public string? LeadUsers { get; set; }
         public int? TotalCount { get; set; }
 
     }
@@ -42,6 +42,89 @@
     {
         public string? ExportedDate { get; set; }
         public int? TotalCount { get; set; }
+
+    }
+    public class DashboardEmailStatistics
+    {
+        public int? TotalCount { get; set; }
+
+    }
+
+    public class DashboardDropdownList
+    {
+        public int Id { get; set; }
+        public Guid GuId { get; set; }
+        public string? ValueName { get; set; }
+        public bool? IsActive { get; set; }
+    }
+    public class DashboardFilterModel
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string? Bdr { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? QaBy { get; set; }
+        public int? CampaignId { get; set; }
+    }
+
+    public class DashboardAnalyticsTotalSent
+    {
+        public int? TotalSent { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalReplied
+    {
+        public int? TotalReplied { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalOpened
+    {
+        public int? TotalOpened { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalUniqueOpened
+    {
+        public int? TotalUniqueOpened { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalBounced
+    {
+        public int? TotalBounced { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalInterested
+    {
+        public int? TotalInterested { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalExported
+    {
+        public int? TotalExported { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalOutOfOffice
+    {
+        public int? TotalOutOfOffice { get; set; }
+
+    }
+    public class DashboardAnalyticsTotalIncorrectContact
+    {
+        public int? TotalIncorrectContact { get; set; }
+
+    }
+    public class DashboardCsvDownloadModel
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Country { get; set; }
+        public DateTime? DateCreated { get; set; }
+        public DateTime? DateEmailed { get; set; }
+        public string? BdrName { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? QaPassedBy { get; set; }
+        public string? RoleAdvertised { get; set; }
 
     }
 }

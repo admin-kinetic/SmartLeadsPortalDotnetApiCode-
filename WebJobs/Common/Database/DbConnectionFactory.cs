@@ -13,7 +13,7 @@ public class DbConnectionFactory
            ?? configuration?.GetConnectionString("SmartLeadsPortalDB")
            ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
         Console.WriteLine($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
-    }   
+    }
 
     public DbConnection CreateConnection()
     {

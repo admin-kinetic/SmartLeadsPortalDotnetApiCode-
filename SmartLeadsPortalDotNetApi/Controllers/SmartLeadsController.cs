@@ -18,13 +18,15 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly SmartLeadsRepository _smartLeadsRepository;
         private readonly CallTasksTableRepository callTasksTableRepository;
         private readonly CallsTableRepository callsTableRepository;
+        private readonly SmartLeadsAllLeadsRepository _smartAllLeadsRepository;
 
-        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository, CallsTableRepository callsTableRepository)
+        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository, CallsTableRepository callsTableRepository, SmartLeadsAllLeadsRepository smartAllLeadsRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
             _smartLeadsRepository = smartLeadsRepository;
             this.callTasksTableRepository = callTasksTableRepository;
             this.callsTableRepository = callsTableRepository;
+            _smartAllLeadsRepository = smartAllLeadsRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -158,7 +160,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         public async Task<IActionResult> GetAllSmartLeadsCallTaskList(SmartLeadsCallTasksRequest param)
         {
             var user = this.HttpContext.User;
-            var employeeId = user.FindFirst("id").Value;
+            var employeeId = user.FindFirst("employeeId").Value;
 
             if (string.IsNullOrEmpty(employeeId))
             {
@@ -170,9 +172,10 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpPost("call-tasks/find")]
-        public async Task<IActionResult> CallTasksFind(TableRequest request){
+        public async Task<IActionResult> CallTasksFind(TableRequest request)
+        {
             var user = this.HttpContext.User;
-            var employeeId = user.FindFirst("id").Value;
+            var employeeId = user.FindFirst("employeeId").Value;
 
             if (string.IsNullOrEmpty(employeeId))
             {
@@ -182,8 +185,23 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return Ok(result);
         }
 
+        [HttpPost("call-tasks/export")]
+        public async Task<IActionResult> CallTaskExport(TableRequest request)
+        {
+            var user = this.HttpContext.User;
+            var employeeId = user.FindFirst("employeeId").Value;
+
+            if (string.IsNullOrEmpty(employeeId))
+            {
+                return BadRequest("Invalid user ID");
+            }
+            var result = await this.callTasksTableRepository.Export(request, employeeId);
+            return Ok(result);
+        }
+
         [HttpGet("call-tasks/columns/all")]
-        public IActionResult CallTasksColumnsAll(){
+        public IActionResult CallTasksColumnsAll()
+        {
             var result = this.callTasksTableRepository.AllColumns();
             result.Sort();
             return Ok(new { data = result });
@@ -240,6 +258,113 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
+        }
+
+        [HttpPost("get-exportedleads-leadgen")]
+        public async Task<IActionResult> GetAllLeadGenExportedLeads(SmartLeadRequest param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetAllLeadGenExportedLeads(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("get-exportedleads-leadgen-count")]
+        public async Task<IActionResult> GetAllLeadGenExportedLeadsCount(SmartLeadRequest param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetAllLeadGenExportedLeadsCount(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("leads/find")]
+        public async Task<IActionResult> LeadsFind(TableRequest request)
+        {
+            var result = await this._smartLeadsRepository.Find(request);
+            return this.Ok(result);
+        }
+
+        [HttpPost("leads/export")]
+        public async Task<IActionResult> LeadsExport(TableRequest request)
+        {
+            var result = await this._smartLeadsRepository.Export(request);
+            return this.Ok(result);
+        }
+
+        [HttpPost("get-exportedleads-emailed")]
+        public async Task<IActionResult> GetAllExportedLeadsEmailed(SmartLeadEmailedRequest param)
+        {
+            var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailed(param);
+            return Ok(leads);
+        }
+
+        [HttpPost("get-exportedleads-emailed-count")]
+        public async Task<IActionResult> GetAllExportedLeadsEmailedCount(SmartLeadEmailedRequest param)
+        {
+            var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailedCount(param);
+            return Ok(leads);
+        }
+
+        [HttpPost("update-leadsemailed-details")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpdateLeadsEmailDetails([FromBody] SmartLeadsEmailedDetailsRequest request)
+        {
+            var ret = await this._smartLeadsRepository.UpdateLeadsEmailDetails(request);
+            return Ok(ret);
+        }
+
+        [HttpPost("update-phonenumber-leads-details")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpSertPhonenumbersInAllLeads([FromBody] SmartLeadsUpdatePhoneNumberRequest request)
+        {
+            var ret = await this._smartAllLeadsRepository.UpSertPhonenumbersInAllLeads(request);
+            return Ok(ret);
+        }
+
+        [HttpPost("get-leadsprospect-details")]
+        public async Task<IActionResult> GetLeadsProspectDetails(ProspectModelParam param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetLeadsProspectDetails(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("get-exportedleads-emailed-export-csv")]
+        public async Task<IActionResult> GetAllExportedLeadsEmailedCsvExport(SmartLeadEmailedRequest param)
+        {
+            try
+            {
+                var leads = await this._smartLeadsRepository.GetAllExportedLeadsEmailedCsvExport(param);
+                return Ok(leads);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("get-lead-status/{email}")]
+        public async Task<IActionResult> GetLeadStatus(string email)
+        {
+            var leadStatus = await _smartAllLeadsRepository.GetLeadStatus(email);
+            return Ok(new { LeadStatus = leadStatus });
         }
     }
 }

@@ -1,4 +1,6 @@
+using Common.Converters;
 using System;
+using System.Text.Json.Serialization;
 
 namespace ImportSmartLeadStatistics.Entities;
 
@@ -10,10 +12,17 @@ public class SmartLeadsEmailStatistics
     public string? LeadEmail { get; set; }
     public string? LeadName { get; set; }
     public int? SequenceNumber { get; set; }
+    public Guid? EmailMessageStatsId { get; set; }
+    public string? EmailMessageId { get; set; }
     public string? EmailSubject { get; set; }
+    public string? EmailBody { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? SentTime { get; set; }
-    public DateTime? OpenTime { get; set; }  
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
+    public DateTime? OpenTime { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? ClickTime { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime? ReplyTime { get; set; }
     public int? OpenCount { get; set; }  
     public int? ClickCount { get; set; }

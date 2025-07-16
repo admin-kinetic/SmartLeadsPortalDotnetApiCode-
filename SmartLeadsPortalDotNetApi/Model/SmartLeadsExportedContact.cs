@@ -7,10 +7,11 @@ namespace SmartLeadsPortalDotNetApi.Model
     public class SmartLeadsExportedContact
     {
         public int Id { get; set; }
-        public DateTime? ExportedDate { get; set; }
         public string? Email { get; set; }
         public string? ContactSource { get; set; }
+        public DateTime? ExportedDate { get; set; }
         public int Rate { get; set; }
+        public DateTime? SentAt { get; set; }
         public bool? HasReply { get; set; }
         public DateTime? ModifiedAt { get; set; }
         public string? Category { get; set; }
@@ -41,7 +42,29 @@ namespace SmartLeadsPortalDotNetApi.Model
         public bool? IsIncorrectContact { get; set; }
         public bool? IsEmailError { get; set; }
         public string? ExcludeKeywords { get; set; }
+        public string? Bdr { get; set; }
+        public string? LeadGen { get; set; }
+        public string? QaBy { get; set; }
     }
+
+    public class SmartLeadEmailedRequest
+    {
+        public int Id { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public string? EmailAddress { get; set; }
+        public string? History { get; set; }
+        public bool? HasReply { get; set; }
+        public bool? HasReview { get; set; }
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public string? Category { get; set; }
+        public string? Bdr { get; set; }
+        public string? LeadGen { get; set; }
+        public string? QaBy { get; set; }
+        public int? CampaignType { get; set; }
+    }
+
     public class SmartLeadsResponseModel<T>
     {
         public List<T> Items { get; set; }
@@ -91,5 +114,65 @@ namespace SmartLeadsPortalDotNetApi.Model
     public class TotalIncorrectContactResponseModel
     {
         public int TotalIncorrectContactResponse { get; set; }
+    }
+    public class SmartLeadsExportedContactLeadGen
+    {
+        public int Id { get; set; }
+        public DateTime? ExportedDate { get; set; }
+        public string? Email { get; set; }
+        public string? ContactSource { get; set; }
+        public int? SequenceNumber { get; set; }
+        public DateTime? ReplyTime { get; set; }
+        public bool? HasReviewed { get; set; }
+        public DateTime? SentTime { get; set; }
+        public DateTime? ReplyDate { get; set; }
+        public DateTime? RepliedAt { get; set; }
+    }
+    public class SmartLeadsExportedContactLeadGenCount
+    {
+        public int? TotalCount { get; set; }
+    }
+    public class SmartLeadsExportedLeadsEmailed
+    {
+        public decimal? Id { get; set; }
+        public string? FullName { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public DateTime? ExportedDate { get; set; }
+        public int? SequenceNumber { get; set; }
+        public DateTime? ReplyTime { get; set; }
+        public DateTime? SentTime { get; set; }
+        public string? Country { get; set; }
+    }
+    public class SmartLeadsEmailedDetailsRequest
+    {
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Country { get; set; }
+    }
+
+    public class SmartLeadsExportedLeadsEmailedExportCsv
+    {
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Country { get; set; }
+        public string? RoleAdvertised { get; set; }
+        public string? Source {  get; set; }
+        public DateTime? FromDateExported { get; set; }
+        public DateTime? ToDateExported { get; set; }
+        public string? HasReply { get; set; }
+        public DateTime? ExportedDate { get; set; }
+        public string? Category { get; set; }
+        public string? Bdr { get; set; }
+        public string? AssignedTo { get; set; }
+        public string? EmailCampaign { get; set; }
+        public string? LeadGen {  get; set; }
+        public string? QadBy { get; set; }
+        public int? OpenCount { get; set; }
+        public int? ClickCount { get; set; }
     }
 }

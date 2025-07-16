@@ -21,5 +21,5 @@
   //    "schedule": "0 30 9 * * 1-5"
 
   //    Runs at 7:30 AM PH every week day
-      "schedule": "0 30 0 * * 1-5"
+      "schedule": "0 30 0 * * *"
 }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using SmartLeadsPortalDotNetApi.Configs;
 using SmartLeadsPortalDotNetApi.Database;
@@ -44,27 +45,31 @@ public class SmartLeadsApiService
         this.userRepository = userRepository;
     }
 
-    private async Task InitializeSmartleadConfig()
+    private async Task InitializeSmartleadConfig(int? accountId = null)
     {
-        if(this.smartLeadConfig != null)
+        if (accountId == null)
         {
-            return;
+            if (this.smartLeadConfig != null)
+            {
+                return;
+            }
+
+            var user = this.httpContextAccessor.HttpContext?.User;
+            if (user == null)
+            {
+                throw new Exception("User not found in HttpContext");
+            }
+
+            var employeeId = user.FindFirst("employeeId")?.Value;
+
+            if (employeeId == null)
+            {
+                throw new Exception("Employee ID not found in HttpContext");
+            }
+
+            accountId = await this.userRepository.GetSmartleadAccountByEmployeeId(employeeId);
         }
 
-        var user = this.httpContextAccessor.HttpContext?.User;
-        if(user == null)
-        {
-            throw new Exception("User not found in HttpContext");
-        }
-
-        var employeeId = user.FindFirst("employeeId")?.Value;
-
-        if(employeeId == null)
-        {
-            throw new Exception("Employee ID not found in HttpContext");
-        }
-
-        var accountId = await this.userRepository.GetSmartleadAccountByEmployeeId(employeeId);
         switch (accountId)
         {
             case 1:
@@ -84,7 +89,7 @@ public class SmartLeadsApiService
         await this.InitializeSmartleadConfig();
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         using var client = httpClientFactory.CreateClient();
@@ -105,12 +110,12 @@ public class SmartLeadsApiService
     }
 
     //Get Campaigns details by Id
-    public async Task<SmartLeadsCampaign?> GetSmartLeadsCampaignById(int id)
+    public async Task<SmartLeadsCampaign?> GetSmartLeadsCampaignById(int id, int? accountId = null)
     {
-        await this.InitializeSmartleadConfig();
+        await this.InitializeSmartleadConfig(accountId);
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         using var client = httpClientFactory.CreateClient();
@@ -136,7 +141,7 @@ public class SmartLeadsApiService
         await this.InitializeSmartleadConfig();
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         offset = (offset - 1) * limit;
@@ -160,12 +165,12 @@ public class SmartLeadsApiService
     }
 
     //Get lead by email
-    public async Task<SmartLeadsByEmailResponse?> GetLeadByEmail(string email)
+    public async Task<SmartLeadsByEmailResponse?> GetLeadByEmail(string email, int? accountId = null)
     {
-        await this.InitializeSmartleadConfig();
+        await this.InitializeSmartleadConfig(accountId);
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         using var client = httpClientFactory.CreateClient();
@@ -192,7 +197,7 @@ public class SmartLeadsApiService
         await this.InitializeSmartleadConfig();
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         offset = (offset - 1) * limit;
@@ -227,7 +232,7 @@ public class SmartLeadsApiService
         await this.InitializeSmartleadConfig();
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         offset = (offset - 1) * limit;
@@ -256,7 +261,7 @@ public class SmartLeadsApiService
         await this.InitializeSmartleadConfig();
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         await Task.Delay(100);
@@ -284,7 +289,7 @@ public class SmartLeadsApiService
         await this.InitializeSmartleadConfig();
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         using var client = httpClientFactory.CreateClient();
@@ -315,7 +320,7 @@ public class SmartLeadsApiService
         await this.InitializeSmartleadConfig();
         if (smartLeadConfig.ApiKey == null)
         {
-             throw new Exception("API Key is null");
+            throw new Exception("API Key is null");
         }
 
         using var client = httpClientFactory.CreateClient();

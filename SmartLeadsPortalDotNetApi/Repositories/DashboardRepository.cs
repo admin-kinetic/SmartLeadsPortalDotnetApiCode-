@@ -1,5 +1,7 @@
 ﻿using Dapper;
+using Newtonsoft.Json;
 using SmartLeadsPortalDotNetApi.Database;
+using SmartLeadsPortalDotNetApi.Entities;
 using SmartLeadsPortalDotNetApi.Model;
 using System.Data;
 
@@ -199,6 +201,34 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+
+        public async Task<List<SmartLeadAllLeads>> GetDashboardEmailCampaignBdrForCsv(DashboardDateParameter request)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string query = """
+                        SELECT *
+                        FROM 
+                            [dbo].[SmartLeadAllLeads]
+                        WHERE BDR IS NOT NULL
+                            AND CreatedAt >= @startDate 
+                            AND CreatedAt < DATEADD(DAY, 1, @endDate)
+                    """;
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", request.StartDate);
+                    param.Add("@endDate", request.EndDate);
+                    var queryResult = await connection.QueryAsync<SmartLeadAllLeads>(query, param);
+                    return queryResult.ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
         public async Task<IEnumerable<DashboardEmailCampaignModel>> GetDashboardEmailCampaignCreatedBy(DashboardDateParameter request)
         {
             try
@@ -245,23 +275,17 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         }
         public async Task<IEnumerable<DashboardSmartLeadCampaignsActive>> GetDashboardSmartLeadCampaignsActive()
         {
-            try
-            {
-                IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
+            IEnumerable<DashboardSmartLeadCampaignsActive> list = new List<DashboardSmartLeadCampaignsActive>();
 
-                using (var connection = this.dbConnectionFactory.GetSqlConnection())
-                {
-                    string _proc = "sm_spSmartLeadCampaignsActive";
-                    list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, commandType: CommandType.StoredProcedure);
-
-                    return list;
-                }
-            }
-            catch (Exception e)
+            using (var connection = this.dbConnectionFactory.GetSqlConnection())
             {
-                throw new Exception(e.Message);
+                string _proc = "sm_spSmartLeadCampaignsActive";
+                list = await connection.QueryAsync<DashboardSmartLeadCampaignsActive>(_proc, commandType: CommandType.StoredProcedure);
+
+                return list;
             }
         }
+        
         public async Task<IEnumerable<DashboardAutomatedCampaignLeadgen>> GetDashboardJobAdChartsEmailSequenceLeadgen(DashboardDateParameter request)
         {
             try
@@ -304,6 +328,796 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             catch (Exception e)
             {
                 throw new Exception(e.Message);
+            }
+        }
+        public async Task<DashboardEmailStatistics?> GetDashboardEmailStatisticsTotalSent(DashboardDateParameter request)
+        {
+            try
+            {
+                var campaignList = await GetDashboardSmartLeadCampaignsActive();
+                var campaignIdsJson = JsonConvert.SerializeObject(campaignList.Select(c => c.Id));
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetSmartLeadsEmailStatisticsSent";
+
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", request.StartDate);
+                    param.Add("@endDate", request.EndDate);
+                    param.Add("@campaignIds", campaignIdsJson);
+
+                    DashboardEmailStatistics? list = await connection.QuerySingleOrDefaultAsync<DashboardEmailStatistics?>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardBDRList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardBDRList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardCampaignsList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardCampaignsList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardLeadgenList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardLeadgenList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardDropdownList>> GetDashboardQaList(CancellationToken cancellationToken)
+        {
+            try
+            {
+                IEnumerable<DashboardDropdownList> list = new List<DashboardDropdownList>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var proc = "sm_spGetDashboardQaList";
+                    var command = new CommandDefinition(proc, commandType: CommandType.StoredProcedure, cancellationToken: cancellationToken);
+                    list = await connection.QueryAsync<DashboardDropdownList>(command);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        //Smartleads Analytics Dashboard
+        public async Task<DashboardAnalyticsTotalSent> GetDashboardSmartLeadAnalyticsTotalSent(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalSent";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalSent { TotalSent = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<DashboardAnalyticsTotalReplied> GetDashboardSmartLeadAnalyticsTotalReply(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalReply";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalReplied { TotalReplied = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<DashboardAnalyticsTotalOpened> GetDashboardSmartLeadAnalyticsTotalOpened(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalOpened";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalOpened { TotalOpened = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<DashboardAnalyticsTotalUniqueOpened> GetDashboardSmartLeadAnalyticsTotalUniqueOpened(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalUniqueOpened";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalUniqueOpened { TotalUniqueOpened = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<DashboardAnalyticsTotalBounced> GetDashboardSmartLeadAnalyticsTotalBounced(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalBounced";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalBounced { TotalBounced = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<DashboardAnalyticsTotalInterested> GetDashboardSmartLeadAnalyticsTotalInterested(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalInterested";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalInterested { TotalInterested = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<DashboardAnalyticsTotalOutOfOffice> GetDashboardSmartLeadAnalyticsTotalOutOfOffice(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalOutOfOffice";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalOutOfOffice { TotalOutOfOffice = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<DashboardAnalyticsTotalIncorrectContact> GetDashboardSmartLeadAnalyticsTotalIncorrectContact(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadAnalyticsTotalIncorrectContact";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalIncorrectContact { TotalIncorrectContact = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+
+        //Smartleads Email Campaign BDR, Created by, QA'd By
+        public async Task<IEnumerable<DashboardEmailCampaignModel>> GetDashboardEmailCampaignBDRChart(DashboardFilterModel request)
+        {
+            try
+            {
+                IEnumerable<DashboardEmailCampaignModel> list = new List<DashboardEmailCampaignModel>();
+                if (string.IsNullOrEmpty(request.Bdr) || request.Bdr == "null")
+                {
+                    request.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(request.CreatedBy) || request.CreatedBy == "null")
+                {
+                    request.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(request.QaBy) || request.QaBy == "null")
+                {
+                    request.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spDashboardEmailCampaignBdrChart";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", request.StartDate);
+                    param.Add("@endDate", request.EndDate);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@createdby", request.CreatedBy);
+                    param.Add("@qaby", request.QaBy);
+                    param.Add("@campaignid", request.CampaignId);
+                    list = await connection.QueryAsync<DashboardEmailCampaignModel>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardEmailCampaignModel>> GetDashboardEmailCampaignCreatedByChart(DashboardFilterModel request)
+        {
+            try
+            {
+                IEnumerable<DashboardEmailCampaignModel> list = new List<DashboardEmailCampaignModel>();
+                if (string.IsNullOrEmpty(request.Bdr) || request.Bdr == "null")
+                {
+                    request.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(request.CreatedBy) || request.CreatedBy == "null")
+                {
+                    request.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(request.QaBy) || request.QaBy == "null")
+                {
+                    request.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spDashboardEmailCampaignCreatedByChart";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", request.StartDate);
+                    param.Add("@endDate", request.EndDate);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@createdby", request.CreatedBy);
+                    param.Add("@qaby", request.QaBy);
+                    param.Add("@campaignid", request.CampaignId);
+                    list = await connection.QueryAsync<DashboardEmailCampaignModel>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardEmailCampaignModel>> GetDashboardEmailCampaignQaByChart(DashboardFilterModel request)
+        {
+            try
+            {
+                IEnumerable<DashboardEmailCampaignModel> list = new List<DashboardEmailCampaignModel>();
+                if (string.IsNullOrEmpty(request.Bdr) || request.Bdr == "null")
+                {
+                    request.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(request.CreatedBy) || request.CreatedBy == "null")
+                {
+                    request.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(request.QaBy) || request.QaBy == "null")
+                {
+                    request.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spDashboardEmailCampaignQaByChart";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", request.StartDate);
+                    param.Add("@endDate", request.EndDate);
+                    param.Add("@bdr", request.Bdr);
+                    param.Add("@createdby", request.CreatedBy);
+                    param.Add("@qaby", request.QaBy);
+                    param.Add("@campaignid", request.CampaignId);
+                    list = await connection.QueryAsync<DashboardEmailCampaignModel>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        //Smartleads Email Statistics Exported
+        public async Task<DashboardAnalyticsTotalExported> GetDashboardSmartLeadAnalyticsTotalExported(DashboardFilterModel filter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spGetDashboardSmartLeadStatisticsTotalExported";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    var countResult = await connection.QueryFirstOrDefaultAsync<int?>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return new DashboardAnalyticsTotalExported { TotalExported = countResult };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+
+        //SmartLeads Automated Leads Email Campaigns
+        public async Task<IEnumerable<DashboardAutomatedCampaignLeadgen>> GetDashboardAutomatedLeadsCampaignExportedCharts(DashboardFilterModel filter)
+        {
+            try
+            {
+                IEnumerable<DashboardAutomatedCampaignLeadgen> list = new List<DashboardAutomatedCampaignLeadgen>();
+
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spDashboardAutomatedLeadsCampaignExportedCharts";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    list = await connection.QueryAsync<DashboardAutomatedCampaignLeadgen>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardAutomatedCampaignLeadgen>> GetDashboardAutomatedLeadsCampaignEmailSequenceCharts(DashboardFilterModel filter)
+        {
+            try
+            {
+                IEnumerable<DashboardAutomatedCampaignLeadgen> list = new List<DashboardAutomatedCampaignLeadgen>();
+
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spDashboardAutomatedLeadsCampaignEmailSequenceCharts";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    list = await connection.QueryAsync<DashboardAutomatedCampaignLeadgen>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardCsvDownloadModel>> GetDashboardAutomatedBdrChartsCsvDownload(DashboardFilterModel filter)
+        {
+            try
+            {
+                IEnumerable<DashboardCsvDownloadModel> list = new List<DashboardCsvDownloadModel>();
+
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spDashboardEmailCampaignBdrChartCsv";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    list = await connection.QueryAsync<DashboardCsvDownloadModel>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardCsvDownloadModel>> GetDashboardLeadsExportedCsvDownload(DashboardFilterModel filter)
+        {
+            try
+            {
+                IEnumerable<DashboardCsvDownloadModel> list = new List<DashboardCsvDownloadModel>();
+
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spDashboardLeadsExportedCsv";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    list = await connection.QueryAsync<DashboardCsvDownloadModel>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<IEnumerable<DashboardCsvDownloadModel>> GetDashboardEmailSequenceCsvDownload(DashboardFilterModel filter)
+        {
+            try
+            {
+                IEnumerable<DashboardCsvDownloadModel> list = new List<DashboardCsvDownloadModel>();
+
+                if (string.IsNullOrEmpty(filter.Bdr) || filter.Bdr == "null")
+                {
+                    filter.Bdr = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.CreatedBy) || filter.CreatedBy == "null")
+                {
+                    filter.CreatedBy = "";
+                }
+
+                if (string.IsNullOrEmpty(filter.QaBy) || filter.QaBy == "null")
+                {
+                    filter.QaBy = "";
+                }
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spDashboardEmailSequenceCsv";
+                    var param = new DynamicParameters();
+                    param.Add("@startDate", filter.StartDate);
+                    param.Add("@endDate", filter.EndDate);
+                    param.Add("@bdr", filter.Bdr);
+                    param.Add("@createdby", filter.CreatedBy);
+                    param.Add("@qaby", filter.QaBy);
+                    param.Add("@campaignid", filter.CampaignId);
+                    list = await connection.QueryAsync<DashboardCsvDownloadModel>(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
             }
         }
     }

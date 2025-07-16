@@ -3,6 +3,7 @@ using SmartLeadsPortalDotNetApi.Database;
 using SmartLeadsPortalDotNetApi.Model;
 using SmartLeadsPortalDotNetApi.Services;
 using System.Data;
+using System.Text.RegularExpressions;
 
 namespace SmartLeadsPortalDotNetApi.Repositories
 {
@@ -13,55 +14,86 @@ namespace SmartLeadsPortalDotNetApi.Repositories
         {
             this.dbConnectionFactory = dbConnectionFactory;
         }
-        public async Task<int> InsertCallLogs(CallsInsert keyword)
+        public async Task<ApiResponse> InsertCallLogs(CallsInsert keyword)
         {
-            await Task.Delay(3000);
-            if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
-            {
-                throw new ArgumentException("UserPhoneNumber, UserCaller, and ProspectNumber cannot be null or empty.");
-            }
-
-            CallLogsOutbound? callLogsOutbound = await GetOutboundcallsInfo(keyword.UserPhoneNumber, keyword.ProspectNumber);
-
-            if (callLogsOutbound == null)
-            {
-                throw new InvalidOperationException("Failed to retrieve outbound call information.");
-            }
-
             try
             {
+                if (string.IsNullOrEmpty(keyword.UserPhoneNumber) || string.IsNullOrEmpty(keyword.ProspectNumber))
+                {
+                    return new ApiResponse(false, "UserPhoneNumber and ProspectNumber cannot be null or empty.", "INVALID_INPUT");
+                }
+
+                CallLogsOutbound? callLogsOutbound;
+                CallProspectNameEmail callProspectNameEmail = new CallProspectNameEmail { Email = null, FullName = null };
+                string cleanUserPhoneNumber = Regex.Replace(keyword.UserPhoneNumber, @"[^\d+]", "");
+                string cleanProspectNumber = Regex.Replace(keyword.ProspectNumber, @"[^\d+]", "");
+
+                if (keyword.CallDirectionId == 1)
+                {
+                    callLogsOutbound = await GetInboundcallsInfo(cleanProspectNumber, cleanUserPhoneNumber);
+                }
+                else
+                {
+                    callLogsOutbound = await GetOutboundcallsInfo(cleanUserPhoneNumber, cleanProspectNumber);
+                }
+
+                if (callLogsOutbound == null)
+                {
+                    return new ApiResponse(false, "Failed to retrieve call information.", "CALL_INFO_NOT_FOUND");
+                }
+
+                if (keyword.ProspectName != null && keyword.ProspectName != "")
+                {
+                    if(keyword.CallDirectionId == 1)
+                    {
+                        callProspectNameEmail = await GetProspectEmailNameById(keyword.ProspectName) ?? new CallProspectNameEmail { Email = null, FullName = null };
+                    }
+                    else
+                    {
+                        callProspectNameEmail = new CallProspectNameEmail { Email = keyword.LeadEmail, FullName = keyword.ProspectName };
+                    }
+                }
+
+                CallLogFullName? callername = await GetProspectNameByPhone(cleanUserPhoneNumber);
+
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     string _proc = "sm_spInsertCallLogs";
                     var param = new DynamicParameters();
-                    param.Add("@usercaller", keyword.UserCaller);
+                    param.Add("@usercaller", string.IsNullOrEmpty(keyword.UserCaller) ? callername?.FullName : keyword.UserCaller);
                     param.Add("@userphonenumber", callLogsOutbound.CallerId);
-                    param.Add("@leademail", keyword.LeadEmail);
-                    param.Add("@prospectname", keyword.ProspectName);
-                    param.Add("@prospectnumber", callLogsOutbound.DestNumber);
+                    param.Add("@leademail", callProspectNameEmail?.Email);
+                    param.Add("@prospectname", callProspectNameEmail?.FullName);
+                    param.Add("@prospectnumber", callLogsOutbound?.DestNumber);
                     param.Add("@callpurposeid", keyword.CallPurposeId);
                     param.Add("@calldispositionid", keyword.CallDispositionId);
                     param.Add("@calldirectionid", keyword.CallDirectionId);
                     param.Add("@notes", keyword.Notes);
                     param.Add("@calltagsid", keyword.CallTagsId);
                     param.Add("@callstateid", keyword.CallStateId);
-                    param.Add("@duration", callLogsOutbound.ConversationDuration);
+                    param.Add("@duration", callLogsOutbound?.ConversationDuration);
                     param.Add("@addedby", keyword.AddedBy);
                     param.Add("@statisticid", keyword.StatisticId);
                     param.Add("@due", keyword.Due);
                     param.Add("@userid", keyword.UserId);
-                    param.Add("@uniquecallid", callLogsOutbound.UniqueCallId);
-                    param.Add("@calleddate", callLogsOutbound.CallStartAt);
+                    param.Add("@uniquecallid", callLogsOutbound?.UniqueCallId);
+                    param.Add("@calleddate", callLogsOutbound?.CallStartAt);
 
-                    int ret = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
+                    int rowsAffected = await connection.ExecuteAsync(_proc, param, commandType: CommandType.StoredProcedure);
 
-                    return ret;
+                    if (rowsAffected > 0)
+                    {
+                        return new ApiResponse(true, "Call logs saved successfully.");
+                    }
+                    else
+                    {
+                        return new ApiResponse(false, "Failed to save call logs.", "DATABASE_OPERATION_FAILED");
+                    }
                 }
-                
             }
             catch (Exception ex)
             {
-                throw new Exception("Database error: " + ex.Message);
+                return new ApiResponse(false, $"Database error: {ex.Message}", "DATABASE_ERROR");
             }
         }
         public async Task<int> InsertInboundCallLogs(CallsInsertInbound keyword)
@@ -197,6 +229,26 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception(e.Message);
             }
         }
+
+        public async Task<CallProspectNameEmail?> GetProspectEmailNameById(string leadid)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetProspectEmailNameById";
+                    var param = new DynamicParameters();
+                    param.Add("@leadid", leadid);
+                    var result = await connection.QuerySingleOrDefaultAsync<CallProspectNameEmail>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return result ?? new CallProspectNameEmail { Email=null, FullName = null };
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
         public async Task UpdateOutboundCallsInfo(string uniquecallid, string filename)
         {
             try
@@ -271,6 +323,27 @@ namespace SmartLeadsPortalDotNetApi.Repositories
             catch (Exception e)
             {
                 throw new Exception(e.Message);
+            }
+        }
+
+        public async Task<int> UpdatePhoneNumber(string email, string phonenumber)
+        {
+            try
+            {
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    var countProcedure = "sm_spUpSertPhonenumbersInAllLeads";
+                    var param = new DynamicParameters();
+                    param.Add("@email", email);
+                    param.Add("@phonenumber", phonenumber);
+                    var affectedRows = await connection.ExecuteAsync(countProcedure, param, commandType: CommandType.StoredProcedure);
+
+                    return affectedRows;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error updating phone numbers in database.", ex);
             }
         }
 

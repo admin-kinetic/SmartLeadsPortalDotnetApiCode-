@@ -1,12 +1,16 @@
 CREATE OR ALTER PROCEDURE [dbo].[sm_spGetSmartLeadsAllProspect]
+@Search VARCHAR(500)=''
 AS
 BEGIN
     SET NOCOUNT ON;
-	SELECT DISTINCT JSON_VALUE(wh.Request, '$.sl_email_lead_id') AS LeadId,
-	sle.LeadEmail AS Email, 
-	JSON_VALUE(wh.Request, '$.to_name') AS FullName
-	from [dbo].[SmartLeadsEmailStatistics] sle
-	INNER JOIN Webhooks wh ON JSON_VALUE(wh.Request, '$.to_email') = sle.LeadEmail
-	ORDER BY sle.LeadEmail DESC
+	SELECT DISTINCT LeadId, 
+       Email, 
+       FirstName + ' ' + LastName AS FullName 
+	FROM SmartLeadAllLeads
+	WHERE Email NOT LIKE '%?%' 
+	  AND FirstName NOT LIKE '%?%' 
+	  AND LastName NOT LIKE '%?%'
+	  AND (FirstName + ' ' + LastName LIKE '%' + @Search + '%' OR @Search = '')
+	ORDER BY Email ASC
 END
 GO

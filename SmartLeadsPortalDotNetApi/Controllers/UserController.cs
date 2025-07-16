@@ -16,18 +16,29 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly UserRepository userRepository;
         private readonly VoipPhoneNumberRepository voipPhoneNumberRepository;
         private readonly BlobService _blobservice;
+        private readonly SmartleadCampaignRepository smartleadCampaignRepository;
+        private readonly SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository;
         private readonly StorageConfig _storageConfig;
 
-        public UserController(UserRepository userRepository, VoipPhoneNumberRepository voipPhoneNumberRepository, BlobService blobService, IOptions<StorageConfig> options)
+        public UserController(
+            UserRepository userRepository,
+            VoipPhoneNumberRepository voipPhoneNumberRepository,
+            BlobService blobService,
+            SmartleadCampaignRepository smartleadCampaignRepository,
+            SmartLeadsAllLeadsRepository smartLeadsAllLeadsRepository,
+            IOptions<StorageConfig> options)
         {
             this.userRepository = userRepository;
             this.voipPhoneNumberRepository = voipPhoneNumberRepository;
             _blobservice = blobService;
+            this.smartleadCampaignRepository = smartleadCampaignRepository;
+            this.smartLeadsAllLeadsRepository = smartLeadsAllLeadsRepository;
             _storageConfig = options.Value;
         }
 
         [HttpGet()]
-        public async Task<IActionResult> GetAll(){
+        public async Task<IActionResult> GetAll()
+        {
             var contextUser = this.HttpContext.User;
             var detail = await this.userRepository.GetAll();
             return this.Ok(detail);
@@ -49,31 +60,58 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         }
 
         [HttpGet("with-assigned-phone-numbers")]
-        public async Task<IActionResult> GetAllWithAssignedPhoneNumbers(){
+        public async Task<IActionResult> GetAllWithAssignedPhoneNumbers()
+        {
             var contextUser = this.HttpContext.User;
             var detail = await this.userRepository.GetAllWithAssignedPhoneNumbers();
             return this.Ok(detail);
         }
 
         [HttpGet("with-unassigned-phone-numbers")]
-        public async Task<IActionResult> GetAllWithUnassignedPhoneNumbers(){
+        public async Task<IActionResult> GetAllWithUnassignedPhoneNumbers()
+        {
             var contextUser = this.HttpContext.User;
             var detail = await this.userRepository.GetAllWithUnassignedPhoneNumbers();
             return this.Ok(detail);
         }
 
         [HttpGet("current-user")]
-        public async Task<IActionResult> GetCurrentUser(){
+        public async Task<IActionResult> GetCurrentUser()
+        {
             var contextUser = this.HttpContext.User;
             var detail = await this.userRepository.GetByEmployeeId(int.Parse(contextUser.FindFirst("employeeId").Value));
             return this.Ok(detail);
         }
 
+        [HttpGet("bdrs")]
+        public async Task<IActionResult> GetBdrs()
+        {
+            var bdrs = await this.smartLeadsAllLeadsRepository.GetBdr();
+            return this.Ok(bdrs);
+        }
+
+        [HttpGet("leadGen")]
+        public async Task<IActionResult> GetLeadGen()
+        {
+            var leadGens = await this.smartLeadsAllLeadsRepository.GetLeadGen();
+            return this.Ok(leadGens);
+        }
+
+        [HttpGet("qa")]
+        public async Task<IActionResult> GetQa()
+        {
+            var qas = await this.smartLeadsAllLeadsRepository.GetQa();
+            return this.Ok(qas);
+        }
+
+
         [HttpPut()]
-        public async Task<IActionResult> Update(UpdateUserRequest request){
+        public async Task<IActionResult> Update(UpdateUserRequest request)
+        {
             var contextUser = this.HttpContext.User;
             await this.userRepository.Update(int.Parse(contextUser.FindFirst("employeeId").Value), request);
-            if(request.PhoneNumberId != null){
+            if (request.PhoneNumberId != null)
+            {
                 await this.voipPhoneNumberRepository.AssignVoipPhoneNumber(int.Parse(contextUser.FindFirst("employeeId").Value), request.PhoneNumber);
             }
             return this.Ok();
@@ -112,7 +150,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             //     return Ok(adminPermission.Items);
             // }
             var permisssion = await this.userRepository.GetUserPermissions(user.FindFirst("employeeId")?.Value);
-            if(permisssion.Count == 0)
+            if (permisssion.Count == 0)
             {
                 return Unauthorized("User does not have any permissions");
             }

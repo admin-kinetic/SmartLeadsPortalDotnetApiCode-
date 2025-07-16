@@ -1,4 +1,6 @@
+using Common.Converters;
 using System;
+using System.Text.Json.Serialization;
 
 namespace Common.Models;
 
@@ -16,7 +18,8 @@ public class Campaign
     public int campaign_id { get; set; }
     public string lead_status { get; set; }
     public string campaign_name { get; set; }
-    public DateTime lead_added_at { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
+    public DateTime? lead_added_at { get; set; }
     public string campaign_status { get; set; }
     public int email_lead_map_id { get; set; }
     public int lead_last_seq_number { get; set; }
@@ -24,6 +27,7 @@ public class Campaign
 
 public class CustomFields
 {
+    public string Location { get; set; }
     public string BDR { get; set; }
     public string Created_by { get; set; }
     public string QA_by { get; set; }
@@ -65,9 +69,10 @@ public class AllLeadsFromEntireAccountDatum
     public string website { get; set; }
     public object company_url { get; set; }
     public string phone_number { get; set; }
-    public object location { get; set; }
+    public string? location { get; set; }
     public CustomFields custom_fields { get; set; }
     public object linkedin_profile { get; set; }
+    [JsonConverter(typeof(DateTimeFromStringConverter))]
     public DateTime created_at { get; set; }
     public int user_id { get; set; }
     public List<Campaign> campaigns { get; set; }

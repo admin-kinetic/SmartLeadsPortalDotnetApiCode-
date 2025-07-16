@@ -1,7 +1,8 @@
-using System.Collections.Generic;
-using System.Text.Json;
 using Common.Models;
 using Common.Repositories;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Web;
 
 namespace Common.Services;
 
@@ -154,46 +155,33 @@ public class SmartLeadHttpService
 
     public async Task<FetchCampaignLeadStatisticsResponse> FetchCampaignLeadStatistics(int campaignId, string apiKey, int offset = 0, int limit = 500, int daysOffset = 7) //, DateTime startDate, DateTime endData, int limit, int offset)
     {
-        try
+        using (var httpClient = new HttpClient())
         {
-            using (var httpClient = new HttpClient())
-            {
 
-                var weekAgo = DateTime.Now.AddDays(-daysOffset);
+            var offsetDate = DateTime.Now.AddDays(-daysOffset);
 
-                var queryParams = new Dictionary<string, string>
+            var queryParams = new Dictionary<string, string>
                 {
                     { "api_key", apiKey },
-                    { "event_time_gt", weekAgo.ToString("yyyy-MM-dd") },
+                    { "event_time_gt", offsetDate.ToString("yyyy-MM-dd") },
                     { "limit", limit.ToString() },
                     { "offset", offset.ToString() }
                 };
 
-                // Serialize the dictionary into a query string
-                var queryString = string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
-                var response = await httpClient.GetAsync($"{this.baseUrl}/campaigns/{campaignId}/leads-statistics?{queryString}");
-                // Check status code
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                {
-                    throw new Exception($"HTTP request failed with status code: {(int)response.StatusCode}");
-                }
-
-                // Read response body
-                string responseBody = await response.Content.ReadAsStringAsync();
-
-                // Deserialize JSON response
-                return JsonSerializer.Deserialize<FetchCampaignLeadStatisticsResponse>(responseBody);
+            // Serialize the dictionary into a query string
+            var queryString = string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
+            var response = await httpClient.GetAsync($"{this.baseUrl}/campaigns/{campaignId}/leads-statistics?{queryString}");
+            // Check status code
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new Exception($"HTTP request failed with status code: {(int)response.StatusCode}");
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            // Handle HTTP client exceptions
-            throw new Exception("HTTP request failed: " + ex.Message);
-        }
-        catch (Exception ex)
-        {
-            // Handle other exceptions
-            throw ex;
+
+            // Read response body
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            // Deserialize JSON response
+            return JsonSerializer.Deserialize<FetchCampaignLeadStatisticsResponse>(responseBody);
         }
     }
 
@@ -236,7 +224,7 @@ public class SmartLeadHttpService
         }
     }
 
-    public async Task<LeadByEmailResponse?> LeadByEmail(string email, string apiKey)
+    public async Task<SmartLeadsByEmailResponse?> LeadByEmail(string email, string apiKey)
     {
         try
         {
@@ -268,9 +256,14 @@ public class SmartLeadHttpService
                 string responseBody = await response.Content.ReadAsStringAsync();
 
                 // Deserialize JSON response
-                var result =  JsonSerializer.Deserialize<LeadByEmailResponse?>(responseBody);
+                var result =  JsonSerializer.Deserialize<SmartLeadsByEmailResponse?>(responseBody);
 
                 if (result != null && result.GetType().GetProperties().All(p => p.GetValue(result) == null))
+                {
+                    return null;
+                }
+
+                if (result != null  && result.email == null)
                 {
                     return null;
                 }
@@ -334,4 +327,26 @@ public class SmartLeadHttpService
             throw ex;
         }
     }
+
+    //Get lead by email
+    public async Task<SmartLeadsByEmailResponse?> GetLeadByEmail(string email, string? apiKey = null)
+    {
+        using var client = new HttpClient();
+        var queryString = HttpUtility.ParseQueryString(string.Empty);
+        queryString["api_key"] = apiKey;
+        queryString["email"] = email;
+
+        var response = await client.GetAsync($"{this.baseUrl}/leads?{queryString}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error fetching data: {response.StatusCode} - {errorMessage}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        var campaigns = JsonSerializer.Deserialize<SmartLeadsByEmailResponse>(content);
+        return campaigns;
+    }
+
 }

@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RestSharp;
 using Serilog;
+using Serilog.Sinks.Async;
 using SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 using SmartLeadsPortalDotNetApi.BackgroundTasks;
@@ -24,11 +25,16 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Create the logger
+// Create the logger with async sinks
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File("logs/smartleadsportal.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+    .WriteTo.Console() // Console is fine without async wrapper
+    .WriteTo.Async(a => a.File(
+        "logs/smartleadsportal.txt",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 7,  // Optional: keep only 7 days of logs
+        flushToDiskInterval: TimeSpan.FromSeconds(1)) // Ensure logs are written periodically
+    ).CreateLogger();
+
 builder.Host.UseSerilog();
 
 // Add services to the container.
@@ -44,12 +50,13 @@ builder.Services.Configure<MicrosoftGraphSettings>(graphSettings =>
 {
     builder.Configuration.GetSection("MicrosoftGraph").Bind(graphSettings);
 
-    var clientSecret = Environment.GetEnvironmentVariable("MicrosoftGraph");
+    var clientSecret = Environment.GetEnvironmentVariable("MICROSOFTGRAPH_CLIENTSECRET");
     if (!string.IsNullOrEmpty(clientSecret))
     {
         graphSettings.ClientSecret = clientSecret;
     }
 });
+builder.Services.Configure<CallRecordingFtpCredentials>(builder.Configuration.GetSection("CallRecordingFtp"));
 
 builder.Services.Configure<StorageConfig>(storageConfig =>
 {
@@ -66,7 +73,7 @@ builder.Services.Configure<StorageConfig>(storageConfig =>
 builder.Services.AddHostedService<WebhookBackgroundService>();
 builder.Services.AddSingleton<WebhookBackgroundTaskQueue>();
 
-builder.Services.AddScoped<DbConnectionFactory>();
+builder.Services.AddTransient<DbConnectionFactory>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<SmartLeadsRepository>();
 builder.Services.AddScoped<AutomatedLeadsRepository>();
@@ -83,6 +90,7 @@ builder.Services.AddScoped<SmartLeadsApiService>();
 builder.Services.AddScoped<LeadsPortalHttpService>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<SmartLeadsExportedContactsRepository>();
+builder.Services.AddScoped<MessageHistoryRepository>();
 
 builder.Services.AddScoped<RestClient>(provider =>
 {
@@ -137,6 +145,9 @@ builder.Services.AddScoped<MessageHistoryRepository>();
 builder.Services.AddScoped<SmartLeadsAllLeadsRepository>();
 builder.Services.AddScoped<SmartleadCampaignRepository>();
 builder.Services.AddScoped<DbExecution>();
+builder.Services.AddScoped<SmartleadsEmailStatisticsService>();
+builder.Services.AddScoped<SmartleadAccountRepository>();
+builder.Services.AddScoped<CallsReportRepository>();
 
 builder.Services.AddScoped(provider =>
     {
@@ -147,9 +158,10 @@ builder.Services.AddScoped(provider =>
 
 builder.Services.AddSingleton(provider =>
     {
-    return new StorageSharedKeyCredential(
-            builder.Configuration["AzureStorage:AccountName"], 
-            builder.Configuration["AzureStorage:AccountKey"]);
+        var accountKey = Environment.GetEnvironmentVariable("AZURESTORAGE_ACCOUNTKEY");
+        return new StorageSharedKeyCredential(
+                    builder.Configuration["AzureStorage:AccountName"],
+                    accountKey ?? builder.Configuration["AzureStorage:AccountKey"]);
     });
 
 // Register BlobServiceClient as a singleton

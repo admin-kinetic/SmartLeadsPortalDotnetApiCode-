@@ -32,7 +32,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 var baseQuery = """ 
                     SELECT al.LeadId,
                         sle.LeadEmail AS Email, 
-                        al.FirstName + ' ' + al.LastName as FullName
+                        ISNULL(al.FirstName, '') + ' ' + ISNULL(al.LastName, '') AS FullName
                     FROM [dbo].[SmartLeadsEmailStatistics] sle
                     INNER JOIN SmartLeadAllLeads al ON al.email = sle.LeadEmail
                 """;
@@ -165,7 +165,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 throw new Exception("Database error: " + ex.Message);
             }
         }
-        public async Task<IEnumerable<Prospect>> GetSmartLeadsAllProspect()
+        public async Task<IEnumerable<Prospect>> GetSmartLeadsAllProspect(ProspectDropdownOptionParam request)
         {
             try
             {
@@ -174,8 +174,35 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 using (var connection = this.dbConnectionFactory.GetSqlConnection())
                 {
                     string _proc = "sm_spGetSmartLeadsAllProspect";
+                    var param = new DynamicParameters();
+                    param.Add("@Search", request.Search);
 
-                    list = await connection.QueryAsync<Prospect>(_proc, commandType: CommandType.StoredProcedure);
+                    list = await connection.QueryAsync<Prospect>(_proc, param, commandType: CommandType.StoredProcedure);
+
+                    return list;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Database error: " + ex.Message);
+            }
+        }
+        public async Task<IEnumerable<Prospect>> GetSmartLeadsAllProspectPaginated(ProspectDropdownOptionParam request)
+        {
+            try
+            {
+                IEnumerable<Prospect> list = new List<Prospect>();
+
+                using (var connection = this.dbConnectionFactory.GetSqlConnection())
+                {
+                    string _proc = "sm_spGetSmartLeadsAllProspectPaginated";
+                    var param = new DynamicParameters();
+                    param.Add("@Search", request.Search);
+                    param.Add("@Page", request.Page);
+                    param.Add("@PageSize", request.PageSize);
+
+                    list = await connection.QueryAsync<Prospect>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return list;
                 }

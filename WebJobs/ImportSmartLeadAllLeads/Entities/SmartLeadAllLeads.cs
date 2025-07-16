@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 
 namespace SmartLeadsAllLeadsToPortal.Entities;
 
@@ -10,11 +11,13 @@ public class SmartLeadAllLeads
     public int? CampaignId { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public string? PhoneNumber { get; set; }
     public string? CompanyName { get; set; }
     public string? LeadStatus { get; set; }
     public string? BDR { get; set; }
     public string? CreatedBy { get; set; }
     public string? QABy { get; set; }
+    public string? Location { get; set; }
+    public string? SmartleadCategory { get; set; }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartLeadsPortalDotNetApi.Aggregates.InboundCall;
 using SmartLeadsPortalDotNetApi.Aggregates.OutboundCall;
 using SmartLeadsPortalDotNetApi.Repositories;
+using SmartLeadsPortalDotNetApi.Services;
 
 namespace SmartLeadsPortalDotNetApi.Controllers
 {
@@ -17,6 +18,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly OutboundCallEventParser outboundCallEventParser;
         private readonly InboundCallEventParser inboundCallEventParser;
         private readonly InboundCallRepository inboundCallRepository;
+        private readonly OutlookService outlookService;
         private readonly IConfiguration configuration;
 
         public VoiplineWebhooksController(
@@ -26,6 +28,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             OutboundCallEventParser outboundCallEventParser,
             InboundCallEventParser inboundCallEventParser,
             InboundCallRepository inboundCallRepository,
+             OutlookService outlookService,
             IConfiguration configuration)
         {
             this.voiplineWebhookRepository = voiplineWebhookRepository;
@@ -34,6 +37,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             this.outboundCallEventParser = outboundCallEventParser;
             this.inboundCallEventParser = inboundCallEventParser;
             this.inboundCallRepository = inboundCallRepository;
+            this.outlookService = outlookService;
             this.configuration = configuration;
         }
 
@@ -97,6 +101,9 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var outboundCall = await this.outboundCallRepository.GetOutboundCallAggregate(outboundCallRecording.UniqueCallId);
             outboundCall.ApplyEvent(outboundCallRecording);            
             await this.outboundCallRepository.UpsertOutboundCallAggregate(outboundCall);
+
+            // saving call recording to azure and ftp storage
+            await this.outlookService.MoveCallRecordingToAzureStorageAndGoDaddyFtp(outboundCallRecording.UniqueCallId);
             return Ok();
         }
 
@@ -215,8 +222,11 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             using var reader = new StreamReader(Request.Body);
             string payload = await reader.ReadToEndAsync();
             await this.voiplineWebhookRepository.InsertWebhook("RecordingInbound", payload);
-
             await HandleIncomingCallPayload(payload);
+
+            var inboundCallEvent = inboundCallEventParser.ParseEvent(payload);
+            // saving call recording to azure and ftp storage
+            await this.outlookService.MoveCallRecordingToAzureStorageAndGoDaddyFtp(inboundCallEvent.UniqueCallId);
             return Ok();
         }
 
