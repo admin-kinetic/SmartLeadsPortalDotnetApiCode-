@@ -11,7 +11,7 @@ public class StringFromStringOrNumberConverter : JsonConverter<string?>
     {
         return reader.TokenType switch
         {
-            JsonTokenType.String => reader.GetString(),
+            JsonTokenType.String => reader.GetString() == "null" ? null : reader.GetString(),
             JsonTokenType.Number => reader.TryGetInt32(out int intVal) 
                 ? intVal.ToString() 
                 : reader.GetDouble().ToString(),
@@ -24,7 +24,7 @@ public class StringFromStringOrNumberConverter : JsonConverter<string?>
     private string? ReadStringArray(ref Utf8JsonReader reader)
     {
         var strings = new List<string>();
-        
+
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {
             if (reader.TokenType == JsonTokenType.String)
@@ -33,8 +33,8 @@ public class StringFromStringOrNumberConverter : JsonConverter<string?>
             }
             else if (reader.TokenType == JsonTokenType.Number)
             {
-                strings.Add(reader.TryGetInt32(out int intVal) 
-                    ? intVal.ToString() 
+                strings.Add(reader.TryGetInt32(out int intVal)
+                    ? intVal.ToString()
                     : reader.GetDouble().ToString());
             }
         }
