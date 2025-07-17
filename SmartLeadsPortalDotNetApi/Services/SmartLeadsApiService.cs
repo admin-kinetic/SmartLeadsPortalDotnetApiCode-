@@ -1,3 +1,4 @@
+using Dapper;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 using Newtonsoft.Json;
@@ -340,6 +341,18 @@ public class SmartLeadsApiService
         var content = await response.Content.ReadAsStringAsync();
         var campaigns = JsonConvert.DeserializeObject<CampaignAnalyticsDateRange>(content);
         return campaigns;
+    }
+
+    internal async Task<List<string>?> GetCountries()
+    {
+        await using var connection = await this.dbConnectionFactory.GetSqlConnectionAsync();
+        var query = """
+            Select Distinct [Location] 
+            From SmartLeadAllLeads 
+            Where [Location] IS NOT NULL AND Location <> ''
+            """;
+        var queryResult = await connection.QueryAsync<string>(query);
+        return queryResult.ToList();
     }
 }
 

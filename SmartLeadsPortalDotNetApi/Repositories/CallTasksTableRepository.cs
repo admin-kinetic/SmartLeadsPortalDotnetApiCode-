@@ -13,6 +13,8 @@ public class CallTasksTableRepository
     {
         { "is", "=" },
         { "is not", "!=" },
+        { "in", "IN" },
+        { "not in", "NOT IN" },
         { "contains", "LIKE" },
         { "does not contains", "NOT LIKE" },
         { "contains data", "IS NOT NULL" },
@@ -121,7 +123,7 @@ public class CallTasksTableRepository
                             ELSE cs.ClickCount
                         END DESC
                     ) cs_applied
-                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             var countQuery = """ 
@@ -146,7 +148,7 @@ public class CallTasksTableRepository
                             ELSE cs.ClickCount
                         END DESC
                     ) cs_applied
-                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             // Build WHERE clause if filters exist
@@ -164,6 +166,13 @@ public class CallTasksTableRepository
                     Operator = "does not contains data",
                     Value = string.Empty
                 });
+            }
+
+            if(request.filters != null 
+                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase) 
+                    && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase) ))
+            {
+                whereClause.Add($"au.EmployeeId = @EmployeeId");
             }
 
             if (request.filters != null && request.filters.Count > 0)
@@ -282,10 +291,16 @@ public class CallTasksTableRepository
                             parameters.Add("Bdr", $"{filter.Value}");
                             break;
                         case "country":
-                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            if(this.operatorsMap[filter.Operator].Contains("in", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Country, ','))");
+                                parameters.Add("Country", $"{filter.Value}");
+                                break; 
+                            }
+                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
                             {
                                 whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]}");
-                                break; 
+                                break;
                             }
                             whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} @Country");
                             parameters.Add("Country", $"{filter.Value}");
@@ -381,9 +396,7 @@ public class CallTasksTableRepository
                     OFFSET (@PageNumber - 1) * @PageSize ROWS
                     FETCH NEXT @PageSize ROWS ONLY
                 """;
-            }
-            
-
+            }     
 
             var items = await connection.QueryAsync<SmartLeadsCallTasks>(baseQuery, parameters);
             var count = await connection.QueryFirstAsync<int>(countQuery, parameters);
