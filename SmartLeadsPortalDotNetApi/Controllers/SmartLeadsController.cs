@@ -366,5 +366,19 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             var leadStatus = await _smartAllLeadsRepository.GetLeadStatus(email);
             return Ok(new { LeadStatus = leadStatus });
         }
+
+        [HttpGet("countries")]
+        public async Task<IActionResult> GetCountries()
+        {
+            try
+            {
+                var countries = await _smartLeadsApiService.GetCountries();
+                return Ok(countries ?? new List<string>());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 }
