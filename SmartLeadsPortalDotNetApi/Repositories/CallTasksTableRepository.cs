@@ -13,6 +13,8 @@ public class CallTasksTableRepository
     {
         { "is", "=" },
         { "is not", "!=" },
+        { "in", "IN" },
+        { "not in", "NOT IN" },
         { "contains", "LIKE" },
         { "does not contains", "NOT LIKE" },
         { "contains data", "IS NOT NULL" },
@@ -121,7 +123,7 @@ public class CallTasksTableRepository
                             ELSE cs.ClickCount
                         END DESC
                     ) cs_applied
-                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             var countQuery = """ 
@@ -146,7 +148,7 @@ public class CallTasksTableRepository
                             ELSE cs.ClickCount
                         END DESC
                     ) cs_applied
-                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0)
             """;
 
             // Build WHERE clause if filters exist
@@ -164,6 +166,13 @@ public class CallTasksTableRepository
                     Operator = "does not contains data",
                     Value = string.Empty
                 });
+            }
+
+            if(request.filters != null 
+                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase) 
+                    && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase) ))
+            {
+                whereClause.Add($"au.EmployeeId = @EmployeeId");
             }
 
             if (request.filters != null && request.filters.Count > 0)
@@ -197,6 +206,12 @@ public class CallTasksTableRepository
                                 whereClause.Add($"us.FullName {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"us.FullName IS NULL");
+                                break;
+                            }
                             whereClause.Add($"us.FullName {this.operatorsMap[filter.Operator]} @AssignedTo");
                             parameters.Add("AssignedTo", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
@@ -206,6 +221,13 @@ public class CallTasksTableRepository
                                 whereClause.Add($"slc.Name {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"slc.Name IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"slc.Name {this.operatorsMap[filter.Operator]} @CampaignName");
                             parameters.Add("CampaignName", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
@@ -224,6 +246,13 @@ public class CallTasksTableRepository
                                 whereClause.Add($"cs.StateName {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"cs.StateName IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"cs.StateName {this.operatorsMap[filter.Operator]} @CallState");
                             parameters.Add("CallState", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
@@ -251,6 +280,13 @@ public class CallTasksTableRepository
                                 whereClause.Add($"cs_applied.CategoryName {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"cs_applied.CategoryName IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"cs_applied.CategoryName {this.operatorsMap[filter.Operator]} @Priority");
                             parameters.Add("Priority", $"{filter.Value}");
                             break;
@@ -278,14 +314,27 @@ public class CallTasksTableRepository
                                 whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"slal.Bdr IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]} @Bdr");
                             parameters.Add("Bdr", $"{filter.Value}");
                             break;
                         case "country":
-                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            if(this.operatorsMap[filter.Operator].Contains("in", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Country, ','))");
+                                parameters.Add("Country", $"{filter.Value}");
+                                break; 
+                            }
+                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
                             {
                                 whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]}");
-                                break; 
+                                break;
                             }
                             whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} @Country");
                             parameters.Add("Country", $"{filter.Value}");
@@ -381,9 +430,7 @@ public class CallTasksTableRepository
                     OFFSET (@PageNumber - 1) * @PageSize ROWS
                     FETCH NEXT @PageSize ROWS ONLY
                 """;
-            }
-            
-
+            }     
 
             var items = await connection.QueryAsync<SmartLeadsCallTasks>(baseQuery, parameters);
             var count = await connection.QueryFirstAsync<int>(countQuery, parameters);
@@ -402,7 +449,7 @@ public class CallTasksTableRepository
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
             var baseQuery = """ 
-                SELECT
+                SELECT Top 2000
                     sle.LeadEmail AS Email, 
                     slal.FirstName,
                     slal.LastName,
@@ -452,7 +499,7 @@ public class CallTasksTableRepository
                             ELSE cs.ClickCount
                         END DESC
                     ) cs_applied
-                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) AND au.EmployeeId = @EmployeeId 
+                WHERE (sle.IsDeleted IS NULL OR sle.IsDeleted = 0) 
             """;
 
             // Build WHERE clause if filters exist
@@ -461,6 +508,23 @@ public class CallTasksTableRepository
             parameters.Add("PageNumber", request.paginator.page);
             parameters.Add("PageSize", request.paginator.pageSize);
             parameters.Add("EmployeeId", employeeId);
+
+            if (request.filters != null && !request.filters.Any(f => f.Column.Equals("callstate", StringComparison.OrdinalIgnoreCase)))
+            {
+                request.filters.Add(new Filter
+                {
+                    Column = "callstate",
+                    Operator = "does not contains data",
+                    Value = string.Empty
+                });
+            }
+
+            if(request.filters != null 
+                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase) 
+                    && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase) ))
+            {
+                whereClause.Add($"au.EmployeeId = @EmployeeId");
+            }
 
             if (request.filters != null && request.filters.Count > 0)
             {
@@ -493,6 +557,12 @@ public class CallTasksTableRepository
                                 whereClause.Add($"us.FullName {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"us.FullName IS NULL");
+                                break;
+                            }
                             whereClause.Add($"us.FullName {this.operatorsMap[filter.Operator]} @AssignedTo");
                             parameters.Add("AssignedTo", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
@@ -502,6 +572,13 @@ public class CallTasksTableRepository
                                 whereClause.Add($"slc.Name {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"slc.Name IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"slc.Name {this.operatorsMap[filter.Operator]} @CampaignName");
                             parameters.Add("CampaignName", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
@@ -520,6 +597,13 @@ public class CallTasksTableRepository
                                 whereClause.Add($"cs.StateName {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"cs.StateName IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"cs.StateName {this.operatorsMap[filter.Operator]} @CallState");
                             parameters.Add("CallState", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
@@ -547,6 +631,13 @@ public class CallTasksTableRepository
                                 whereClause.Add($"cs_applied.CategoryName {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"cs_applied.CategoryName IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"cs_applied.CategoryName {this.operatorsMap[filter.Operator]} @Priority");
                             parameters.Add("Priority", $"{filter.Value}");
                             break;
@@ -574,14 +665,27 @@ public class CallTasksTableRepository
                                 whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]}");
                                 break; 
                             }
+
+                            if (filter.Value == null)
+                            {
+                                whereClause.Add($"slal.Bdr IS NULL");
+                                break;
+                            }
+
                             whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]} @Bdr");
                             parameters.Add("Bdr", $"{filter.Value}");
                             break;
                         case "country":
-                            if(this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            if(this.operatorsMap[filter.Operator].Contains("in", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Country, ','))");
+                                parameters.Add("Country", $"{filter.Value}");
+                                break; 
+                            }
+                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
                             {
                                 whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]}");
-                                break; 
+                                break;
                             }
                             whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} @Country");
                             parameters.Add("Country", $"{filter.Value}");
