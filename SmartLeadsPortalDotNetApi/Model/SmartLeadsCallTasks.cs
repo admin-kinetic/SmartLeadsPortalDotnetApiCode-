@@ -8,7 +8,7 @@ public class SmartLeadsCallTasks
     public string? Email { get; set; }
     public string? FullName { get; set; }
     public int? SequenceNumber { get; set; }
-    public DateTimeOffset? LocalTime { get; set; }
+    public DateTime? SentTime { get; set; }
     public string? CampaignName { get; set; }
     public string? SubjectName { get; set; }
     public int? OpenCount { get; set; }
