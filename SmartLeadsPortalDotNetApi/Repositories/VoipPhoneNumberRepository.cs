@@ -34,7 +34,7 @@ public class VoipPhoneNumberRepository
             };
             var queryResult = await connection.QueryAsync<VoipPhoneNumberResponse>(query, queryParam);
 
-             var queryTotal = """
+            var queryTotal = """
                 SELECT Count(VoipPhoneNumbers.Id) 
                 FROM VoipPhoneNumbers 
                 LEFT JOIN Users ON VoipPhoneNumbers.EmployeeId = Users.EmployeeId
@@ -77,15 +77,59 @@ public class VoipPhoneNumberRepository
 
     public async Task AssignVoipPhoneNumber(int employeeId, string phoneNumber)
     {
-        using (var connection = this.connectionFactory.GetSqlConnection())
+        await using var connection = await this.connectionFactory.GetSqlConnectionAsync();
+
+        // check if employeeId has an existing phone number assigned to the phone number
+        var checkEmployeeHasAssignedNumber = """
+                SELECT COUNT(*) FROM VoipPhoneNumbers 
+                WHERE EmployeeId = @employeeId;
+            """;
+        var checkEmployeeHasAssignedNumberCount = await connection.ExecuteScalarAsync<int>(checkEmployeeHasAssignedNumber, new { employeeId });
+        if (checkEmployeeHasAssignedNumberCount > 0) // has existing phone number
         {
-            var insert = """
+            // unassign the existing phone number
+            var updateUserPhoneNumber = """
+                    UPDATE VoipPhoneNumbers 
+                    SET EmployeeId = NULL
+                    WHERE EmployeeId = @employeeId;
+                """;
+            await connection.ExecuteAsync(updateUserPhoneNumber, new { employeeId });
+        }
+
+        // check if phone number is available for assignment
+        var checkIfPhoneNumberIsAvailableForAssignment = """
+                SELECT COUNT(*) FROM VoipPhoneNumbers 
+                WHERE PhoneNumber = @phoneNumber AND (EmployeeId IS NULL OR EmployeeId = '');
+            """;
+        var phoneNumberIsAvailableForAssignmentCount = await connection.ExecuteScalarAsync<int>(checkIfPhoneNumberIsAvailableForAssignment, new { phoneNumber, employeeId });
+        if (phoneNumberIsAvailableForAssignmentCount > 0)
+        {
+            var assignPhoneNumberToUser = """
                 UPDATE VoipPhoneNumbers 
-                SET EmployeeId = @employeeId 
+                    SET EmployeeId = @employeeId 
                 WHERE PhoneNumber = @phoneNumber;
             """;
-            await connection.ExecuteAsync(insert, new { phoneNumber, employeeId });
+            await connection.ExecuteAsync(assignPhoneNumberToUser, new { phoneNumber, employeeId });
+            return; // phone number was successfully assigned
         }
+
+        // if phone number was already assigned to another employee
+        var checkIfPhoneNumberWasAssignedToOtherUser = """
+                SELECT COUNT(*) FROM VoipPhoneNumbers 
+                WHERE PhoneNumber = @phoneNumber AND EmployeeId <> @employeeId;
+            """;
+        var phoneNumberWasAssignedToOtherUserCount = await connection.ExecuteScalarAsync<int>(checkIfPhoneNumberWasAssignedToOtherUser, new { phoneNumber, employeeId });
+        if (phoneNumberWasAssignedToOtherUserCount > 0)
+        {
+            throw new Exception("Phone number is already assigned to another employee.");
+        }
+
+        var insert = """
+                INSERT INTO VoipPhoneNumbers (EmployeeId, PhoneNumber)
+                VALUES (@employeeId, @phoneNumber);
+            """;
+        await connection.ExecuteAsync(insert, new { phoneNumber, employeeId });
+
     }
 
     public async Task<int> UpSertVoipnumbers(AddVoipPhoneNumberRequest request)
@@ -128,6 +172,19 @@ public class VoipPhoneNumberRepository
         catch (Exception ex)
         {
             throw new Exception("Database error: " + ex.Message);
+        }
+    }
+
+    public async Task<List<VoipPhoneNumber>> GetAllAssignableVoipPhoneNumbers(int employeeId)
+    {
+        using (var connection = this.connectionFactory.GetSqlConnection())
+        {
+            var query = """
+                SELECT * FROM VoipPhoneNumbers 
+                WHERE EmployeeId IS NULL OR EmployeeId = @employeeId;
+            """;
+            var result = await connection.QueryAsync<VoipPhoneNumber>(query, new { employeeId });
+            return result.ToList();
         }
     }
 }
