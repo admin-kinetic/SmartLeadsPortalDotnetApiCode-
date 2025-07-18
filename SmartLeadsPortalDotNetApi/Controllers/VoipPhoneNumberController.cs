@@ -42,6 +42,14 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return this.Ok(phoneNumbers);
         }
 
+        [HttpGet("assignable")]
+        public async Task<IActionResult> GetAllAssignableVoipPhoneNumbers()
+        {
+            var contextUser = this.HttpContext.User;
+            var phoneNumbers = await this.voipPhoneNumberRepository.GetAllAssignableVoipPhoneNumbers(int.Parse(contextUser.FindFirst("employeeId").Value));
+            return this.Ok(phoneNumbers);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddVoipPhoneNumber([FromBody] AddVoipPhoneNumberRequest request)
         {
