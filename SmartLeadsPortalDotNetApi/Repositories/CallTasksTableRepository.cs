@@ -61,36 +61,7 @@ public class CallTasksTableRepository
                     sle.LeadEmail AS Email, 
                     ISNULL(slal.FirstName, '') + ' ' + ISNULL(slal.LastName, '') AS FullName, 
                     sle.SequenceNumber,
-                    CASE 
-                        WHEN slc.Name LIKE '%US/CA%' THEN 
-                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
-                        WHEN slc.Name LIKE '%AUS%' THEN 
-                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                        WHEN slc.Name LIKE '%UK%' THEN 
-                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                        WHEN slc.Name LIKE '%NZ%' THEN 
-                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
-                        WHEN slc.Name LIKE '%EU%' THEN 
-                            SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                    END AS LocalTime,
-                    ABS(
-                        DATEDIFF(
-                            MINUTE, 
-                            CAST(CASE 
-                                    WHEN slc.Name LIKE '%US/CA%' THEN 
-                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time'
-                                    WHEN slc.Name LIKE '%AUS%' THEN 
-                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'E. Australia Standard Time'
-                                    WHEN slc.Name LIKE '%UK%' THEN 
-                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                                    WHEN slc.Name LIKE '%NZ%' THEN 
-                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
-                                    WHEN slc.Name LIKE '%EU%' THEN 
-                                        SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time'
-                                END AS TIME),
-                            CAST('09:00:00' AS TIME)
-                        )
-                    ) AS TimeDifferenceInMinutes,
+                    sle.SentTime,
                     slc.Name AS CampaignName, 
                     sle.EmailSubject AS SubjectName, 
                     sle.OpenCount, 
