@@ -85,9 +85,9 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 {(bdrIsNotSteph ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
-                LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
+                LEFT JOIN CallState cs ON cs.Id = c.CallStateId
                 OUTER APPLY (
                     SELECT TOP 1 cs.CategoryName
                     FROM CategorySettings cs
@@ -462,9 +462,9 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 {(bdrIsNotSteph ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
-                LEFT JOIN CallState cs ON sle.CallStateId = cs.Id
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
+                LEFT JOIN CallState cs ON cs.Id = c.CallStateId
                 LEFT JOIN SmartLeadsExportedContacts slec ON slec.Email = sle.LeadEmail
                 OUTER APPLY (
                     SELECT TOP 1 cs.CategoryName
