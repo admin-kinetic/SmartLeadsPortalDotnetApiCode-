@@ -119,10 +119,7 @@ public class OutlookService
                         var blobClient = this.blobContainerClient.GetBlobClient(fileName);
                         using (var stream = new MemoryStream(attachmentContent))
                         {                            
-                            await blobClient.UploadAsync(stream, new Azure.Storage.Blobs.Models.BlobUploadOptions { 
-                                HttpHeaders = new Azure.Storage.Blobs.Models.BlobHttpHeaders { ContentType = "audio/mpeg" },
-                                Conditions = new Azure.Storage.Blobs.Models.BlobRequestConditions { IfMatch = Azure.ETag.All }
-                            }, CancellationToken.None);
+                            await blobClient.UploadAsync(stream, new Azure.Storage.Blobs.Models.BlobUploadOptions { HttpHeaders = new Azure.Storage.Blobs.Models.BlobHttpHeaders { ContentType = "audio/mpeg" } }, CancellationToken.None);
                         }
 
                         var uri = $"/{this.configuration["AzureStorage:Container"]}/{fileName}";
