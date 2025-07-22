@@ -99,6 +99,9 @@
     public class CallLogLeadNo
     {
         public string? phone { get; set; }
+        public string? portalPhoneNumber { get; set; }
+        public string? portalMobileNumber { get; set; }
+        public string? portalOtherPhoneNumber { get; set; }
     }
     public class CallLogFullName
     {
