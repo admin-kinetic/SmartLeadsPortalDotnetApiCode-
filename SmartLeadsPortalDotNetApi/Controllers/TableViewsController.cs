@@ -69,4 +69,11 @@ public class TableViewsController : ControllerBase
         await this.savedTableViewsRepository.UpdateTableView(saveTableView);
         return this.Ok();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> UpdateTableView(int id)
+    {
+        await this.savedTableViewsRepository.DeleteTableView(id);
+        return this.Ok();
+    }
 }

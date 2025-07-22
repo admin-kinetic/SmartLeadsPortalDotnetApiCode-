@@ -5,6 +5,11 @@
         public string? LeadId { get; set; }
         public string? Email { get; set; }
         public string? FullName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? PortalPhoneNumber { get; set; }
+        public string? PortalMobileNumber { get; set; }
+        public string? PortalOtherPhoneNumber { get; set; }
+        public string? PortalCountry { get; set; }
     }
 
     public class ProspectResponseModel<T>
