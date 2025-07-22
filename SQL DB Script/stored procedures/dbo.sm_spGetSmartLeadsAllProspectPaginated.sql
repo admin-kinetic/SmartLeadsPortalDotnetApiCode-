@@ -15,7 +15,7 @@ BEGIN
 		kd.OtherPhoneNumber AS PortalOtherPhoneNumber,
 		kd.Country AS PortalCountry
 	FROM SmartLeadAllLeads slal
-	LEFT JOIN KineticPortalLeadContactDetails kd ON slal.LeadId = kd.Id
+	LEFT JOIN KineticPortalLeadContactDetails kd ON slal.Email = kd.Email
 	WHERE slal.Email NOT LIKE '%?%' 
 	  AND slal.FirstName NOT LIKE '%?%' 
 	  AND slal.LastName NOT LIKE '%?%'
