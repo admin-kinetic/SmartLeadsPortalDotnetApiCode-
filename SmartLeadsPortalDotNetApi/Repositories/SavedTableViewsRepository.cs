@@ -120,5 +120,18 @@ public class SavedTableViewsRepository
             }
         }
     }
+
+    public async Task DeleteTableView(int id)
+    {
+        await using (var connection = await this.dbConnectionFactory.GetSqlConnectionAsync())
+        {
+            var delete = """
+                DELETE FROM SavedTableViews 
+                WHERE Id = @Id
+            """;
+
+            await connection.ExecuteAsync(delete, new { Id = id });
+        }
+    }
 }
 
