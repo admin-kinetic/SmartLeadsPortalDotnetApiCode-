@@ -7,7 +7,8 @@ BEGIN
     SET NOCOUNT ON;
 	SELECT DISTINCT LeadId, 
        Email, 
-       FirstName + ' ' + LastName AS FullName 
+       FirstName + ' ' + LastName AS FullName,
+	   Phonenumber 
 	FROM SmartLeadAllLeads
 	WHERE Email NOT LIKE '%?%' 
 	  AND FirstName NOT LIKE '%?%' 
