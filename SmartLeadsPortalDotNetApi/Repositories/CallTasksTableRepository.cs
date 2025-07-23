@@ -110,7 +110,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 {(bdrIsNotSteph ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
-                LEFT JOIN Users us ON us.EmployeeId = sle.AssignedTo
+                LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 LEFT JOIN CallState cs ON cs.Id = c.CallStateId
                 OUTER APPLY (
