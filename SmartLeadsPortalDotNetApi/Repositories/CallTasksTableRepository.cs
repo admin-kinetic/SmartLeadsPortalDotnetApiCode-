@@ -44,14 +44,16 @@ public class CallTasksTableRepository
     {
         this.dbConnectionFactory = dbConnectionFactory;
     }
-    public async Task<TableResponse<SmartLeadsCallTasks>> Find(TableRequest request, string employeeId, bool hasPagination = true)
+    public async Task<TableResponse<SmartLeadsCallTasks>> Find(TableRequest request, string employeeId, bool hasPagination = true, bool isAdmin = false)
     {
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
 
-            var bdrIsNotSteph = request.filters != null 
-                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase) 
-                    && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase) );
+            var bdrIsNotSteph = request.filters != null
+                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
+                    && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase))
+                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
+                    && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)));
 
             var baseQuery = $""" 
                 SELECT
@@ -144,7 +146,7 @@ public class CallTasksTableRepository
                 });
             }
 
-            if(bdrIsNotSteph)
+            if(bdrIsNotSteph && isAdmin)
             {
                 whereClause.Add($"au.EmployeeId = @EmployeeId");
             }
@@ -290,21 +292,43 @@ public class CallTasksTableRepository
                             parameters.Add("Due", $"{filter.Value}");
                             break;
                         case "bdr":
-                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            mappedOperator = this.operatorsMap[filter.Operator];
+                            if (mappedOperator.Equals("in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]}");
+                                whereClause.Add($"slal.Bdr {mappedOperator} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Bdr, ','))");
+                                parameters.Add("Bdr", $"{filter.Value}");
                                 break;
                             }
-
-                            if (filter.Value == null)
+                            if (mappedOperator.Equals("not in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Bdr IS NULL");
+                                whereClause.Add($"((slal.Bdr {mappedOperator} (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@Bdr, ',')) OR slal.Bdr IS NULL OR LTRIM(RTRIM(slal.Bdr)) = ''))");
+                                parameters.Add("Bdr", $"{filter.Value}");
                                 break;
                             }
-
-                            whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]} @Bdr");
+                            if (mappedOperator.Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Bdr {mappedOperator}");
+                                break;
+                            }
+                            whereClause.Add($"slal.Bdr {mappedOperator} @Bdr");
                             parameters.Add("Bdr", $"{filter.Value}");
                             break;
+                            // if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            // {
+                            //     whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]}");
+                            //     break;
+                            // }
+
+                            // if (filter.Value == null)
+                            // {
+                            //     whereClause.Add($"slal.Bdr IS NULL");
+                            //     break;
+                            // }
+
+                            // whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]} @Bdr");
+                            // parameters.Add("Bdr", $"{filter.Value}");
+                            // break;
+                        case "location":
                         case "country":
                             mappedOperator = this.operatorsMap[filter.Operator];
                             if (mappedOperator.Equals("in", StringComparison.OrdinalIgnoreCase))
@@ -432,13 +456,16 @@ public class CallTasksTableRepository
         }
     }
 
-    public async Task<TableResponse<SmartLeadsCallTasksExport>> Export(TableRequest request, string employeeId)
+    public async Task<TableResponse<SmartLeadsCallTasksExport>> Export(TableRequest request, string employeeId, bool isAdmin = false)
     {
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
-            var bdrIsNotSteph = request.filters != null 
-                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase) 
-                    && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase) );
+            var bdrIsNotSteph = request.filters != null
+                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
+                    && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase))
+                && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
+                    && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)));
+
 
             var baseQuery = $""" 
                 SELECT Top 2000
@@ -517,7 +544,7 @@ public class CallTasksTableRepository
                 });
             }
 
-            if(bdrIsNotSteph)
+            if(bdrIsNotSteph && !isAdmin)
             {
                 whereClause.Add($"au.EmployeeId = @EmployeeId");
             }
@@ -663,19 +690,25 @@ public class CallTasksTableRepository
                             parameters.Add("Due", $"{filter.Value}");
                             break;
                         case "bdr":
-                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            mappedOperator = this.operatorsMap[filter.Operator];
+                            if (mappedOperator.Equals("in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]}");
+                                whereClause.Add($"slal.Bdr {mappedOperator} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Bdr, ','))");
+                                parameters.Add("Bdr", $"{filter.Value}");
                                 break;
                             }
-
-                            if (filter.Value == null)
+                            if (mappedOperator.Equals("not in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Bdr IS NULL");
+                                whereClause.Add($"((slal.Bdr {mappedOperator} (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@Bdr, ',')) OR slal.Bdr IS NULL OR LTRIM(RTRIM(slal.Bdr)) = ''))");
+                                parameters.Add("Bdr", $"{filter.Value}");
                                 break;
                             }
-
-                            whereClause.Add($"slal.Bdr {this.operatorsMap[filter.Operator]} @Bdr");
+                            if (mappedOperator.Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Bdr {mappedOperator}");
+                                break;
+                            }
+                            whereClause.Add($"slal.Bdr {mappedOperator} @Bdr");
                             parameters.Add("Bdr", $"{filter.Value}");
                             break;
                         case "country":
