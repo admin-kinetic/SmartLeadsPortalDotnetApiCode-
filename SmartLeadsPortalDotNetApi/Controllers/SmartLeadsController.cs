@@ -20,6 +20,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly CallsTableRepository callsTableRepository;
         private readonly SmartLeadsAllLeadsRepository _smartAllLeadsRepository;
         private readonly SmartLeadCampaignsRepository smartLeadCampaignsRepository;
+        private readonly UserRepository userRepository;
 
         public SmartLeadsController(
             SmartLeadsApiService smartLeadsApiService,
@@ -27,7 +28,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             CallTasksTableRepository callTasksTableRepository,
             CallsTableRepository callsTableRepository,
             SmartLeadsAllLeadsRepository smartAllLeadsRepository,
-            SmartLeadCampaignsRepository smartLeadCampaignsRepository)
+            SmartLeadCampaignsRepository smartLeadCampaignsRepository,
+            UserRepository userRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
             _smartLeadsRepository = smartLeadsRepository;
@@ -35,6 +37,7 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             this.callsTableRepository = callsTableRepository;
             _smartAllLeadsRepository = smartAllLeadsRepository;
             this.smartLeadCampaignsRepository = smartLeadCampaignsRepository;
+            this.userRepository = userRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -189,7 +192,9 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             {
                 return BadRequest("Invalid user ID");
             }
-            var result = await this.callTasksTableRepository.Find(request, employeeId);
+
+            var isAdmin = await this.userRepository.IsAdmin(employeeId);
+            var result = await this.callTasksTableRepository.Find(request, employeeId, isAdmin: isAdmin);
             return Ok(result);
         }
 
@@ -203,7 +208,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             {
                 return BadRequest("Invalid user ID");
             }
-            var result = await this.callTasksTableRepository.Export(request, employeeId);
+            var isAdmin = await this.userRepository.IsAdmin(employeeId);
+            var result = await this.callTasksTableRepository.Export(request, employeeId, isAdmin: isAdmin);
             return Ok(result);
         }
 
