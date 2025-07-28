@@ -658,6 +658,12 @@ public class CallTasksTableRepository
                                 parameters.Add("Country", $"{filter.Value}");
                                 break; 
                             }
+                            if (this.operatorsMap[filter.Operator].Contains("not in", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"(slal.Location {this.operatorsMap[filter.Operator]} (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@Country, ',')) OR slal.Location IS NULL OR LTRIM(RTRIM(slal.Location)) = '')");
+                                parameters.Add("Country", $"{filter.Value}");
+                                break;
+                            }
                             if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
                             {
                                 whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]}");
