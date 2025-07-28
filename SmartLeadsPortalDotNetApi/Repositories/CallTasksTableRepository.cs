@@ -299,18 +299,25 @@ public class CallTasksTableRepository
                             parameters.Add("Bdr", $"{filter.Value}");
                             break;
                         case "country":
-                            if(this.operatorsMap[filter.Operator].Contains("in", StringComparison.OrdinalIgnoreCase))
+                            var countryOperator = this.operatorsMap[filter.Operator].ToLower();
+                            if (countryOperator.Equals("in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Country, ','))");
+                                whereClause.Add($"slal.Location {countryOperator} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Country, ','))");
                                 parameters.Add("Country", $"{filter.Value}");
                                 break; 
                             }
-                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            if (countryOperator.Equals("not in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]}");
+                                whereClause.Add($"((slal.Location {countryOperator} (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@Country, ',')) OR slal.Location IS NULL OR LTRIM(RTRIM(slal.Location)) = ''))");
+                                parameters.Add("Country", $"{filter.Value}");
                                 break;
                             }
-                            whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} @Country");
+                            if (countryOperator.Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Location {countryOperator}");
+                                break;
+                            }
+                            whereClause.Add($"slal.Location {countryOperator} @Country");
                             parameters.Add("Country", $"{filter.Value}");
                             break;
                         case "companyname":
@@ -652,24 +659,25 @@ public class CallTasksTableRepository
                             parameters.Add("Bdr", $"{filter.Value}");
                             break;
                         case "country":
-                            if(this.operatorsMap[filter.Operator].Contains("in", StringComparison.OrdinalIgnoreCase))
+                            var countryOperator = this.operatorsMap[filter.Operator].ToLower();
+                            if (countryOperator.Equals("in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Country, ','))");
-                                parameters.Add("Country", $"{filter.Value}");
-                                break; 
-                            }
-                            if (this.operatorsMap[filter.Operator].Contains("not in", StringComparison.OrdinalIgnoreCase))
-                            {
-                                whereClause.Add($"(slal.Location {this.operatorsMap[filter.Operator]} (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@Country, ',')) OR slal.Location IS NULL OR LTRIM(RTRIM(slal.Location)) = '')");
+                                whereClause.Add($"slal.Location {countryOperator} (SELECT LTRIM(RTRIM(value))FROM STRING_SPLIT(@Country, ','))");
                                 parameters.Add("Country", $"{filter.Value}");
                                 break;
                             }
-                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            if (countryOperator.Equals("not in", StringComparison.OrdinalIgnoreCase))
                             {
-                                whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]}");
+                                whereClause.Add($"((slal.Location {countryOperator} (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@Country, ',')) OR slal.Location IS NULL OR LTRIM(RTRIM(slal.Location)) = ''))");
+                                parameters.Add("Country", $"{filter.Value}");
                                 break;
                             }
-                            whereClause.Add($"slal.Location {this.operatorsMap[filter.Operator]} @Country");
+                            if (countryOperator.Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.Location {countryOperator}");
+                                break;
+                            }
+                            whereClause.Add($"slal.Location {countryOperator} @Country");
                             parameters.Add("Country", $"{filter.Value}");
                             break;
                         case "companyname":
