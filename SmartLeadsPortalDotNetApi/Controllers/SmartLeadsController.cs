@@ -19,14 +19,22 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly CallTasksTableRepository callTasksTableRepository;
         private readonly CallsTableRepository callsTableRepository;
         private readonly SmartLeadsAllLeadsRepository _smartAllLeadsRepository;
+        private readonly SmartLeadCampaignsRepository smartLeadCampaignsRepository;
 
-        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository, CallsTableRepository callsTableRepository, SmartLeadsAllLeadsRepository smartAllLeadsRepository)
+        public SmartLeadsController(
+            SmartLeadsApiService smartLeadsApiService,
+            SmartLeadsRepository smartLeadsRepository,
+            CallTasksTableRepository callTasksTableRepository,
+            CallsTableRepository callsTableRepository,
+            SmartLeadsAllLeadsRepository smartAllLeadsRepository,
+            SmartLeadCampaignsRepository smartLeadCampaignsRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
             _smartLeadsRepository = smartLeadsRepository;
             this.callTasksTableRepository = callTasksTableRepository;
             this.callsTableRepository = callsTableRepository;
             _smartAllLeadsRepository = smartAllLeadsRepository;
+            this.smartLeadCampaignsRepository = smartLeadCampaignsRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -34,8 +42,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             try
             {
-                var campaigns = await _smartLeadsApiService.GetSmartLeadsCampaigns();
-                return Ok(campaigns ?? new List<SmartLeadsCampaign>());
+                var campaigns = await smartLeadCampaignsRepository.GetCampaignsAsync();
+                return Ok(campaigns);
             }
             catch (Exception ex)
             {
