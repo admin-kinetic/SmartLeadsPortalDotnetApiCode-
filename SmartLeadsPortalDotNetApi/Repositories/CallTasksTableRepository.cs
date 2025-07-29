@@ -146,7 +146,7 @@ public class CallTasksTableRepository
                 });
             }
 
-            if(bdrIsNotSteph && isAdmin)
+            if(bdrIsNotSteph && !isAdmin)
             {
                 whereClause.Add($"au.EmployeeId = @EmployeeId");
             }
