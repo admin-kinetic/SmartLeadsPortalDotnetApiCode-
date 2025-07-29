@@ -49,11 +49,12 @@ public class CallTasksTableRepository
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
 
-            var bdrIsNotSteph = request.filters != null
+            var bdrIsNotStephAndNotAdmin = request.filters != null
                 && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
                     && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase))
                 && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
-                    && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)));
+                    && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)))
+                && !isAdmin;
 
             var baseQuery = $""" 
                 SELECT
@@ -86,7 +87,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
-                {(bdrIsNotSteph ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
+                {(bdrIsNotStephAndNotAdmin ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 LEFT JOIN CallState cs ON cs.Id = c.CallStateId
@@ -111,7 +112,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
-                {(bdrIsNotSteph ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
+                {(bdrIsNotStephAndNotAdmin ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 LEFT JOIN CallState cs ON cs.Id = c.CallStateId
@@ -146,7 +147,7 @@ public class CallTasksTableRepository
                 });
             }
 
-            if(bdrIsNotSteph && !isAdmin)
+            if(bdrIsNotStephAndNotAdmin)
             {
                 whereClause.Add($"au.EmployeeId = @EmployeeId");
             }
@@ -460,12 +461,12 @@ public class CallTasksTableRepository
     {
         using (var connection = dbConnectionFactory.GetSqlConnection())
         {
-            var bdrIsNotSteph = request.filters != null
+            var bdrIsNotStephAndNotAdmin = request.filters != null
                 && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
                     && f.Value.Equals("steph", StringComparison.OrdinalIgnoreCase))
                 && !request.filters.Any(f => f.Column.Equals("bdr", StringComparison.OrdinalIgnoreCase)
-                    && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)));
-
+                    && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)))
+                && !isAdmin;
 
             var baseQuery = $""" 
                 SELECT Top 2000
@@ -508,7 +509,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadAllLeads slal ON slal.Email = sle.LeadEmail
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
-                {(bdrIsNotSteph ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
+                {(bdrIsNotStephAndNotAdmin ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 LEFT JOIN CallState cs ON cs.Id = c.CallStateId
@@ -544,7 +545,7 @@ public class CallTasksTableRepository
                 });
             }
 
-            if(bdrIsNotSteph && !isAdmin)
+            if(bdrIsNotStephAndNotAdmin)
             {
                 whereClause.Add($"au.EmployeeId = @EmployeeId");
             }
