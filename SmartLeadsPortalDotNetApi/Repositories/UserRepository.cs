@@ -321,22 +321,4 @@ public class UserRepository
             """;
         return await connection.QueryFirstOrDefaultAsync<int>(query, new { employeeId });
     }
-
-    internal async Task<bool> IsAdmin(string employeeId)
-    {
-        if (!int.TryParse(employeeId, out var v))
-        {
-            return false;
-        }
-
-        await using var connection = await this.connectionFactory.GetSqlConnectionAsync();
-
-        var query = """
-                SELECT COUNT(*) FROM UserRoles ur
-                INNER JOIN Roles r ON r.Id = ur.RoleId
-                WHERE ur.EmployeeId = @employeeId AND (r.Name = 'Admin' OR r.Name = 'Super Admin')
-            """;
-        var count = await connection.QueryFirstOrDefaultAsync<int>(query, new { employeeId });
-        return count > 0;
-    }
 }
