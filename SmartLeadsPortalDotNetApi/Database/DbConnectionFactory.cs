@@ -33,8 +33,6 @@ public class DbConnectionFactory : IDisposable
             ?? throw new InvalidOperationException("SmartleadsPortalDb connection string is missing.");
 
         this.logger = logger;
-        this.logger.LogInformation($"SQL Connection String From Environment: {Environment.GetEnvironmentVariable("SQLAZURECONNSTR_SMARTLEADS_PORTAL_DB")}");
-        this.logger.LogInformation($"SQL Connection String: {this.callsSqlConnectionString}");
 
         // Configure retry policy with improved handling
         this.retryPolicy = Policy<DbConnection>

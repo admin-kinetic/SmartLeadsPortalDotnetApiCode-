@@ -520,7 +520,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     string _proc = "sm_spGetLeadProspectDetails";
                     var param = new DynamicParameters();
                     param.Add("@email", request.Email);
-                    LeadsDetailsModel? result = await connection.QuerySingleOrDefaultAsync<LeadsDetailsModel>(_proc, param, commandType: CommandType.StoredProcedure);
+                    LeadsDetailsModel? result = await connection.QueryFirstOrDefaultAsync<LeadsDetailsModel>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return result;
                 }
