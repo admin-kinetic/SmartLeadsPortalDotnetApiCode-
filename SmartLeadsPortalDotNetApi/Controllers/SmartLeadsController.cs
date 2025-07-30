@@ -19,14 +19,25 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         private readonly CallTasksTableRepository callTasksTableRepository;
         private readonly CallsTableRepository callsTableRepository;
         private readonly SmartLeadsAllLeadsRepository _smartAllLeadsRepository;
+        private readonly SmartLeadCampaignsRepository smartLeadCampaignsRepository;
+        private readonly UserRepository userRepository;
 
-        public SmartLeadsController(SmartLeadsApiService smartLeadsApiService, SmartLeadsRepository smartLeadsRepository, CallTasksTableRepository callTasksTableRepository, CallsTableRepository callsTableRepository, SmartLeadsAllLeadsRepository smartAllLeadsRepository)
+        public SmartLeadsController(
+            SmartLeadsApiService smartLeadsApiService,
+            SmartLeadsRepository smartLeadsRepository,
+            CallTasksTableRepository callTasksTableRepository,
+            CallsTableRepository callsTableRepository,
+            SmartLeadsAllLeadsRepository smartAllLeadsRepository,
+            SmartLeadCampaignsRepository smartLeadCampaignsRepository,
+            UserRepository userRepository)
         {
             _smartLeadsApiService = smartLeadsApiService;
             _smartLeadsRepository = smartLeadsRepository;
             this.callTasksTableRepository = callTasksTableRepository;
             this.callsTableRepository = callsTableRepository;
             _smartAllLeadsRepository = smartAllLeadsRepository;
+            this.smartLeadCampaignsRepository = smartLeadCampaignsRepository;
+            this.userRepository = userRepository;
         }
 
         [HttpGet("get-campaigns")]
@@ -34,8 +45,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             try
             {
-                var campaigns = await _smartLeadsApiService.GetSmartLeadsCampaigns();
-                return Ok(campaigns ?? new List<SmartLeadsCampaign>());
+                var campaigns = await smartLeadCampaignsRepository.GetCampaignsAsync();
+                return Ok(campaigns);
             }
             catch (Exception ex)
             {
@@ -181,7 +192,9 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             {
                 return BadRequest("Invalid user ID");
             }
-            var result = await this.callTasksTableRepository.Find(request, employeeId);
+
+            var isAdmin = await this.userRepository.IsAdmin(employeeId);
+            var result = await this.callTasksTableRepository.Find(request, employeeId, isAdmin: isAdmin);
             return Ok(result);
         }
 
@@ -195,7 +208,8 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             {
                 return BadRequest("Invalid user ID");
             }
-            var result = await this.callTasksTableRepository.Export(request, employeeId);
+            var isAdmin = await this.userRepository.IsAdmin(employeeId);
+            var result = await this.callTasksTableRepository.Export(request, employeeId, isAdmin: isAdmin);
             return Ok(result);
         }
 
@@ -365,6 +379,20 @@ namespace SmartLeadsPortalDotNetApi.Controllers
         {
             var leadStatus = await _smartAllLeadsRepository.GetLeadStatus(email);
             return Ok(new { LeadStatus = leadStatus });
+        }
+
+        [HttpGet("countries")]
+        public async Task<IActionResult> GetCountries()
+        {
+            try
+            {
+                var countries = await _smartLeadsApiService.GetCountries();
+                return Ok(countries ?? new List<string>());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 }
