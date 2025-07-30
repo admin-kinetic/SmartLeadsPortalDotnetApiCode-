@@ -56,6 +56,11 @@ public class CallTasksTableRepository
                     && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)))
                 && !isAdmin;
 
+            var hasPhoneNumber = request.filters != null
+                && request.filters.Any(f => f.Column.Equals("phoneNumber", StringComparison.OrdinalIgnoreCase)
+                    || f.Column.Equals("mobileNumber", StringComparison.OrdinalIgnoreCase)
+                    || f.Column.Equals("otherPhoneNumber", StringComparison.OrdinalIgnoreCase));
+
             var baseQuery = $""" 
                 SELECT
                     sle.Id,
@@ -88,6 +93,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 {(bdrIsNotStephAndNotAdmin ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
+                {(hasPhoneNumber ? "LEFT JOIN KineticPortalLeadContactDetails kd ON slal.Email = kd.Email" : string.Empty)}
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 LEFT JOIN CallState cs ON cs.Id = c.CallStateId
@@ -113,6 +119,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 {(bdrIsNotStephAndNotAdmin ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
+                {(hasPhoneNumber ? "LEFT JOIN KineticPortalLeadContactDetails kd ON slal.Email = kd.Email" : string.Empty)}
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 LEFT JOIN CallState cs ON cs.Id = c.CallStateId
@@ -394,9 +401,44 @@ public class CallTasksTableRepository
                                 break;
                             }
 
-
                             whereClause.Add($"CONVERT(DATE, c.CalledDate) {this.operatorsMap[filter.Operator]} @CalledDate");
                             parameters.Add("CalledDate", $"{filter.Value}");
+                            break;
+                        case "phonenumber":
+                            // smartleads
+                              if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"slal.PhoneNumber {this.operatorsMap[filter.Operator]}");
+                                break;
+                            }
+
+                            // kinetic
+                            if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"kd.PhoneNumber {this.operatorsMap[filter.Operator]}");
+                                break;
+                            }
+                            whereClause.Add($"(kd.PhoneNumber {this.operatorsMap[filter.Operator]} @KdPhoneNumber OR slal.PhoneNumber {this.operatorsMap[filter.Operator]} @SlalPhoneNumber)");
+                            parameters.Add("KdPhoneNumber", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
+                            parameters.Add("SlalPhoneNumber", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
+                            break;
+                        case "mobilenumber":
+                             if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"kd.MobileNumber {this.operatorsMap[filter.Operator]}");
+                                break;
+                            }
+                            whereClause.Add($"kd.MobileNumber {this.operatorsMap[filter.Operator]} @MobileNumber");
+                            parameters.Add("MobileNumber", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
+                            break;
+                        case "otherphonenumber":
+                             if (this.operatorsMap[filter.Operator].Contains("null", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClause.Add($"kd.otherPhoneNumber {this.operatorsMap[filter.Operator]}");
+                                break;
+                            }
+                            whereClause.Add($"kd.otherPhoneNumber {this.operatorsMap[filter.Operator]} @OtherPhoneNumber");
+                            parameters.Add("OtherPhoneNumber", this.operatorsMap[filter.Operator].Contains("like", StringComparison.OrdinalIgnoreCase) ? $"%{filter.Value}%" : $"{filter.Value}");
                             break;
                         // Add more cases for other filterable columns
                         default:
@@ -468,6 +510,11 @@ public class CallTasksTableRepository
                     && f.Value.Split(',').Any(v => v.Equals("steph", StringComparison.OrdinalIgnoreCase)))
                 && !isAdmin;
 
+            var hasPhoneNumber = request.filters != null
+                && request.filters.Any(f => f.Column.Equals("phoneNumber", StringComparison.OrdinalIgnoreCase)
+                    || f.Column.Equals("mobileNumber", StringComparison.OrdinalIgnoreCase)
+                    || f.Column.Equals("otherPhoneNumber", StringComparison.OrdinalIgnoreCase));
+
             var baseQuery = $""" 
                 SELECT Top 2000
                     sle.LeadEmail AS Email, 
@@ -510,6 +557,7 @@ public class CallTasksTableRepository
                 INNER JOIN SmartLeadCampaigns slc ON slc.Id = slal.CampaignId
                 INNER JOIN SmartleadsAccountCampaigns ac ON ac.CampaignId = slc.id
                 {(bdrIsNotStephAndNotAdmin ? "INNER JOIN SmartleadsAccountUsers au ON au.SmartleadsAccountId = ac.SmartleadsAccountId" : string.Empty)}
+                {(hasPhoneNumber ? "LEFT JOIN KineticPortalLeadContactDetails kd ON slal.Email = kd.Email" : string.Empty)}
                 LEFT JOIN Users us ON sle.AssignedTo = us.EmployeeId
                 LEFT JOIN Calls c ON c.LeadEmail = sle.LeadEmail
                 LEFT JOIN CallState cs ON cs.Id = c.CallStateId
