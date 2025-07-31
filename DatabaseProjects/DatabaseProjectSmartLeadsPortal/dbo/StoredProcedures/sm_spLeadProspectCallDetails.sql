@@ -1,9 +1,10 @@
-CREATE PROCEDURE [dbo].[sm_spLeadProspectCallDetails]
+CREATE OR ALTER PROCEDURE [dbo].[sm_spLeadProspectCallDetails]
 @email VARCHAR(200)
 AS 
 BEGIN 
  SET NOCOUNT ON;
 	SELECT TOP 1 
+		cl.GuId,
 		cl.UserPhoneNumber, 
 		CASE 
 			WHEN cl.ProspectNumber IS NULL OR cl.ProspectNumber = '' THEN sal.PhoneNumber 
