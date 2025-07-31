@@ -50,6 +50,7 @@ public class SmartLeadsCallTasksRequest
 
 public class SmartLeadsProspectDetails
 {
+    public Guid? Guid { get; set; }
     public string? UserPhoneNumber { get; set; }
     public string? ProspectNumber { get; set; }
     public int? CallPurposeId { get; set; }
