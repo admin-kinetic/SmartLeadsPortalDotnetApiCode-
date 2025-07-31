@@ -46,6 +46,7 @@
         public bool? IsDeleted { get; set; }
         public int? CallDirectionId { get; set; }
     }
+
     public class CallsInsert
     {
         public string? UserCaller { get; set; }
@@ -66,6 +67,13 @@
         public int? UserId { get; set; }
         public string? UniqueCallId { get; set; }
     }
+
+    public class CallsUpsert : CallsInsert
+    {
+        public int? Id { get; set; }
+        public Guid? Guid { get; set; }
+    }
+
     public class CallsInsertInbound
     {
         public string? UserCaller { get; set; }
