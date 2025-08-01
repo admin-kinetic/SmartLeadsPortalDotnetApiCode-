@@ -93,7 +93,7 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                     string _proc = "sm_spLeadProspectCallDetails";
                     var param = new DynamicParameters();
                     param.Add("@email", request.Email);
-                    SmartLeadsProspectDetails? result = await connection.QuerySingleOrDefaultAsync<SmartLeadsProspectDetails>(_proc, param, commandType: CommandType.StoredProcedure);
+                    SmartLeadsProspectDetails? result = await connection.QueryFirstOrDefaultAsync<SmartLeadsProspectDetails>(_proc, param, commandType: CommandType.StoredProcedure);
 
                     return result;
                 }

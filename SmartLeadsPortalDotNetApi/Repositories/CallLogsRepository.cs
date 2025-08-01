@@ -96,6 +96,75 @@ namespace SmartLeadsPortalDotNetApi.Repositories
                 return new ApiResponse(false, $"Database error: {ex.Message}", "DATABASE_ERROR");
             }
         }
+
+        public async Task<ApiResponse> UpsertCallLogsFromLeadDetails(CallsUpsert request)
+        {
+            await using var connection = await this.dbConnectionFactory.GetSqlConnectionAsync();
+            var leadExistsQuery = "SELECT COUNT(*) FROM Calls WHERE LeadEmail = @LeadEmail";
+            var leadExistsQueryResult = await connection.ExecuteScalarAsync<int>(leadExistsQuery, new { LeadEmail = request.LeadEmail });
+
+            if (request.CallDispositionId == 6) // when the call disposition is 'No available number'
+            {
+                request.CallStateId = 1;
+            }
+
+            if (leadExistsQueryResult == 0)
+            {
+                // return await InsertCallLogs(request, connection);
+                string procedure = "sm_spInsertCallLogs";
+                var param = new DynamicParameters();
+                param.Add("@usercaller", request.UserCaller);
+                param.Add("@userphonenumber", request.UserPhoneNumber);
+                param.Add("@leademail", request.LeadEmail);
+                param.Add("@prospectname", request.ProspectName);
+                param.Add("@prospectnumber", request.ProspectNumber);
+                param.Add("@callpurposeid", request.CallPurposeId);
+                param.Add("@calldispositionid", request.CallDispositionId);
+                param.Add("@calldirectionid", request.CallDirectionId);
+                param.Add("@notes", request.Notes);
+                param.Add("@calltagsid", request.CallTagsId);
+                param.Add("@callstateid", request.CallStateId);
+                param.Add("@duration", request.Duration);
+                param.Add("@addedby", request.AddedBy);
+                param.Add("@uniquecallid", request.UniqueCallId);
+                param.Add("@calleddate", null);
+                param.Add("@statisticid", null);
+                param.Add("@due", null);
+                param.Add("@userid", null);
+
+                await connection.ExecuteAsync(procedure, param, commandType: CommandType.StoredProcedure);
+                return new ApiResponse(true, "Call logs created successfully.");
+            }
+
+            var updateQuery = """
+                UPDATE [dbo].[Calls] SET 
+                    LeadEmail = @leadEmail,
+                    ProspectName = @prospectName,
+                    CallPurposeId = @callpurposeid,
+                    CallDispositionId = @calldispositionid, 
+                    Notes = @notes,
+                    CallTagsId = @calltagsid,
+                    CallStateId = @callStateId
+                WHERE GuId = @guid
+            """;
+
+            var updateQueryParams = new
+            {
+                leadEmail = request.LeadEmail,
+                prospectName = request.ProspectName,
+                callpurposeid = request.CallPurposeId,
+                calldispositionid = request.CallDispositionId,
+                notes = request.Notes,
+                calltagsid = request.CallTagsId,
+                callStateId = request.CallStateId,
+                guid = request.Guid
+            };
+
+            await connection.ExecuteAsync(updateQuery, updateQueryParams);
+            return new ApiResponse(true, "Call logs updated successfully.");
+        }
+
+
         public async Task<int> InsertInboundCallLogs(CallsInsertInbound keyword)
         {
             await Task.Delay(3000);

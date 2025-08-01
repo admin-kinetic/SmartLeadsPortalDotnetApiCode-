@@ -45,6 +45,20 @@ namespace SmartLeadsPortalDotNetApi.Controllers
             return BadRequest(response);
         }
 
+        [HttpPost("upsert-call-logs-from-lead-details")]
+        [EnableCors("CorsApi")]
+        public async Task<IActionResult> UpsertCallLogsFromLeadDetails([FromBody] CallsUpsert request)
+        {
+            var response = await _callLogsRepository.UpsertCallLogsFromLeadDetails(request);
+
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+
+            return BadRequest(response);
+        }
+
         [HttpPost("insert-call-logs-inbound")]
         [EnableCors("CorsApi")]
         public async Task<IActionResult> InsertInboundCallLogs([FromBody] CallsInsertInbound request)
